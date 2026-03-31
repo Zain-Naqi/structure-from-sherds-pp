@@ -1,0 +1,21 @@
+Experiment: no_edge_residual_icp
+ICP Refinement: True
+Trials: 5
+Seeds: 42 123 456 789 1024 
+Components active:
+  use_inlier_score        = 1
+  use_connectivity_reward = 1
+  use_cycle_penalty       = 1
+  use_edge_residual       = 0
+  use_rot_residual        = 1
+  use_neighbor_penalty    = 1
+
+Trial 1 seed=42 sherd=5/8 edge=5/15 fitness=642.782
+Trial 2 seed=123 sherd=5/8 edge=5/15 fitness=642.782
+Trial 3 seed=456 sherd=5/8 edge=5/15 fitness=642.782
+Trial 4 seed=789 sherd=5/8 edge=5/15 fitness=642.782
+Trial 5 seed=1024 sherd=5/8 edge=5/15 fitness=642.782
+
+Average sherd accuracy : 62.5%
+Average edge accuracy  : 33.3333%
+Average fitness        : 642.782

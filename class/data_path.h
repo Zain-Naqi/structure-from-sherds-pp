@@ -6,16 +6,16 @@
 #ifndef _DATA_PATH_H_
 #define _DATA_PATH_H_
 
-#define POT_A
-//#define POT_B
-//#define POT_C
-//#define POT_D
-// #define POT_E
-//#define POT_F
-//#define POT_G
-//#define POT_H
-//#define POT_I
-//#define POT_J
+#define POT_A	
+// #define POT_B
+// #define POT_C
+// #define POT_D	// Skip
+// #define POT_E	// Skip
+// #define POT_F
+// #define POT_G
+// #define POT_H	// Skip
+// #define POT_I	// Skip
+// #define POT_J	// Skip
 //#define POT_A_B_C
 //#define POT_D_E
 //#define POT_E_I
