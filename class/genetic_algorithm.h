@@ -26,6 +26,7 @@ public:
     bool use_edge_residual       = true;
     bool use_rot_residual        = true;
     bool use_neighbor_penalty    = true;
+    bool use_overlap_penalty     = true;
 
     struct Chromosome {
         vector<int> genes;
@@ -64,7 +65,32 @@ public:
         for (int i = 0; i < num_shards_; ++i) {
             transforms_[i].Set(I, zero, i + 1, 1);
         }
-        // Check # 04: The referenced relative to shard index is 1 here, which might need to be changed based on feedback from Check # 03
+
+        // --- Pre-calculate Sherd Geometry (for Overlap Penalty) ---
+        shard_centroids_.resize(num_shards_, Vector3d::Zero());
+        shard_radius_.resize(num_shards_, 0.0);
+
+        for (int i = 0; i < num_shards_; ++i) {
+            if (!IsShardValidAndOn(i)) continue;
+
+            const MatrixXd& pts = shard_[i].edge_line_.point_;
+            if (pts.cols() == 0) continue;
+
+            // Calculate Centroid (Center of Mass)
+            Vector3d centroid = Vector3d::Zero();
+            for (int p = 0; p < pts.cols(); ++p) {
+                centroid += pts.col(p);
+            }
+            centroid /= static_cast<double>(pts.cols());
+            shard_centroids_[i] = centroid;
+
+            // Calculate Adaptive Radius (Mean distance to centroid)
+            double avg_dist = 0.0;
+            for (int p = 0; p < pts.cols(); ++p) {
+                avg_dist += (pts.col(p) - centroid).norm();
+            }
+            shard_radius_[i] = avg_dist / static_cast<double>(pts.cols());
+        }
     }
 
     //-----------------------------------------------------------------------------------------------------------------//
@@ -127,6 +153,16 @@ public:
 
             population_ = next_population;
 
+            EvaluatePopulation();
+            sort(population_.begin(), population_.end(), [](const Chromosome& a, const Chromosome& b) {
+                return a.fitness > b.fitness;
+            });
+
+            EnforceDiversity();
+
+            sort(population_.begin(), population_.end(), [](const Chromosome& a, const Chromosome& b) {
+                return a.fitness > b.fitness;
+            });
         }
 
         EvaluatePopulation();
@@ -534,6 +570,52 @@ private:
                 fitness -= kConnectivityComponentPenalty * static_cast<double>(num_components - 1);
             }
         }
+
+        // --- Overlap Penalty (Physical occupancy check) ---
+        if (use_overlap_penalty) {
+            int start_node = -1;
+            for (int i = 0; i < num_shards_; ++i) {
+                if (IsShardValidAndOn(i)) { start_node = i; break; }
+            }
+
+            if (start_node != -1) {
+                vector<bool> vis(num_shards_, false);
+                vector<Matrix4d> T_comp(num_shards_, Matrix4d::Identity());
+                queue<int> q_comp;
+                q_comp.push(start_node);
+                vis[start_node] = true;
+                vector<int> placed;
+                placed.push_back(start_node);
+
+                while (!q_comp.empty()) {
+                    int curr = q_comp.front(); q_comp.pop();
+                    for (const auto& edge : pose_adj[curr]) {
+                        if (!vis[edge.first]) {
+                            T_comp[edge.first] = T_comp[curr] * edge.second;
+                            vis[edge.first] = true;
+                            placed.push_back(edge.first);
+                            q_comp.push(edge.first);
+                        }
+                    }
+                }
+
+                int overlap_violations = 0;
+                for (size_t i = 0; i < placed.size(); ++i) {
+                    for (size_t j = i + 1; j < placed.size(); ++j) {
+                        int idx1 = placed[i];
+                        int idx2 = placed[j];
+                        Vector4d c1_h; c1_h << shard_centroids_[idx1], 1.0;
+                        Vector4d c2_h; c2_h << shard_centroids_[idx2], 1.0;
+                        Vector3d gc1 = (T_comp[idx1] * c1_h).head<3>();
+                        Vector3d gc2 = (T_comp[idx2] * c2_h).head<3>();
+                        double dist = (gc1 - gc2).norm();
+                        double min_dist = (shard_radius_[idx1] + shard_radius_[idx2]) * kOverlapThresholdScale;
+                        if (dist < min_dist) overlap_violations++;
+                    }
+                }
+                fitness -= overlap_violations * kOverlapPenalty;
+            }
+        }
         
         return fitness;
     }
@@ -665,12 +747,27 @@ private:
                 }
 
                 int new_choice = old_choice;
-                const int kMaxResampleAttempts = 16;
 
-                for (int attempt = 0; attempt < kMaxResampleAttempts; ++attempt) {
-                    new_choice = SampleGroupChoice(i);
-                    if (new_choice != old_choice) {
-                        break;
+                // --- Symmetry-Aware Mutation ---
+                // 50% chance to pick an alternative candidate instead of using normal sampling
+                if ((rand() % 100) < 50) {
+                    int num_candidates = static_cast<int>(group.size());
+                    if (num_candidates > 1) {
+                         int draw = rand() % num_candidates;
+                         new_choice = draw + 1; 
+                         if (new_choice == old_choice) {
+                             new_choice = (draw + 1) % num_candidates + 1;
+                         }
+                    } else {
+                         new_choice = SampleGroupChoice(i);
+                    }
+                } else {
+                    const int kMaxResampleAttempts = 16;
+                    for (int attempt = 0; attempt < kMaxResampleAttempts; ++attempt) {
+                        new_choice = SampleGroupChoice(i);
+                        if (new_choice != old_choice) {
+                            break;
+                        }
                     }
                 }
 
@@ -748,8 +845,7 @@ private:
                 best_choice = alternatives[trial];
             }
         }
-
-        chromosome.genes[gene_idx] = best_choice;
+                    chromosome.genes[gene_idx] = best_choice;
         chromosome.fitness = best_fitness;
     }
 
@@ -834,6 +930,7 @@ private:
                 }
             }
 
+            // --- Pose Relaxation (Global Error Reduction) ---
             for (int iter = 0; iter < kPoseRelaxIterations; ++iter) {
                 vector<Matrix4d> updated = T_to_root;
                 bool changed = false;
@@ -895,23 +992,15 @@ private:
 
         cout << "[GA DEBUG] BFS reached " << reached << " / " << num_shards_ << " sherds" << endl;
 
-        for (int i = 0; i < num_shards_; i++) {
-            if (!IsShardValidAndOn(i)) continue;
-            cout << "[GA DEBUG] T_to_root[" << i << "] translations: " 
-            << T_to_root[i](0, 3) << " " 
-            << T_to_root[i](1, 3) << " "
-            << T_to_root[i](2, 3) << endl;
-        }
-
         Matrix3d I = Matrix3d::Identity();
         Vector3d zero = Vector3d::Zero();
         for (int i = 0; i < num_shards_; ++i) {
             transforms_[i].Set(I, zero, i + 1, 1);
-            if (!IsShardValidAndOn(i)) {
+            if (!visited[i] || !IsShardValidAndOn(i)) {
                 continue;
             }
             transforms_[i].Set(T_to_root[i], i + 1, 1);
-        }   
+        }
     }
 
     //-----------------------------------------------------------------------------------------------------------------//
@@ -919,6 +1008,90 @@ private:
     bool IsShardValidAndOn(int shard_idx) const
     {
         return (shard_idx >= 0) && (shard_idx < num_shards_) && shard_on_off[shard_idx];
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------//
+
+    Chromosome GenerateBiasedReplacement(const Chromosome& survivor)
+    {
+        Chromosome replacement;
+        replacement.genes.resize(survivor.genes.size(), 0);
+        replacement.fitness = 0.0;
+
+        struct ActiveGene {
+            size_t gene_idx;
+            int choice;
+            int inliners;
+        };
+        vector<ActiveGene> active_genes;
+
+        for (size_t i = 0; i < survivor.genes.size(); ++i) {
+            int choice = survivor.genes[i];
+            if (choice > 0) {
+                const vector<size_t>& group = pair_groups_[i];
+                int local_idx = choice - 1;
+                if (local_idx >= 0 && local_idx < static_cast<int>(group.size())) {
+                    int inl = matches_[group[local_idx]].inliner_;
+                    active_genes.push_back({i, choice, inl});
+                }
+            }
+        }
+
+        sort(active_genes.begin(), active_genes.end(), [](const ActiveGene& a, const ActiveGene& b) {
+            return a.inliners > b.inliners;
+        });
+
+        int keep_count = static_cast<int>(active_genes.size() * kBiasInheritRatio);
+        vector<bool> inherited(survivor.genes.size(), false);
+
+        for (int i = 0; i < keep_count; ++i) {
+            replacement.genes[active_genes[i].gene_idx] = active_genes[i].choice;
+            inherited[active_genes[i].gene_idx] = true;
+        }
+
+        vector<size_t> random_genes;
+        random_genes.reserve(survivor.genes.size() - keep_count);
+
+        for (size_t i = 0; i < survivor.genes.size(); ++i) {
+            if (!inherited[i]) {
+                replacement.genes[i] = SampleGroupChoice(i);
+                random_genes.push_back(i);
+            }
+        }
+
+        if (!random_genes.empty()) {
+            size_t repair_idx = random_genes[rand() % random_genes.size()];
+            GuidedRepair(replacement, repair_idx);
+        }
+
+        replacement.fitness = EvaluateFitness(replacement);
+        return replacement;
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------//
+
+    void EnforceDiversity()
+    {
+        if (population_.empty()) return;
+        int chromosome_length = static_cast<int>(population_.front().genes.size());
+        if (chromosome_length == 0) return;
+
+        int kDiversityK = chromosome_length / 3;
+
+        for (size_t i = kElitismCount; i < population_.size(); ++i) {
+            for (size_t j = i + 1; j < population_.size(); ++j) {
+                int hamming_distance = 0;
+                for (int g = 0; g < chromosome_length; ++g) {
+                    if (population_[i].genes[g] != population_[j].genes[g]) {
+                        hamming_distance++;
+                    }
+                }
+
+                if (hamming_distance < kDiversityK) {
+                    population_[j] = GenerateBiasedReplacement(population_[i]);
+                }
+            }
+        }
     }
 
     //-----------------------------------------------------------------------------------------------------------------//
@@ -996,7 +1169,8 @@ private:
     static constexpr int kPopulationSize = 100;
     static constexpr int kMaxGenerations = 100;
     static constexpr int kElitismCount = 2;
-    static constexpr double kMutationRate = 0.05;
+    static constexpr double kMutationRate = 0.08; 
+    static constexpr double kBiasInheritRatio = 0.4;
     static constexpr int kGuidedRepairTrials = 3;
     static constexpr double kInitialPairActivationRate = 0.3;
     static constexpr double kEdgeResidualThreshold = 50.0;
@@ -1008,6 +1182,10 @@ private:
     static constexpr int kPoseRelaxIterations = 5;
     static constexpr double kPoseRelaxAlpha = 0.5;
 
+    // Overlap constants
+    static constexpr double kOverlapPenalty = 1000.0;
+    static constexpr double kOverlapThresholdScale = 0.4; 
+
     vector<Geom> shard_;
     vector<LCSIndex> matches_;
     vector<vector<size_t>> pair_groups_;
@@ -1017,7 +1195,10 @@ private:
 
     vector<Trans> transforms_;
     MatrixXd graph_;
+
+    // Adaptive Geometry for overlap checks
+    vector<Vector3d> shard_centroids_;
+    vector<double> shard_radius_;
 };
 
 #endif
-
