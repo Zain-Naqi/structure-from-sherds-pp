@@ -3,3 +3,7 @@ build/Debug/
 build/Release/
 build/
 .vscode/
+Dataset/
+*.log
+*.cam
+*.png

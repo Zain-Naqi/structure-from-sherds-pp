@@ -56,165 +56,6 @@ void keyboardEventOccurred(const pcl::visualization::KeyboardEvent& event, void*
 
 //------------------------------------------------------------------------------------------------------------------------//
 
-struct AblationConfig {
-    std::string name;
-    bool use_inlier_score;
-    bool use_connectivity_reward;
-    bool use_cycle_penalty;
-    bool use_edge_residual;
-    bool use_rot_residual;
-    bool use_neighbor_penalty;
-    bool is_icp_refine;
-};
-
-std::vector<AblationConfig> ablation_experiments = {
-    { "all_components_no_icp",      true,  true,  true,  true,  true,  true,  false },
-    { "all_components_icp",         true,  true,  true,  true,  true,  true,  true  },
-    { "no_inlier_score_no_icp",     false, true,  true,  true,  true,  true,  false },
-    { "no_inlier_score_icp",        false, true,  true,  true,  true,  true,  true  },
-    { "no_connectivity_reward_no",  true,  false, true,  true,  true,  true,  false },
-    { "no_connectivity_reward_icp", true,  false, true,  true,  true,  true,  true  },
-    { "no_cycle_penalty_no_icp",    true,  true,  false, true,  true,  true,  false },
-    { "no_cycle_penalty_icp",       true,  true,  false, true,  true,  true,  true  },
-    { "no_edge_residual_no_icp",    true,  true,  true,  false, true,  true,  false },
-    { "no_edge_residual_icp",       true,  true,  true,  false, true,  true,  true  },
-    { "no_rot_residual_no_icp",     true,  true,  true,  true,  false, true,  false },
-    { "no_rot_residual_icp",        true,  true,  true,  true,  false, true,  true  },
-    { "no_neighbor_penalty_no_icp", true,  true,  true,  true,  true,  false, false },
-    { "no_neighbor_penalty_icp",    true,  true,  true,  true,  true,  false, true  },
-    { "inlier_score_only_no_icp",   true,  false, false, false, false, false, false },
-    { "inlier_score_only_icp",      true,  false, false, false, false, false, true  },
-    { "no_penalties_no_icp",        true,  true,  false, false, false, false, false },
-    { "no_penalties_icp",           true,  true,  false, false, false, false, true  },
-};
-
-const int kAblationTrials = 5;
-const std::vector<unsigned int> kAblationSeeds = {42, 123, 456, 789, 1024};
-
-std::vector<Trans> RunICPRefinement(
-    const std::list<LCSIndex>& LCS_original,
-    const std::vector<Geom>& shard_original,
-    const Eigen::MatrixXd& graph_ga,
-    const std::vector<Trans>& T_axis,
-    const std::vector<Trans>& T_ga_eval
-) {
-    std::list<LCSIndex> lcs_copy = LCS_original;
-    RankingSubgraph graph_icp(lcs_copy, SHARD_NUMBER);
-    graph_icp.node_[0] = true;
-    graph_icp.root_node_ = 1;
-    graph_icp.ResetMatchedIndex(shard_original);
-
-    std::vector<Geom> shard_icp = shard_original;
-
-    std::vector<int> placement_order;
-    std::vector<bool> bfs_placed(SHARD_NUMBER, false);
-    bfs_placed[0] = true;
-    placement_order.push_back(0);
-    std::queue<int> bfs_queue;
-    bfs_queue.push(0);
-    while (!bfs_queue.empty()) {
-        int curr = bfs_queue.front(); bfs_queue.pop();
-        for (int j = 0; j < SHARD_NUMBER; j++) {
-            if (!bfs_placed[j] && (graph_ga(curr, j) > 0 || graph_ga(j, curr) > 0)
-                && shard_on_off[j]) {
-                bfs_placed[j] = true;
-                placement_order.push_back(j);
-                bfs_queue.push(j);
-            }
-        }
-    }
-
-    for (int pi = 1; pi < (int)placement_order.size(); pi++) {
-        int current = placement_order[pi]; // 0-indexed
-
-        shard_icp = shard_original;
-
-        for (int k = 0; k < SHARD_NUMBER; k++) {
-            if (!graph_icp.node_[k]) continue;
-            Eigen::Matrix3d R_k = Eigen::Matrix3d::Identity();
-            Eigen::Vector3d t_k = Eigen::Vector3d::Zero();
-            graph_icp.T_[k].Output(R_k, t_k);
-            shard_icp[k].Move(R_k, t_k);
-        }
-
-        std::vector<RankingSubgraph> single_graph_vec;
-        single_graph_vec.push_back(graph_icp);
-        single_graph_vec[0].MakeHierarchyPriorityList(0, single_graph_vec);
-        graph_icp = single_graph_vec[0];
-
-        std::vector<Chunk> filtered_priority;
-        for (auto& chunk : graph_icp.priority_list_) {
-            bool has_root_edge = false;
-            for (int ei : chunk.i_edge) {
-                int sx = graph_icp.sub_graph_[ei].shard_x_;
-                int sy = graph_icp.sub_graph_[ei].shard_y_;
-                if (sx == 1 || sy == 1) {
-                    has_root_edge = true;
-                    break;
-                }
-            }
-            if (has_root_edge)
-                filtered_priority.push_back(chunk);
-        }
-        if (!filtered_priority.empty())
-            graph_icp.priority_list_ = filtered_priority;
-
-        if (graph_icp.priority_list_.empty()) {
-            graph_icp.node_[current] = true;
-            continue;
-        }
-
-        bool found = false;
-        for (int ci = 0; ci < (int)graph_icp.priority_list_.size(); ci++) {
-            if (graph_icp.priority_list_[ci].node == current + 1) {
-                graph_icp.priority_index_ = ci;
-                found = true;
-                break;
-            }
-        }
-        if (!found) {
-            graph_icp.node_[current] = true;
-            continue;
-        }
-
-        std::vector<TransHistory> history;
-        PrepareGraphBuilding(shard_icp, graph_icp, history, 0);
-
-        RankingSubgraph pregraph_step(SHARD_NUMBER);
-        for (int k = 0; k < SHARD_NUMBER; k++) {
-            if (k == current) continue; 
-            if (graph_icp.node_[k])
-                pregraph_step.node_[k] = true;
-        }
-        std::vector<RankingSubgraph> pregraph_vec = { pregraph_step };
-
-        std::vector<Eigen::Matrix3d> R_step(SHARD_NUMBER, Eigen::Matrix3d::Identity());
-        std::vector<Eigen::Vector3d> t_step(SHARD_NUMBER, Eigen::Vector3d::Zero());
-        int inlier_step = 0;
-        IcpIncGraphAxis(shard_icp, R_step, t_step, graph_icp,
-                        pregraph_vec, inlier_step, true, true);
-
-        for (int k = 0; k < SHARD_NUMBER; k++) {
-            if (!graph_icp.node_[k]) continue;
-            graph_icp.T_[k].Input(R_step[k], t_step[k]);
-        }
-    }
-
-    std::vector<Trans> T_ga_eval_icp = T_axis;
-    for (int k = 0; k < SHARD_NUMBER; k++) {
-        if (!shard_on_off[k]) continue;
-        if (k == 0) continue;
-        Eigen::Matrix3d R_k = Eigen::Matrix3d::Identity();
-        Eigen::Vector3d t_k = Eigen::Vector3d::Zero();
-        graph_icp.T_[k].Output(R_k, t_k);
-        T_ga_eval_icp[k].Input(R_k, t_k);
-    }
-    
-    return T_ga_eval_icp;
-}
-
-//------------------------------------------------------------------------------------------------------------------------//
-
 int main(int argc, char** argv) 
 {
 
@@ -415,197 +256,22 @@ int main(int argc, char** argv)
 
 	//------------------------------------------------------------------------------------------------------------------//
 
-	cout << "#################### Ablation Experiments ####################" << endl;
-
-	for (const AblationConfig& config : ablation_experiments) {
-		cout << "=== Ablation experiment: " << config.name << " ===" << endl;
-
-		// Per-config result accumulators
-		vector<int> sherd_correct(kAblationTrials, 0);
-		vector<int> sherd_total(kAblationTrials, 0);
-		vector<int> edge_correct(kAblationTrials, 0);
-		vector<int> edge_total(kAblationTrials, 0);
-		vector<double> best_fitness(kAblationTrials, 0.0);
-
-		for (int trial = 0; trial < kAblationTrials; ++trial) {
-			unsigned int seed = kAblationSeeds[trial];
-			srand(seed);
-
-			cout << "  Trial " << trial + 1 
-				 << " / " << kAblationTrials 
-				 << " (seed=" << seed << ")" << endl;
-
-			// Construct and configure GA
-			GeneticAssembler ga(shard, LCS_original, SHARD_NUMBER);
-			ga.use_inlier_score        = config.use_inlier_score;
-			ga.use_connectivity_reward = config.use_connectivity_reward;
-			ga.use_cycle_penalty       = config.use_cycle_penalty;
-			ga.use_edge_residual       = config.use_edge_residual;
-			ga.use_rot_residual        = config.use_rot_residual;
-			ga.use_neighbor_penalty    = config.use_neighbor_penalty;
-			ga.Run();
-
-			vector<Trans> T_ga_eval_abl = T_axis;
-            
-            if (config.is_icp_refine) {
-                T_ga_eval_abl = RunICPRefinement(LCS_original, shard, ga.GetGraph(), T_axis, T_ga_eval_abl);
-            } else {
-                vector<Trans> T_ga_abl = ga.GetTransforms();
-                for (int i = 0; i < SHARD_NUMBER; i++) {
-                    if (!shard_on_off[i]) continue;
-                    Matrix3d R = Matrix3d::Identity();
-                    Vector3d t = Vector3d::Zero();
-                    T_ga_abl[i].Output(R, t);
-                    T_ga_eval_abl[i].Input(R, t);
-                }
-            }
-
-			// Evaluate accuracy
-			vector<bool> right_sherd_abl(SHARD_NUMBER, true);
-			for (int i = 0; i < SHARD_NUMBER; i++) {
-				if (!shard_on_off[i]) right_sherd_abl[i] = false;
-			}
-
-			MatrixXd current_ga_graph = ga.GetGraph();
-			auto [ks, ts, ke, te] = CountResult(
-				GT_graph, GT_trans,
-				current_ga_graph, T_ga_eval_abl,
-				right_sherd_abl);
-
-			sherd_correct[trial] = ks;
-			sherd_total[trial]   = ts;
-			edge_correct[trial]  = ke;
-			edge_total[trial]    = te;
-			best_fitness[trial]  = ga.GetBestFitness();
-
-			cout << "  Sherd: " << ks << "/" << ts
-				 << "  Edge: "  << ke << "/" << te
-				 << "  Fitness: " << ga.GetBestFitness() << endl;
-
-			// Save visualisation result for this trial
-            string icp_folder = config.is_icp_refine ? "ICP_True/" : "ICP_False/";
-			string trial_path = path + "Result/ablation/" + icp_folder
-							  + config.name + "/trial_" 
-							  + to_string(trial + 1) + "/";
-
-            string mkdir_cmd = "mkdir -p \"" + trial_path + "\"";
-            int ret_ablation = std::system(mkdir_cmd.c_str());
-            (void)ret_ablation;
-
-            //########## Get time information for saving ##########//
-            struct tm* curr_tm;
-            time_t curr_time = time(nullptr);
-            curr_tm = localtime(&curr_time);
-            int year = curr_tm->tm_year + 1900;
-            int mon = curr_tm->tm_mon + 1;
-            int day = curr_tm->tm_mday;
-            int hour = curr_tm->tm_hour;
-            int min = curr_tm->tm_min;
-
-            // Here we use a different prefix from the standard
-            string com_path = trial_path + to_string(year) + "_" + to_string(mon) + "_"
-                + to_string(day) + "_" + to_string(hour) + "_" + to_string(min)
-                + "_Ablation_";
-            
-            for (int i = 0; i < SHARD_NUMBER; i++) {
-                if (shard_on_off[i]) {
-                    Matrix3d R_i_print = Matrix3d::Identity();
-                    Vector3d t_i_print = Vector3d::Zero();
-                    T_ga_eval_abl[i].Output(R_i_print, t_i_print);
-
-                    // Make a copy of piece i
-                    BreakLine edge_line_transformed = shard[i].edge_line_;
-                    EdgeLineMove(edge_line_transformed, R_i_print, t_i_print);
-                    
-                    // We save the original mesh transformed
-                    // First we transform original pc_origin mesh
-                    Matrix4d T_4d = Matrix4d::Identity();
-                    for(int r = 0; r < 3; r++) { T_4d.row(r) << R_i_print(r,0), R_i_print(r,1), R_i_print(r,2), t_i_print[r]; }
-                    
-                    pcl::PolygonMesh save_mesh;
-                    pc_origin[i].OutMesh(save_mesh);
-                    pcl::PointCloud<pcl::PointNormal> mesh_cloudp;
-                    pcl::fromPCLPointCloud2(save_mesh.cloud, mesh_cloudp);
-                    pcl::transformPointCloud(mesh_cloudp, mesh_cloudp, T_4d);
-                    pcl::toPCLPointCloud2(mesh_cloudp, save_mesh.cloud);
-
-                    string path_edge_line = com_path + "Edgeline_" + to_string(i + 1) + ".xyz";
-                    string path_obj = com_path + "OBJ_" + to_string(i + 1) + ".obj";
-                    SaveEdgeLine(edge_line_transformed, path_edge_line);
-                    pcl::io::saveOBJFile(path_obj, save_mesh);
-                }
-            }
-		}
-
-		// Compute and print summary statistics across trials
-		double avg_sherd = 0.0, avg_edge = 0.0, avg_fitness = 0.0;
-		for (int t = 0; t < kAblationTrials; t++) {
-			avg_sherd   += static_cast<double>(sherd_correct[t]) 
-						 / static_cast<double>(sherd_total[t]);
-			avg_edge    += static_cast<double>(edge_correct[t])  
-						 / static_cast<double>(edge_total[t]);
-			avg_fitness += best_fitness[t];
-		}
-		avg_sherd   /= kAblationTrials;
-		avg_edge    /= kAblationTrials;
-		avg_fitness /= kAblationTrials;
-
-		cout << "  [" << config.name << "] "
-			 << "Avg sherd accuracy: " << avg_sherd * 100.0 << "% "
-			 << "Avg edge accuracy: "  << avg_edge  * 100.0 << "% "
-			 << "Avg fitness: "        << avg_fitness << endl;
-
-		// Write summary to a text file in the config directory
-        string icp_folder = config.is_icp_refine ? "ICP_True/" : "ICP_False/";
-		string summary_path = path + "Result/ablation/" + icp_folder
-							+ config.name + "/summary.txt";
-		ofstream summary(summary_path);
-		summary << "Experiment: " << config.name << endl;
-        summary << "ICP Refinement: " << (config.is_icp_refine ? "True" : "False") << endl;
-		summary << "Trials: " << kAblationTrials << endl;
-		summary << "Seeds: ";
-		for (unsigned int s : kAblationSeeds) summary << s << " ";
-		summary << endl;
-		summary << "Components active:" << endl;
-		summary << "  use_inlier_score        = " << config.use_inlier_score        << endl;
-		summary << "  use_connectivity_reward = " << config.use_connectivity_reward << endl;
-		summary << "  use_cycle_penalty       = " << config.use_cycle_penalty       << endl;
-		summary << "  use_edge_residual       = " << config.use_edge_residual       << endl;
-		summary << "  use_rot_residual        = " << config.use_rot_residual        << endl;
-		summary << "  use_neighbor_penalty    = " << config.use_neighbor_penalty    << endl;
-		summary << endl;
-		for (int t = 0; t < kAblationTrials; t++) {
-			summary << "Trial " << t + 1
-					<< " seed=" << kAblationSeeds[t]
-					<< " sherd=" << sherd_correct[t] << "/" << sherd_total[t]
-					<< " edge="  << edge_correct[t]  << "/" << edge_total[t]
-					<< " fitness=" << best_fitness[t] << endl;
-		}
-		summary << endl;
-		summary << "Average sherd accuracy : " << avg_sherd   * 100.0 << "%" << endl;
-		summary << "Average edge accuracy  : " << avg_edge    * 100.0 << "%" << endl;
-		summary << "Average fitness        : " << avg_fitness          << endl;
-		summary.close();
-
-		cout << "  Summary saved to: " << summary_path << endl;
-	}
-
-	cout << "#################### Ablation experiments complete ####################" << endl;
-
-	//------------------------------------------------------------------------------------------------------------------//
-
 	cout << "#################### Genetic Algorithm search ####################" << endl;
 
 	// Iterative GA Parameters
 	const int kMaxGAIterations = 5;
 	const double kConvergenceThreshold = 5.0;	// minimum fitness improvement to continue
+	const int kMaxPatience = 5;
 
 	vector<Trans> T_ga;
 	MatrixXd graph_ga;
 	vector<Trans> T_ga_eval = T_axis;
-	vector<Trans> T_ga_vis(SHARD_NUMBER); // Separately track GA movement for visualization
+	vector<Trans> T_ga_vis(SHARD_NUMBER); // Tracks overall best GA movement (axis->assembled)
+	vector<Trans> T_live(SHARD_NUMBER);   // The currently exploring accumulated transform (axis->assembled)
+	vector<Trans> T_best(SHARD_NUMBER);   // The best accumulated transform
 	double prev_best_fitness =	 -1e9;
 	int ga_iteration = 0;
+	int patience_counter = 0;
 
 	// Keep a copy of original axis-aligned shard positions
 	// so we can reset between iterations cleanly
@@ -619,7 +285,17 @@ int main(int argc, char** argv)
 		GeneticAssembler ga_iter(shard, LCS_out, SHARD_NUMBER);
 		ga_iter.Run();
 		T_ga = ga_iter.GetTransforms();
-		graph_ga = ga_iter.GetGraph();
+
+		// Accumulate live transformation by composing delta (T_ga) on top of current T_live
+		// Trans::Input essentially executes T_live_new = T_delta * T_live_old
+		for (int i = 0; i < SHARD_NUMBER; ++i) {
+			if (!shard_on_off[i]) continue;
+			
+			Matrix3d R_delta;
+			Vector3d t_delta;
+			T_ga[i].Output(R_delta, t_delta);
+			T_live[i].Input(R_delta, t_delta);
+		}
 
 		// Get best fitness from this run
 		double current_fitness = ga_iter.GetBestFitness();
@@ -627,18 +303,23 @@ int main(int argc, char** argv)
 
 		// Only accumulate if this iteration improved fitness
 		if (current_fitness >= prev_best_fitness || ga_iteration == 0) {
+            
+            graph_ga = ga_iter.GetGraph();
+			T_best = T_live; // Snapshot the best axis-aligned transform
 
 			for (int i = 0; i < SHARD_NUMBER; ++i) {
-
 				if (!shard_on_off[i]) {
 					continue;
 				}
 
-				Matrix3d R = Matrix3d::Identity();
-				Vector3d t = Vector3d::Zero();
-				T_ga[i].Output(R, t);
-				T_ga_eval[i].Input(R, t);
-				T_ga_vis[i].Input(R, t); // Track only GA movement
+				Matrix3d R_b;
+				Vector3d t_b;
+				T_best[i].Output(R_b, t_b);
+				
+                // T_ga_eval tracks Raw -> Axis -> Assembled
+				T_ga_eval[i] = T_axis[i];
+				T_ga_eval[i].Input(R_b, t_b);
+				T_ga_vis[i] = T_best[i];
 			}
 		}
 
@@ -647,9 +328,18 @@ int main(int argc, char** argv)
 			 << " (improvement: " << improvement << ")" << endl;
 			
 		// Check convergence
-		if (ga_iteration > 0 && improvement < kConvergenceThreshold) {
-			cout << "[GA Iter " << ga_iteration + 1 << "] Converged. Stopping." << endl;
-			break;
+		if (ga_iteration > 0) {
+			if (improvement < kConvergenceThreshold) {
+				patience_counter++;
+				if (patience_counter >= kMaxPatience) {
+					cout << "[GA Iter " << ga_iteration + 1 << "] Converged after " << kMaxPatience << " successive non-improving iterations. Stopping." << endl;
+					break;
+				} else {
+					cout << "[GA Iter " << ga_iteration + 1 << "] Did not improve. Patience: " << patience_counter << " / " << kMaxPatience << endl;
+				}
+			} else {
+				patience_counter = 0;
+			}
 		}
 
 		prev_best_fitness = current_fitness;
@@ -668,9 +358,9 @@ int main(int argc, char** argv)
 				continue;
 			}
 
-			Matrix3d R = Matrix3d::Identity();
-			Vector3d t = Vector3d::Zero();
-			T_ga[i].Output(R, t);
+			Matrix3d R;
+			Vector3d t;
+			T_live[i].Output(R, t);
 			shard[i].Move(R, t, true);
 		}
 
@@ -702,164 +392,7 @@ int main(int argc, char** argv)
 	auto [k_sherd, t_sherd, k_edge, t_edge] = CountResult(GT_graph, GT_trans, graph_ga, T_ga_eval, right_sherd_ga);
 
 	//------------------------------------------------------------------------------------------------------------------//
-
-	// ---- Post-GA Incremental ICP Refinement (replicating BAISER flow) ----
-    bool is_icp_refine = true; // Set to false to skip ICP refinement and use EA result as-is
-
-    if (is_icp_refine) {
-        cout << "#################### Post-GA Incremental ICP Refinement ####################" << endl;
-
-    // Use the RankingSubgraph constructor that sets lcs_reference_ = LCS_original
-    // so MakeHierarchyPriorityList can pick and group edges correctly
-    RankingSubgraph graph_icp(LCS_original, SHARD_NUMBER);
-    graph_icp.node_[0] = true;
-    graph_icp.root_node_ = 1;
-    graph_icp.ResetMatchedIndex(shard_original);
-
-    // Work from axis-aligned original positions
-    vector<Geom> shard_icp = shard_original;
-
-    // Determine BFS placement order from graph_ga, starting from sherd 0 (root)
-    vector<int> placement_order;
-    vector<bool> bfs_placed(SHARD_NUMBER, false);
-    bfs_placed[0] = true;
-    placement_order.push_back(0);
-    queue<int> bfs_queue;
-    bfs_queue.push(0);
-    while (!bfs_queue.empty()) {
-        int curr = bfs_queue.front(); bfs_queue.pop();
-        for (int j = 0; j < SHARD_NUMBER; j++) {
-            if (!bfs_placed[j] && (graph_ga(curr, j) > 0 || graph_ga(j, curr) > 0)
-                && shard_on_off[j]) {
-                bfs_placed[j] = true;
-                placement_order.push_back(j);
-                bfs_queue.push(j);
-            }
-        }
-    }
-
-    // graph_icp.T_[k] accumulates total transform per sherd
-    // Root (sherd 0) stays identity throughout
-
-    for (int pi = 1; pi < (int)placement_order.size(); pi++) {
-        int current = placement_order[pi]; // 0-indexed
-
-        // STEP 1: Restore shard_icp to axis-aligned positions
-        shard_icp = shard_original;
-
-        // STEP 2: Re-apply accumulated transforms to all already-placed sherds
-        for (int k = 0; k < SHARD_NUMBER; k++) {
-            if (!graph_icp.node_[k]) continue;
-            Matrix3d R_k = Matrix3d::Identity();
-            Vector3d t_k = Vector3d::Zero();
-            graph_icp.T_[k].Output(R_k, t_k);
-            shard_icp[k].Move(R_k, t_k);
-        }
-
-        // STEP 3: Build priority list using full BAISER machinery
-        // Pass graph_icp by reference inside the vector so node_ state
-        // is current when MakeHierarchyPriorityList runs
-        vector<RankingSubgraph> single_graph_vec;
-        single_graph_vec.push_back(graph_icp);
-        single_graph_vec[0].MakeHierarchyPriorityList(0, single_graph_vec);
-        graph_icp = single_graph_vec[0];
-
-        // Filter priority_list_ to only keep chunks whose edges connect
-        // to the root (sherd 1). lcs.trans_ is only valid for root edges
-        // since non-root sherds have been moved by ICP and their
-        // precomputed transforms are stale.
-        vector<Chunk> filtered_priority;
-        for (auto& chunk : graph_icp.priority_list_) {
-            bool has_root_edge = false;
-            for (int ei : chunk.i_edge) {
-                int sx = graph_icp.sub_graph_[ei].shard_x_;
-                int sy = graph_icp.sub_graph_[ei].shard_y_;
-                if (sx == 1 || sy == 1) {
-                    has_root_edge = true;
-                    break;
-                }
-            }
-            if (has_root_edge)
-                filtered_priority.push_back(chunk);
-        }
-        if (!filtered_priority.empty())
-            graph_icp.priority_list_ = filtered_priority;
-
-        if (graph_icp.priority_list_.empty()) {
-            graph_icp.node_[current] = true;
-            continue;
-        }
-
-        // STEP 4: Set priority_index_ to the chunk targeting current sherd
-        // Find the chunk whose node matches current+1
-        bool found = false;
-        for (int ci = 0; ci < (int)graph_icp.priority_list_.size(); ci++) {
-            if (graph_icp.priority_list_[ci].node == current + 1) {
-                graph_icp.priority_index_ = ci;
-                found = true;
-                break;
-            }
-        }
-        if (!found) {
-            graph_icp.node_[current] = true;
-            continue;
-        }
-
-        // STEP 5: PrepareGraphBuilding — runs TransAverage + Move
-        // exactly as BAISER does in BuildState
-        vector<TransHistory> history;
-        PrepareGraphBuilding(shard_icp, graph_icp, history, 0);
-
-        // STEP 6: IcpIncGraphAxis — fresh R/t per call, same as BAISER BuildState
-        // Build pregraph to lock all already-placed sherds as fixed references
-        // so IcpIncGraphAxis cannot move them during optimization
-        RankingSubgraph pregraph_step(SHARD_NUMBER);
-        for (int k = 0; k < SHARD_NUMBER; k++) {
-            if (k == current) continue; // new sherd is the mover, not fixed
-            if (graph_icp.node_[k])
-                pregraph_step.node_[k] = true;
-        }
-        vector<RankingSubgraph> pregraph_vec = { pregraph_step };
-
-        vector<Matrix3d> R_step(SHARD_NUMBER, Matrix3d::Identity());
-        vector<Vector3d> t_step(SHARD_NUMBER, Vector3d::Zero());
-        int inlier_step = 0;
-        IcpIncGraphAxis(shard_icp, R_step, t_step, graph_icp,
-                        pregraph_vec, inlier_step, true, true);
-
-        // STEP 7: Store ICP delta into graph_icp.T_ for all placed sherds
-        // same as BAISER BuildState: graph.T_[i].Input(R[i], t[i])
-        for (int k = 0; k < SHARD_NUMBER; k++) {
-            if (!graph_icp.node_[k]) continue;
-            graph_icp.T_[k].Input(R_step[k], t_step[k]);
-        }
-
-
-    }
-
-    // Final evaluation: T_axis composed with graph_icp.T_[k]
-    vector<Trans> T_ga_eval_icp = T_axis;
-    for (int k = 0; k < SHARD_NUMBER; k++) {
-        if (!shard_on_off[k]) continue;
-        if (k == 0) continue;
-        Matrix3d R_k = Matrix3d::Identity();
-        Vector3d t_k = Vector3d::Zero();
-        graph_icp.T_[k].Output(R_k, t_k);
-        T_ga_eval_icp[k].Input(R_k, t_k);
-    }
-
-    // Evaluate
-    vector<bool> right_sherd_icp(SHARD_NUMBER, true);
-    for (int k = 0; k < SHARD_NUMBER; k++)
-        if (!shard_on_off[k]) right_sherd_icp[k] = false;
-
-    auto [k_sherd_icp, t_sherd_icp, k_edge_icp, t_edge_icp] = CountResult(
-        GT_graph, GT_trans, graph_ga, T_ga_eval_icp, right_sherd_icp);
-
-    cout << "########## Post-ICP Results ##########" << endl;
-    cout << "ICP Sherd Accuracy : " << k_sherd_icp << " / " << t_sherd_icp << endl;
-    cout << "ICP Edge Accuracy  : " << k_edge_icp << " / " << t_edge_icp << endl;
-    cout << "######################################" << endl;
+	cout << "#################### Post-GA Global ICP Refinement ####################" << endl;
 
 	// Apply GA transforms to get assembled positions for IcpFine
 	vector<Geom> shard_fine = shard_original;
@@ -872,7 +405,7 @@ int main(int argc, char** argv)
 		true_node_ga[i] = true;
 		Matrix3d R = Matrix3d::Identity();
 		Vector3d t = Vector3d::Zero();
-		T_ga_eval[i].Output(R, t);
+		T_ga_vis[i].Output(R, t); // Use T_ga_vis (axis->assembled) to prevent double T_axis application
 		shard_fine[i].Move(R, t, true);
 		// R_fine and t_fine stay as Identity/Zero
 		// IcpFine will output the delta refinement only
@@ -881,49 +414,66 @@ int main(int argc, char** argv)
 	MatrixXd graph_ga_fine = graph_ga;
 	IcpFine(shard_fine, R_fine, t_fine, true_node_ga, graph_ga_fine);
 
-	// Compose delta on top of T_ga_eval
+	// Compose delta on top of T_ga_eval and T_ga_vis
 	vector<Trans> T_ga_eval_fine = T_ga_eval;
+	vector<Trans> T_ga_vis_fine = T_ga_vis;
 	for (int i = 0; i < SHARD_NUMBER; i++) {
 		if (!true_node_ga[i]) continue;
 		T_ga_eval_fine[i].Input(R_fine[i], t_fine[i]);
+		T_ga_vis_fine[i].Input(R_fine[i], t_fine[i]);
 	}
-
 
 	// Evaluate fine result separately
 	vector<bool> right_sherd_fine(SHARD_NUMBER, true);
 	for (int i = 0; i < SHARD_NUMBER; i++) {
 		if (!shard_on_off[i]) right_sherd_fine[i] = false;
 	}
+	
+	auto [k_sherd_fine, t_sherd_fine, k_edge_fine, t_edge_fine] = CountResult(
+		GT_graph, GT_trans, graph_ga_fine, T_ga_eval_fine, right_sherd_fine);
+		
 	// Final result summary for refined assembly
-	sherd_acc = { k_sherd_icp, t_sherd_icp };
-	edge_acc = { k_edge_icp, t_edge_icp };
+	sherd_acc = { k_sherd_fine, t_sherd_fine };
+	edge_acc = { k_edge_fine, t_edge_fine };
 	double time_total = (clock() - s_time) / 1000.0;
 
 	cout << "########## Final Refined Results ##########" << endl;
-	cout << "Final Sherd Accuracy : " << k_sherd_icp << " / " << t_sherd_icp << endl;
-	cout << "Final Edge Accuracy  : " << k_edge_icp << " / " << t_edge_icp << endl;
+	cout << "Final Sherd Accuracy : " << k_sherd_fine << " / " << t_sherd_fine << endl;
+	cout << "Final Edge Accuracy  : " << k_edge_fine << " / " << t_edge_fine << endl;
 	cout << "Total Runtime        : " << time_total << " sec" << endl;
 	cout << "###########################################" << endl;
 
 	string path_result_refined = path + "Result/Refined_";
 	string refined_mkdir_cmd = "mkdir -p \"" + path_result_refined + "\"";
-	int ret = std::system(refined_mkdir_cmd.c_str());
-    (void)ret;
+	std::system(refined_mkdir_cmd.c_str());
 	SaveAcc(path_result_refined, sherd_acc, edge_acc, time_total);
 
 	for (int i = 0; i < SHARD_NUMBER; i++) {
 		pc_origin[i].TurnOffData(viewer);
 	}
 
-	// Apply ICP-refined relative transforms and show result.
-	// shard_original contains axis-aligned pieces.
-	// graph_icp.T_[i] contains the refinement relative to the root piece.
-	// Applying T_[i] to shard_original[i] results in the final assembly.
+	// Build Ground Truth assembly for comparison
+	vector<Visualize> pc_gt(SHARD_NUMBER);
+	for (int i = 0; i < SHARD_NUMBER; i++) {
+		if (!shard_on_off[i]) continue;
+		string pointName = "gt_origin_" + to_string(i + 1);
+		pc_gt[i].MakePointCloud(shard_original[i].edge_line_.point_, shard_original[i].edge_line_.normal_, pointName);
+		pointName = "gt_Mesh" + to_string(i + 1);
+		pc_gt[i].MakeMesh(obj_path[i], pointName);
+
+		Matrix3d R_gt;
+		Vector3d t_gt;
+		GT_trans[i].Output(R_gt, t_gt);
+		pc_gt[i].MeshTransform(R_gt, t_gt, viewer);
+		pc_gt[i].TurnOffData(viewer);
+	}
+
+	// Apply globally ICP-refined relative transforms and show initial result.
 	for (int i = 0; i < SHARD_NUMBER; i++) {
 		if (!shard_on_off[i]) continue;
 		Matrix3d R_vis = Matrix3d::Identity();
 		Vector3d t_vis = Vector3d::Zero();
-		graph_icp.T_[i].Output(R_vis, t_vis);
+		T_ga_vis_fine[i].Output(R_vis, t_vis); 
 		pc_origin[i].UpdateData(viewer,
 			shard_original[i].edge_line_.point_,
 			shard_original[i].edge_line_.normal_);
@@ -931,29 +481,29 @@ int main(int argc, char** argv)
 		pc_origin[i].AddPointCloud(viewer);
 		pc_origin[i].AddMesh(viewer);
 	}
-    } else {
-        cout << "#################### Skipping ICP Refinement ####################" << endl;
-        // Use T_ga_vis results (EA result) for visualization
-        for (int i = 0; i < SHARD_NUMBER; i++) {
-            if (!shard_on_off[i]) continue;
-            Matrix3d R_vis = Matrix3d::Identity();
-            Vector3d t_vis = Vector3d::Zero();
-            T_ga_vis[i].Output(R_vis, t_vis);
-            pc_origin[i].UpdateData(viewer,
-                shard_original[i].edge_line_.point_,
-                shard_original[i].edge_line_.normal_);
-            pc_origin[i].MeshTransform(R_vis, t_vis, viewer);
-            pc_origin[i].AddPointCloud(viewer);
-            pc_origin[i].AddMesh(viewer);
-        }
-    }
+
 	viewer->resetCamera();
 
-	//------------------------------------------------------------------------------------------------------------------//
-
-	// Simple viewer loop — press q to quit
-	cout << "Showing Refined assembly result. Press Q to quit." << endl;
-	while (!viewer->wasStopped()) {
+	// Interactive toggle loop — press 'G' to switch between GA and GT
+	bool last_ground = false; // Monitor toggle state
+	cout << "Showing Refined assembly. Press 'G' to toggle Ground Truth comparison! Press 'Q' to quit." << endl;
+	
+    while (!viewer->wasStopped()) {
+		if (vis.ground_ != last_ground) {
+			for (int i = 0; i < SHARD_NUMBER; i++) {
+				if (!shard_on_off[i]) continue;
+				if (vis.ground_) {
+					// SHOW GROUND TRUTH (Green tint)
+					pc_origin[i].TurnOffData(viewer);
+					pc_gt[i].AddMesh(viewer, 0.0, 1.0, 0.5); // Green-ish Cyan
+				} else {
+					// SHOW GA ASSEMBLY (Default)
+					pc_gt[i].TurnOffData(viewer);
+					pc_origin[i].AddMesh(viewer, 0.8, 0.8, 0.8); // Standard Grey
+				}
+			}
+			last_ground = vis.ground_;
+		}
 		viewer->spinOnce(100);
 	}
 

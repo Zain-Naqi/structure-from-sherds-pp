@@ -193,7 +193,7 @@ void VisSwitchVariables::KeyEvent(const string& str, const bool keydown)
 		left_ = true;
 	}
 	else if (str == "g" && keydown) {
-		ground_ = true;
+		ground_ = !ground_;
 	}
 	else if (str == "f" && keydown) {
 		fine_ = true;

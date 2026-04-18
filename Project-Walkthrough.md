@@ -26,12 +26,20 @@ The original assembly engine relied on a Beam Search algorithm ([RankingSubgraph
 We first replaced Beam Search with an Evolutionary Algorithm (EA).
 - **Mechanism:** The chromosome was represented as a continuous permutation string (ordering) of matches. The decoder would walk through the permutation and add matches to the assembly sequentially, skipping invalid overlaps.
 
-### **Phase 3: Binary-Choice Genetic Algorithm (Current Architecture)**
-We pivoted to a far more intuitive and effective **Binary-Choice Representation**.
-- **Mechanism:** Each candidate pairwise match (from [FeatureComp](file:///home/zain/Zain/Semester%206/CI/Project/SfS/structure-from-sherds-pp/class/feature_matching.cpp#1375-1495)) is assigned a boolean gene.
-  - `TRUE` = The match is active and included in the assembly.
-  - `FALSE` = The match is deactivated.
 - **Guided Repair (`RepairBinaryChromosome`):** Because multiple conflicting matches can exist for the exact same pair of sherds, we implemented a deterministic repair step. After crossover and mutation, the repair mechanism scans the bit-vector. If multiple matches are active for the exact same shard pair, it forcibly retains only the one with the highest inlier count, disabling the rest.
+
+### **Phase 4: Iterative Refinement GA (2024-Present State)**
+The current state of the GA is an **Iterative Refinement** system that moves beyond a single search pass to achieve higher structural convergence.
+- **Search & Refine Loop:** Instead of stopping after one GA run, the assembly now executes up to `5` Exploration-Refinement cycles.
+- **Dynamic Match Re-evaluation:** After each GA pass, the algorithm re-computes fracture matches using the *new* assembled positions of the sherds. This allows the system to discover "Tight-Fit" matches that were physically impossible to detect in the initial random-scatter state.
+- **Global Coordination:** The loop incorporates **Patience** and **Convergence** thresholds to prevent "drifting" and ensure the reconstruction stabilizes.
+- **Global ICP Synchronization:** The final structural lock is performed by a specialized **Global ICP (`IcpFine`)** pass, which solves the coordinate synchronization for the entire graph simultaneously, significantly reducing structural "damage" compared to legacy incremental methods.
+
+### **Population Diversity & Anti-Convergence**
+To prevent the Genetic Algorithm from getting "trapped" in local optima, we implemented a robust **Diversity Management** system:
+- **Hamming-Based Pruning:** In every generation, the algorithm calculates the **Hamming Distance** between all individuals. If two bit-strings are too similar (low divergence), one is pruned.
+- **Biased Random Injection:** Instead of simply keeping a smaller population, the GA replaces the pruned individuals with fresh **Biased Random** candidates.
+- **Biased Initialization:** These new individuals are not truly random; they use the `inlier_count` from the initial matching phase to "bias" which bits are likely to be `TRUE`, ensuring even the "New Blood" in the population is of high potential quality.
 
 ---
 
@@ -49,6 +57,7 @@ The heart of our Genetic Algorithm is the fitness evaluator ([EvaluateFitness](f
 | **Cycle Consistency** | Penalize physically impossible spatial loops (e.g. A->B->C->A creates a spatial gap). | `- (Sum of Loop Discrepancy Norms)` |
 | **Edge & Rot Residuals** | Penalize relative positional and rotational errors within the connected graph. | `- (Residual * PenaltyWeight)` |
 | **Neighbor Penalty** | Prevent a single sherd from connecting to an unrealistic number of neighbors. | `- (Neighbor Count - Limit)` |
+| **Overlap Penalty** | **(Neighbor-Aware)** Prevents physical interpenetration of sherd volumes while exempting adjacent topological neighbors. | `- (Volume Intersection * Const)` |
 
 ---
 
@@ -68,8 +77,21 @@ We have constructed a massive automated experiment block inside [main.cpp](file:
 
 ---
 
-## 5. Summary of Recent Bug Fixes
-As part of integrating the Ablation Loop and GA visualization, we solved the following critical issues:
-1. **Visualization Distortion (Double-Transforms):** Fixed a bug where viewing the GA-only assembly resulted in a scrambled mess because axis-alignment rotations were being redundantly applied onto already-transformed sherds.
-2. **`std::experimental::filesystem` Linker Error:** Replaced failing C++17 filesystem calls with legacy UNIX `system("mkdir -p ...")` commands to ensure compilation stability within the target Linux container.
-3. **PCL Typenames:** Corrected a `curvatures`/`normals` missing field error when writing out raw meshes during ablation trials by correctly typing the point clouds to `pcl::PointXYZ` instead of `pcl::PointNormal`.
+## 5. Summary of Recent Architectural Fixes
+1. **Geometric Penalty Optimization:** Refined the spatial occupancy evaluator to distinguish between "Interior Collisions" and "Surface Adjacency," allowing for significantly tighter and more accurate assemblies without triggering fitness penalties.
+2. **Memory Alignment:** Stabilized the data evaluation layer by cleaning up lvalue/rvalue reference handling in the accuracy assessment classes, ensuring reliable performance in high-memory environments.
+3. **Refinement Stability:** Standardized the transformation composition logic to prevent "Double-Rotation" errors during high-iteration GA searches.
+
+---
+
+## 6. Interactive Investigation Tools
+The reconstruction environment includes a real-time visualization layer to allow users to diagnose the assembly live.
+
+| Key | Action | Goal |
+| :---: | :--- | :--- |
+| **G** | **GT Toggle** | Instantly swaps between the current GA assembly and the Ground Truth model (toggled in Green). |
+| **Space** | **Advance** | Moves to the next stage of the pipeline (Axis -> Match -> Assemble). |
+| **O** | **OBJ Mode** | Displays the full 3D mesh reconstruction rather than just the fracture boundaries. |
+| **J** | **Screenshot** | Takes a screenshot of the current view and saves it as a PNG in the working directory. |
+| **F** | **Fine ICP** | Manually triggers a high-iteration ICP refinement pass. |
+| **Q** | **Quit** | Saves current results and exits the viewer. |
