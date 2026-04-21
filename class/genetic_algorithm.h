@@ -5,6 +5,7 @@
 #define _GENETIC_ALGORITHM_H_   
 
 #include <algorithm>
+#include <cmath>
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
@@ -25,12 +26,38 @@ public:
     bool use_cycle_penalty       = true;
     bool use_edge_residual       = true;
     bool use_rot_residual        = true;
-    bool use_neighbor_penalty    = true;
-    bool use_overlap_penalty     = true;
+    bool use_neighbor_penalty    = false;
+    bool use_overlap_penalty     = false;
+    bool use_pair_choice_penalty = false;
+    bool use_active_pair_range_penalty = false;
+
+    // Diagnostic controls: keep expensive logging/tests off by default.
+    bool enable_debug_logging = false;
+    bool enable_swap_diagnostics = false;
+    bool enable_pose_debug_logging = false;
+    int max_swap_diagnostics = 3;
 
     struct Chromosome {
         vector<int> genes;
         double fitness;
+    };
+
+    struct FitnessBreakdown {
+        double inlier_reward = 0.0;
+        double neighbor_penalty = 0.0;
+        double active_pair_range_penalty = 0.0;
+        double pair_choice_penalty = 0.0;
+        double cycle_penalty = 0.0;
+        double edge_residual_penalty = 0.0;
+        double edge_rot_residual_penalty = 0.0;
+        double overlap_penalty = 0.0;
+        double connectivity_reward = 0.0;
+        double connectivity_component_penalty = 0.0;
+        int active_pair_count = 0;
+        int valid_group_count = 0;
+        int largest_component = 0;
+        int num_components = 0;
+        double total_fitness = 0.0;
     };
 
     //-----------------------------------------------------------------------------------------------------------------//
@@ -40,11 +67,6 @@ public:
     {   
 
         for (list<LCSIndex>::const_iterator it = LCS_out.begin(); it != LCS_out.end(); ++it) {
-
-            // Check # 05: We can try to change this threshold of 10.0 everywhere in the file
-            if (it->score_ >= 500.0) {
-                continue;
-            }
             matches_.push_back(*it);
         }
         BuildPairGroups();
@@ -105,12 +127,14 @@ public:
             return;
         }
 
-        if (!matches_.empty()) {
+        if (enable_debug_logging && !matches_.empty()) {
             cout << "[GA DEBUG] First Match: shard_x_ = " << matches_[0].shard_x_ 
             << " shard_y_ = " << matches_[0].shard_y_ << endl;
         }
 
-        cout << "[GA DEBUG] Chromosome Length (Total Connections): " << pair_groups_.size() << endl;
+        if (enable_debug_logging) {
+            cout << "[GA DEBUG] Chromosome Length (Total Connections): " << pair_groups_.size() << endl;
+        }
 
         InitializePopulation();
 
@@ -138,16 +162,21 @@ public:
                 int mutated_gene1 = Mutate(child1);
 
                 if (mutated_gene1 >= 0) {
-                    GuidedRepair(child1, static_cast<size_t>(mutated_gene1));
+                    // GuidedRepair(child1, static_cast<size_t>(mutated_gene1));
                 }
+                EnsureSherdCoverage(child1);
+                RepairPositionCollisions(child1);
                 next_population.push_back(child1);
 
                 if (static_cast<int>(next_population.size()) < kPopulationSize) {
                     Chromosome child2 = Crossover(parent2, parent1);
                     int mutated_gene2 = Mutate(child2);
                     if (mutated_gene2 >= 0) {
-                        GuidedRepair(child2, static_cast<size_t>(mutated_gene2));
+                        // GuidedRepair(child2, static_cast<size_t>(mutated_gene2));
                     }
+
+                    EnsureSherdCoverage(child2);
+                    RepairPositionCollisions(child2);
 
                     next_population.push_back(child2);
                 }
@@ -173,29 +202,116 @@ public:
         });
 
         const Chromosome& best = population_.front();
+        const bool run_pair_diagnostics = enable_debug_logging || enable_swap_diagnostics;
+        FitnessBreakdown selected_breakdown;
+        double selected_total_fitness = 0.0;
         int active_count = 0;
-        for (size_t group_idx = 0; group_idx < best.genes.size(); ++group_idx) {
-            int choice = best.genes[group_idx];
-            if (choice <= 0) {
-                continue;
-            }
+        int swap_tests_ran = 0;
 
-            const vector<size_t>& group = pair_groups_[group_idx];
-            int local_idx = choice - 1;
-            if (local_idx < 0 || local_idx >= static_cast<int>(group.size())) {
-                continue;
-            }
-
-            const LCSIndex& lcs = matches_[group[local_idx]];
-            active_count++;
-            cout << "[GA DEBUG] Active match: shard_x_="
-                << lcs.shard_x_
-                << " shard_y_=" << lcs.shard_y_
-                << " inliner_=" << lcs.inliner_
-                << " score_=" << lcs.score_ << endl;
+        if (enable_swap_diagnostics) {
+            selected_total_fitness = EvaluateFitness(best, &selected_breakdown);
         }
 
-        cout << "[GA DEBUG] Total active matches: " << active_count << endl;
+        auto DensityScore = [](const LCSIndex& lcs) {
+            return static_cast<double>(lcs.inliner_) / (1.0 + lcs.score_);
+        };
+
+        if (run_pair_diagnostics) {
+            for (size_t group_idx = 0; group_idx < best.genes.size(); ++group_idx) {
+                const vector<size_t>& group = pair_groups_[group_idx];
+                if (group.empty()) {
+                    continue;
+                }
+
+                int pair_x = matches_[group[0]].shard_x_;
+                int pair_y = matches_[group[0]].shard_y_;
+
+                int best_local_idx = -1;
+                double best_local_density = -1.0;
+                for (size_t local = 0; local < group.size(); ++local) {
+                    const LCSIndex& candidate = matches_[group[local]];
+                    double density = DensityScore(candidate);
+                    if (density > best_local_density) {
+                        best_local_density = density;
+                        best_local_idx = static_cast<int>(local);
+                    }
+                }
+
+                int choice = best.genes[group_idx];
+                if (choice <= 0) {
+                    if (enable_debug_logging && best_local_idx >= 0) {
+                        const LCSIndex& best_candidate = matches_[group[best_local_idx]];
+                        cout << "[GA DEBUG][PAIR " << pair_x << "-" << pair_y << "] "
+                            << "inactive"
+                            << " | best_idx=" << (best_local_idx + 1)
+                            << " inlier=" << best_candidate.inliner_
+                            << " score=" << best_candidate.score_
+                            << " density=" << best_local_density
+                            << endl;
+                    }
+                    continue;
+                }
+
+                int local_idx = choice - 1;
+                if (local_idx < 0 || local_idx >= static_cast<int>(group.size())) {
+                    if (enable_debug_logging) {
+                        cout << "[GA DEBUG][PAIR " << pair_x << "-" << pair_y << "] "
+                            << "invalid_choice=" << choice
+                            << " (group size=" << group.size() << ")" << endl;
+                    }
+                    continue;
+                }
+
+                const LCSIndex& lcs = matches_[group[local_idx]];
+                active_count++;
+
+                if (enable_debug_logging) {
+                    cout << "[GA DEBUG] Active match: shard_x_="
+                        << lcs.shard_x_
+                        << " shard_y_=" << lcs.shard_y_
+                        << " inliner_=" << lcs.inliner_
+                        << " score_=" << lcs.score_ << endl;
+
+                    cout << "[GA DEBUG][PAIR " << pair_x << "-" << pair_y << "] "
+                        << "selected_idx=" << (local_idx + 1)
+                        << " / " << group.size()
+                        << " density=" << DensityScore(lcs)
+                        << " | best_idx=" << (best_local_idx + 1)
+                        << " density=" << best_local_density;
+
+                    if (best_local_idx != local_idx) {
+                        cout << " (non-best candidate selected)";
+                    }
+                    cout << endl;
+                }
+
+                if (enable_swap_diagnostics && best_local_idx != local_idx && best_local_idx >= 0) {
+                    if (swap_tests_ran >= max_swap_diagnostics) {
+                        continue;
+                    }
+
+                    Chromosome best_candidate_swap = best;
+                    best_candidate_swap.genes[group_idx] = best_local_idx + 1;
+
+                    FitnessBreakdown best_candidate_breakdown;
+                    double best_candidate_total_fitness = EvaluateFitness(best_candidate_swap, &best_candidate_breakdown);
+
+                    cout << "[GA DEBUG][PAIR " << pair_x << "-" << pair_y << "][SWAP TEST] "
+                         << "selected_total=" << selected_total_fitness
+                         << " best_candidate_total=" << best_candidate_total_fitness
+                         << " delta(best-selected)=" << (best_candidate_total_fitness - selected_total_fitness)
+                         << endl;
+
+                    PrintFitnessBreakdown(pair_x, pair_y, "selected_terms", selected_breakdown);
+                    PrintFitnessBreakdown(pair_x, pair_y, "best_candidate_terms", best_candidate_breakdown);
+                    swap_tests_ran++;
+                }
+            }
+
+            if (enable_debug_logging) {
+                cout << "[GA DEBUG] Total active matches: " << active_count << endl;
+            }
+        }
 
         BuildOutputsFromSelection(population_.front().genes);
         
@@ -248,6 +364,9 @@ private:
             for (size_t gene_idx = 0; gene_idx < chromosome.genes.size(); ++gene_idx) {
                 chromosome.genes[gene_idx] = SampleGroupChoice(gene_idx);
             }
+
+            EnsureSherdCoverage(chromosome);
+            RepairPositionCollisions(chromosome);
             population_.push_back(chromosome);
         }
     }
@@ -263,30 +382,73 @@ private:
 
     //-----------------------------------------------------------------------------------------------------------------//
 
+    void PrintFitnessBreakdown(int pair_x, int pair_y, const string& tag, const FitnessBreakdown& breakdown) const
+    {
+        cout << "[GA DEBUG][PAIR " << pair_x << "-" << pair_y << "][" << tag << "] "
+             << "total=" << breakdown.total_fitness
+             << " inlier_reward=" << breakdown.inlier_reward
+             << " pair_choice_pen=" << breakdown.pair_choice_penalty
+             << " range_pen=" << breakdown.active_pair_range_penalty
+             << " neighbor_pen=" << breakdown.neighbor_penalty
+             << " cycle_pen=" << breakdown.cycle_penalty
+             << " edge_res_pen=" << breakdown.edge_residual_penalty
+             << " edge_rot_pen=" << breakdown.edge_rot_residual_penalty
+             << " overlap_pen=" << breakdown.overlap_penalty
+             << " conn_reward=" << breakdown.connectivity_reward
+             << " conn_comp_pen=" << breakdown.connectivity_component_penalty
+             << " active_pairs=" << breakdown.active_pair_count
+             << " valid_groups=" << breakdown.valid_group_count
+             << " largest_comp=" << breakdown.largest_component
+             << " num_comp=" << breakdown.num_components
+             << endl;
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------//
+
     // Check # 13: The fitness function might need a thorough analysis again. Moreover, why are we not using functions in other files (feature_matchings, ranking_system, etc.) at all? We have only used LCS so far?
-    double EvaluateFitness(const Chromosome& chromosome) const
+    double EvaluateFitness(const Chromosome& chromosome, FitnessBreakdown* breakdown = nullptr) const
     {   
-                
-        int kMaxNeighbors = 0;
-        
-        // Check # 07: This logic might be incorrect given that it can count each shard multiple times because shard pairs can repeat in matches_
-        for (int i = 0; i < num_shards_; ++i) {
-            int count = 0;
-            for (size_t j = 0; j < matches_.size(); ++j) {
-                if (matches_[j].shard_x_ - 1 == i || matches_[j].shard_y_ - 1 == i) {
-                    count++;
-                }
-            }
-            kMaxNeighbors = max(kMaxNeighbors, count);
-            // Check # 08: Why is there a need of this max() code above? It can be removed.
+        if (breakdown != nullptr) {
+            *breakdown = FitnessBreakdown();
         }
 
-        // Cap at num_shards_ - 1 (maximum possible connections)
-        kMaxNeighbors = min(kMaxNeighbors, num_shards_ - 1);
+        const int kMaxNeighbors = max_neighbors_cap_;
+
+        int valid_shard_count = 0;
+        for (int shard_idx = 0; shard_idx < num_shards_; ++shard_idx) {
+            if (IsShardValidAndOn(shard_idx)) {
+                valid_shard_count++;
+            }
+        }
+
+        int valid_group_count = 0;
+        for (size_t group_idx = 0; group_idx < pair_groups_.size(); ++group_idx) {
+            if (group_idx >= group_rep_x_.size() || group_idx >= group_rep_y_.size()) {
+                continue;
+            }
+
+            int gx = group_rep_x_[group_idx];
+            int gy = group_rep_y_[group_idx];
+            if (gx < 0 || gy < 0) {
+                continue;
+            }
+
+            if (!IsShardValidAndOn(gx) || !IsShardValidAndOn(gy)) {
+                continue;
+            }
+
+            valid_group_count++;
+        }
+
+        if (breakdown != nullptr) {
+            breakdown->valid_group_count = valid_group_count;
+        }
 
         double fitness = 0.0;
         vector<int> neighbor_count(num_shards_, 0);
         vector<vector<int>> adjacency(num_shards_);
+        double pair_choice_gap_sum = 0.0;
+        int active_pair_count = 0;
 
         for (size_t group_idx = 0; group_idx < chromosome.genes.size(); group_idx++) {
             int choice = chromosome.genes[group_idx];
@@ -313,11 +475,31 @@ private:
             // Implementing the above Check # 09:
             // Higher inliers = better, lower score = better
             // Invert score so both terms pull in the same direction
+            double selected_density = 0.0;
             if (use_inlier_score) {
                 double score_weight = 1.0 / (1.0 + lcs.score_);
-                double density_score = static_cast<double>(lcs.inliner_) * score_weight;
-                fitness += density_score;
+                selected_density = static_cast<double>(lcs.inliner_) * score_weight;
+                fitness += selected_density;
+                if (breakdown != nullptr) {
+                    breakdown->inlier_reward += selected_density;
+                }
             }
+
+            if (use_pair_choice_penalty) {
+                double best_density = 0.0;
+                if (group_idx < group_best_density_.size()) {
+                    best_density = group_best_density_[group_idx];
+                }
+
+                if (best_density > kPairChoiceDensityEps) {
+                    double gap_ratio = (best_density - selected_density) / best_density;
+                    if (gap_ratio > 0.0) {
+                        pair_choice_gap_sum += gap_ratio;
+                    }
+                }
+            }
+
+            active_pair_count++;
 
             neighbor_count[x]++;
             neighbor_count[y]++;
@@ -325,15 +507,56 @@ private:
             adjacency[y].push_back(x);
         }
 
-        for (int shard_idx = 0; shard_idx < num_shards_; ++shard_idx) {
-            if (!IsShardValidAndOn(shard_idx)) {
-                continue;
-            }
-            // Check # 10: This condition might be totally illogical because neighbor_count[shard_idx] can never exceed kMaxNeighbors as per the above implementation. A more useful function migh help here.
-            if (neighbor_count[shard_idx] > kMaxNeighbors) {
-                if (use_neighbor_penalty) {
-                    fitness -= 50.0 * static_cast<double>(neighbor_count[shard_idx] - kMaxNeighbors);
+        if (use_neighbor_penalty) {
+            for (int shard_idx = 0; shard_idx < num_shards_; ++shard_idx) {
+                if (!IsShardValidAndOn(shard_idx)) {
+                    continue;
                 }
+
+                // Check # 10: This condition might be totally illogical because neighbor_count[shard_idx] can never exceed kMaxNeighbors as per the above implementation. A more useful function migh help here.
+                if (neighbor_count[shard_idx] > kMaxNeighbors) {
+                    double penalty = 50.0 * static_cast<double>(neighbor_count[shard_idx] - kMaxNeighbors);
+                    fitness -= penalty;
+                    if (breakdown != nullptr) {
+                        breakdown->neighbor_penalty += penalty;
+                    }
+                }
+            }
+        }
+
+        if (use_active_pair_range_penalty && valid_group_count > 0) {
+            int min_active = static_cast<int>(std::ceil(kMinActivePairRatio * static_cast<double>(valid_group_count)));
+            int max_active = static_cast<int>(std::floor(kMaxActivePairRatio * static_cast<double>(valid_group_count)));
+
+            int spanning_min = max(0, valid_shard_count - 1);
+            spanning_min = min(spanning_min, valid_group_count);
+            min_active = max(min_active, spanning_min);
+            max_active = max(max_active, min_active);
+
+            if (active_pair_count < min_active) {
+                double deficit = static_cast<double>(min_active - active_pair_count);
+                double penalty = kActivePairRangePenaltyWeight * deficit * deficit;
+                fitness -= penalty;
+                if (breakdown != nullptr) {
+                    breakdown->active_pair_range_penalty += penalty;
+                }
+            }
+            else if (active_pair_count > max_active) {
+                double excess = static_cast<double>(active_pair_count - max_active);
+                double penalty = (kActivePairRangePenaltyWeight * kExcessActivePairPenaltyScale) * excess * excess;
+                fitness -= penalty;
+                if (breakdown != nullptr) {
+                    breakdown->active_pair_range_penalty += penalty;
+                }
+            }
+        }
+
+        if (use_pair_choice_penalty && active_pair_count > 0) {
+            double avg_gap = pair_choice_gap_sum / static_cast<double>(active_pair_count);
+            double penalty = kPairChoicePenaltyWeight * avg_gap;
+            fitness -= penalty;
+            if (breakdown != nullptr) {
+                breakdown->pair_choice_penalty = penalty;
             }
         }
 
@@ -361,9 +584,18 @@ private:
             Matrix4d T_xy = Matrix4d::Identity();
             lcs.trans_.Output(T_xy);
 
-            auto key = make_pair(min(x, y), max(x, y));
+            int a = min(x, y);
+            int b = max(x, y);
+            Matrix4d T_ab = Matrix4d::Identity();
+            if (x == a && y == b) {
+                T_ab = T_xy;
+            } else {
+                T_ab = T_xy.inverse();
+            }
+
+            auto key = make_pair(a, b);
             if (active_transforms.find(key) == active_transforms.end()) {
-                active_transforms[key] = T_xy;
+                active_transforms[key] = T_ab;
             }
         }
 
@@ -402,7 +634,7 @@ private:
                     Matrix4d T_bc = active_transforms[key_bc];
                     Matrix4d T_ac = active_transforms[key_ac];
 
-                    Matrix4d T_composed = T_ab * T_bc;
+                    Matrix4d T_composed = T_bc * T_ab;
 
                     Vector3d t_composed = T_composed.block<3, 1>(0, 3);
                     Vector3d t_direct = T_ac.block<3, 1>(0, 3);
@@ -417,7 +649,11 @@ private:
         }
 
         if (use_cycle_penalty) {
-            fitness -= 2.0 * cycle_penalty;
+            double penalty = 2.0 * cycle_penalty;
+            fitness -= penalty;
+            if (breakdown != nullptr) {
+                breakdown->cycle_penalty = penalty;
+            }
         }
 
         struct PairEdge {
@@ -518,7 +754,7 @@ private:
 
                 root_used = true;
 
-                Matrix4d T_pred_ab = T_pose[edge.a].inverse() * T_pose[edge.b];
+                Matrix4d T_pred_ab = T_pose[edge.b].inverse() * T_pose[edge.a];
                 Vector3d t_pred = T_pred_ab.block<3, 1>(0, 3);
                 Vector3d t_ab = edge.T_ab.block<3, 1>(0, 3);
                 double residual = (t_pred - t_ab).norm();
@@ -555,55 +791,77 @@ private:
         }
 
         if (use_edge_residual) {
-            fitness -= kEdgeResidualPenalty * edge_residual_penalty;
+            double penalty = kEdgeResidualPenalty * edge_residual_penalty;
+            fitness -= penalty;
+            if (breakdown != nullptr) {
+                breakdown->edge_residual_penalty = penalty;
+            }
         }
         if (use_rot_residual) {
-            fitness -= kEdgeRotResidualPenalty * edge_rot_residual_penalty;
+            double penalty = kEdgeRotResidualPenalty * edge_rot_residual_penalty;
+            fitness -= penalty;
+            if (breakdown != nullptr) {
+                breakdown->edge_rot_residual_penalty = penalty;
+            }
         }
 
         // --- Overlap Penalty (Physical occupancy check to handle symmetry) ---
         if (use_overlap_penalty) {
-            int start_node = -1;
-            for (int i = 0; i < num_shards_; ++i) {
-                if (IsShardValidAndOn(i)) { start_node = i; break; }
-            }
+            vector<bool> vis_global(num_shards_, false);
+            int overlap_violations = 0;
 
-            if (start_node != -1) {
-                vector<bool> vis(num_shards_, false);
+            for (int start_node = 0; start_node < num_shards_; ++start_node) {
+                if (!IsShardValidAndOn(start_node) || vis_global[start_node]) {
+                    continue;
+                }
+
                 vector<Matrix4d> T_comp(num_shards_, Matrix4d::Identity());
                 queue<int> q_comp;
-                q_comp.push(start_node);
-                vis[start_node] = true;
                 vector<int> placed;
+
+                q_comp.push(start_node);
+                vis_global[start_node] = true;
                 placed.push_back(start_node);
 
                 while (!q_comp.empty()) {
-                    int curr = q_comp.front(); q_comp.pop();
+                    int curr = q_comp.front();
+                    q_comp.pop();
+
                     for (const auto& edge : pose_adj[curr]) {
-                        if (!vis[edge.first]) {
-                            T_comp[edge.first] = T_comp[curr] * edge.second;
-                            vis[edge.first] = true;
-                            placed.push_back(edge.first);
-                            q_comp.push(edge.first);
+                        if (vis_global[edge.first]) {
+                            continue;
                         }
+
+                        T_comp[edge.first] = T_comp[curr] * edge.second;
+                        vis_global[edge.first] = true;
+                        placed.push_back(edge.first);
+                        q_comp.push(edge.first);
                     }
                 }
 
-                int overlap_violations = 0;
                 for (size_t i = 0; i < placed.size(); ++i) {
                     for (size_t j = i + 1; j < placed.size(); ++j) {
                         int idx1 = placed[i];
                         int idx2 = placed[j];
-                        Vector4d c1_h; c1_h << shard_centroids_[idx1], 1.0;
-                        Vector4d c2_h; c2_h << shard_centroids_[idx2], 1.0;
+                        Vector4d c1_h;
+                        c1_h << shard_centroids_[idx1], 1.0;
+                        Vector4d c2_h;
+                        c2_h << shard_centroids_[idx2], 1.0;
                         Vector3d gc1 = (T_comp[idx1] * c1_h).head<3>();
                         Vector3d gc2 = (T_comp[idx2] * c2_h).head<3>();
                         double dist = (gc1 - gc2).norm();
                         double min_dist = (shard_radius_[idx1] + shard_radius_[idx2]) * kOverlapThresholdScale;
-                        if (dist < min_dist) overlap_violations++;
+                        if (dist < min_dist) {
+                            overlap_violations++;
+                        }
                     }
                 }
-                fitness -= overlap_violations * kOverlapPenalty;
+            }
+
+            double penalty = overlap_violations * kOverlapPenalty;
+            fitness -= penalty;
+            if (breakdown != nullptr) {
+                breakdown->overlap_penalty = penalty;
             }
         }
 
@@ -612,11 +870,26 @@ private:
 
         AnalyzeConnectedComponents(adjacency, largest_component, num_components);
         if (use_connectivity_reward) {
-            fitness += kConnectivityReward * static_cast<double>(largest_component);
+            double reward = kConnectivityReward * static_cast<double>(largest_component);
+            fitness += reward;
+            if (breakdown != nullptr) {
+                breakdown->connectivity_reward = reward;
+            }
 
             if (num_components > 1) {
-                fitness -= kConnectivityComponentPenalty * static_cast<double>(num_components - 1);
+                double penalty = kConnectivityComponentPenalty * static_cast<double>(num_components - 1);
+                fitness -= penalty;
+                if (breakdown != nullptr) {
+                    breakdown->connectivity_component_penalty = penalty;
+                }
             }
+        }
+
+        if (breakdown != nullptr) {
+            breakdown->active_pair_count = active_pair_count;
+            breakdown->largest_component = largest_component;
+            breakdown->num_components = num_components;
+            breakdown->total_fitness = fitness;
         }
         
         return fitness;
@@ -751,43 +1024,53 @@ private:
                 int new_choice = old_choice;
 
                 // --- Symmetry Aware Mutation (Symmetry Flip) ---
-                // 50% chance to perform a "Symmetry Flip" (pick a non-weighted alternative)
-                // 50% chance to follow standard inlier-weighted sampling
-                if ((rand() % 100) < 50) {
+                // Keep a small chance of random alternative to preserve exploration.
+                double symmetry_flip_prob = static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+                if (symmetry_flip_prob < kSymmetryFlipRate) {
                     // Forced Symmetry Flip: Pick any other candidate except the current one or 'inactive'
                     // This forces the GA to explore the alternative high-quality matches in the group
                     int num_candidates = static_cast<int>(group.size());
                     if (num_candidates > 1) {
-                         int draw = rand() % num_candidates;
-                         new_choice = draw + 1; 
-                         if (new_choice == old_choice) {
-                             new_choice = (draw + 1) % num_candidates + 1;
-                         }
+                        //  int draw = rand() % num_candidates;
+                        //  new_choice = draw + 1; 
+                        //  if (new_choice == old_choice) {
+                        //      new_choice = (draw + 1) % num_candidates + 1;
+                        //  }
+                        while (new_choice != old_choice) {
+                            new_choice = SampleGroupChoice(i);
+                        }
                     } else {
-                         new_choice = SampleGroupChoice(i);
-                    }
-                } else {
-                    const int kMaxResampleAttempts = 16;
-                    for (int attempt = 0; attempt < kMaxResampleAttempts; ++attempt) {
-                        new_choice = SampleGroupChoice(i);
-                        if (new_choice != old_choice) {
-                            break;
+                        //  new_choice = SampleGroupChoice(i);
+                        if (old_choice == 0){
+                            new_choice = 1;
+                        }
+                        else {
+                            new_choice = 0;
                         }
                     }
-                }
+                } 
+                // else {
+                //     const int kMaxResampleAttempts = 16;
+                //     for (int attempt = 0; attempt < kMaxResampleAttempts; ++attempt) {
+                //         new_choice = SampleGroupChoice(i);
+                //         if (new_choice != old_choice) {
+                //             break;
+                //         }
+                //     }
+                // }
 
-                if (new_choice == old_choice) {
-                    int clamped_old = old_choice;
-                    if (clamped_old < 0 || clamped_old >= num_options) {
-                        clamped_old = 0;
-                    }
+                // if (new_choice == old_choice) {
+                //     int clamped_old = old_choice;
+                //     if (clamped_old < 0 || clamped_old >= num_options) {
+                //         clamped_old = 0;
+                //     }
 
-                    int draw = rand() % (num_options - 1);
-                    if (draw >= clamped_old) {
-                        draw++;
-                    }
-                    new_choice = draw;
-                }
+                //     int draw = rand() % (num_options - 1);
+                //     if (draw >= clamped_old) {
+                //         draw++;
+                //     }
+                //     new_choice = draw;
+                // }
 
                 chromosome.genes[i] = new_choice;
                 mutated_count++;
@@ -866,6 +1149,21 @@ private:
             Matrix4d T_to_current;
             double weight; 
         };
+
+        struct FrontierEdge {
+            double weight;
+            int from;
+            int to;
+            Matrix4d T_to_from;
+        };
+
+        struct FrontierEdgeCompare {
+            bool operator()(const FrontierEdge& lhs, const FrontierEdge& rhs) const
+            {
+                return lhs.weight < rhs.weight;
+            }
+        };
+
         vector<vector<AdjEdge>> adjacency(num_shards_);
         
         for (size_t group_idx = 0; group_idx < genes.size(); ++group_idx) {
@@ -887,10 +1185,6 @@ private:
                 continue;
             }
 
-            if (lcs.score_ >= 100.0) {
-                continue;
-            }
-
             graph_(x, y) = 1;
             graph_(y, x) = 1;
 
@@ -904,105 +1198,149 @@ private:
         }
 
         vector<bool> visited(num_shards_, false);
+        vector<bool> is_component_root(num_shards_, false);
         vector<Matrix4d> T_to_root(num_shards_, Matrix4d::Identity());
 
-        int bfs_root = -1;
-        for (int i = 0; i < num_shards_; i++) {
-            if (IsShardValidAndOn(i)) {
-                bfs_root = i;
+        // Build an initial pose per connected component using highest-confidence frontier expansion.
+        for (int root = 0; root < num_shards_; ++root) {
+            if (!IsShardValidAndOn(root) || visited[root]) {
+                continue;
+            }
+
+            visited[root] = true;
+            is_component_root[root] = true;
+
+            priority_queue<FrontierEdge, vector<FrontierEdge>, FrontierEdgeCompare> frontier;
+            for (size_t i = 0; i < adjacency[root].size(); ++i) {
+                const AdjEdge& edge = adjacency[root][i];
+                if (!visited[edge.to]) {
+                    frontier.push({ edge.weight, root, edge.to, edge.T_to_current });
+                }
+            }
+
+            while (!frontier.empty()) {
+                FrontierEdge top = frontier.top();
+                frontier.pop();
+
+                if (visited[top.to]) {
+                    continue;
+                }
+
+                visited[top.to] = true;
+                T_to_root[top.to] = T_to_root[top.from] * top.T_to_from;
+
+                for (size_t i = 0; i < adjacency[top.to].size(); ++i) {
+                    const AdjEdge& edge = adjacency[top.to][i];
+                    if (!visited[edge.to]) {
+                        frontier.push({ edge.weight, top.to, edge.to, edge.T_to_current });
+                    }
+                }
+            }
+        }
+
+        // Refine component poses by averaging both translation and rotation predictions.
+        for (int iter = 0; iter < kPoseRelaxIterations; ++iter) {
+            vector<Matrix4d> updated = T_to_root;
+            bool changed = false;
+
+            for (int node = 0; node < num_shards_; ++node) {
+                if (!visited[node] || !IsShardValidAndOn(node) || is_component_root[node]) {
+                    continue;
+                }
+
+                Vector3d t_acc = Vector3d::Zero();
+                Vector4d q_acc = Vector4d::Zero();
+                double w_sum = 0.0;
+                bool have_rotation = false;
+                Quaterniond q_ref(1.0, 0.0, 0.0, 0.0);
+
+                for (int from = 0; from < num_shards_; ++from) {
+                    if (!visited[from] || !IsShardValidAndOn(from)) {
+                        continue;
+                    }
+
+                    for (size_t k = 0; k < adjacency[from].size(); ++k) {
+                        if (adjacency[from][k].to != node) {
+                            continue;
+                        }
+
+                        Matrix4d pred = T_to_root[from] * adjacency[from][k].T_to_current;
+                        Vector3d t_pred = pred.block<3, 1>(0, 3);
+                        Matrix3d R_pred = pred.block<3, 3>(0, 0);
+                        Quaterniond q_pred(R_pred);
+
+                        if (!have_rotation) {
+                            q_ref = q_pred;
+                            have_rotation = true;
+                        }
+
+                        if (q_ref.dot(q_pred) < 0.0) {
+                            q_pred.coeffs() *= -1.0;
+                        }
+
+                        double w = adjacency[from][k].weight;
+                        t_acc += w * t_pred;
+                        q_acc += w * q_pred.coeffs();
+                        w_sum += w;
+                    }
+                }
+
+                if (!have_rotation || w_sum <= 0.0) {
+                    continue;
+                }
+
+                Vector3d t_old = T_to_root[node].block<3, 1>(0, 3);
+                Matrix3d R_old = T_to_root[node].block<3, 3>(0, 0);
+                Quaterniond q_old(R_old);
+
+                Vector3d t_est = t_acc / w_sum;
+                Quaterniond q_est;
+                q_est.coeffs() = q_acc / w_sum;
+                if (q_est.norm() <= 1.0e-12) {
+                    continue;
+                }
+                q_est.normalize();
+
+                if (q_old.dot(q_est) < 0.0) {
+                    q_est.coeffs() *= -1.0;
+                }
+
+                Quaterniond q_new = q_old.slerp(kPoseRelaxAlpha, q_est);
+                q_new.normalize();
+                Vector3d t_new = ((1.0 - kPoseRelaxAlpha) * t_old) + (kPoseRelaxAlpha * t_est);
+
+                if ((t_new - t_old).norm() > 1.0e-6 || q_old.angularDistance(q_new) > 1.0e-6) {
+                    changed = true;
+                }
+
+                updated[node].setIdentity();
+                updated[node].block<3, 3>(0, 0) = q_new.toRotationMatrix();
+                updated[node].block<3, 1>(0, 3) = t_new;
+            }
+
+            T_to_root = updated;
+            if (!changed) {
                 break;
             }
         }
 
-        if (bfs_root >= 0) {
-            queue<int> q;
-            q.push(bfs_root);
-            visited[bfs_root] = true;
-
-            while (!q.empty()) {
-                int current = q.front();
-                q.pop();
-
-                for (size_t i = 0; i < adjacency[current].size(); ++i) {
-                    int next = adjacency[current][i].to;
-                    const Matrix4d& T_next_current = adjacency[current][i].T_to_current; 
-                    if (visited[next]) {
-                        continue;
-                    }
-
-                    T_to_root[next] = T_to_root[current] * T_next_current;
-                    visited[next] = true;
-                    q.push(next);
+        if (enable_pose_debug_logging) {
+            int reached = 0;
+            for (int i = 0; i < num_shards_; i++) {
+                if (visited[i]) {
+                    reached++;
                 }
             }
 
-            for (int iter = 0; iter < kPoseRelaxIterations; ++iter) {
-                vector<Matrix4d> updated = T_to_root;
-                bool changed = false;
+            cout << "[GA DEBUG] BFS reached " << reached << " / " << num_shards_ << " sherds" << endl;
 
-                for (int node = 0; node < num_shards_; ++node) {
-                    if (!visited[node] || node == bfs_root || !IsShardValidAndOn(node)) {
-                        continue;
-                    }
-
-                    Vector3d t_acc = Vector3d::Zero();
-                    double w_sum = 0.0;
-
-                    for (int from = 0; from < num_shards_; ++from) {
-                        if (!visited[from] || !IsShardValidAndOn(from)) {
-                            continue;
-                        }
-
-                        for (size_t k = 0; k < adjacency[from].size(); ++k) {
-                            if (adjacency[from][k].to != node) {
-                                continue;
-                            }
-
-                            Matrix4d pred = T_to_root[from] * adjacency[from][k].T_to_current;
-                            Vector3d t_pred = pred.block<3, 1>(0, 3);
-                            double w = adjacency[from][k].weight;
-                            t_acc += w * t_pred;
-                            w_sum += w;
-                        }
-                    }
-
-                    if (w_sum <= 0.0) {
-                        continue;
-                    }
-
-                    Vector3d t_old = T_to_root[node].block<3, 1>(0, 3);
-                    Vector3d t_est = t_acc / w_sum;
-                    Vector3d t_new = ((1.0 - kPoseRelaxAlpha) * t_old) +  (kPoseRelaxAlpha * t_est);
-
-                    if ((t_new - t_old).norm() > 1.0e-6) {
-                        changed = true;
-                    }
-
-                    updated[node].block<3, 1>(0, 3) = t_new;
-                }
-
-                T_to_root = updated;
-                if (!changed) {
-                    break;
-                }
+            for (int i = 0; i < num_shards_; i++) {
+                if (!IsShardValidAndOn(i)) continue;
+                cout << "[GA DEBUG] T_to_root[" << i << "] translations: " 
+                << T_to_root[i](0, 3) << " " 
+                << T_to_root[i](1, 3) << " "
+                << T_to_root[i](2, 3) << endl;
             }
-        }
-
-        int reached = 0;
-        for (int i = 0; i < num_shards_; i++) {
-            if (visited[i]) {
-                reached++;
-            }
-        }
-
-        cout << "[GA DEBUG] BFS reached " << reached << " / " << num_shards_ << " sherds" << endl;
-
-        for (int i = 0; i < num_shards_; i++) {
-            if (!IsShardValidAndOn(i)) continue;
-            cout << "[GA DEBUG] T_to_root[" << i << "] translations: " 
-            << T_to_root[i](0, 3) << " " 
-            << T_to_root[i](1, 3) << " "
-            << T_to_root[i](2, 3) << endl;
         }
 
         Matrix3d I = Matrix3d::Identity();
@@ -1028,6 +1366,8 @@ private:
     void BuildPairGroups()
     {
         pair_groups_.clear();
+        sherd_incident_groups_.clear();
+        sherd_incident_groups_.resize(num_shards_);
         map<pair<int, int>, vector<size_t>> grouped;
 
         for (size_t i = 0; i < matches_.size(); ++i) {
@@ -1046,6 +1386,377 @@ private:
 
         for (map<pair<int, int>, vector<size_t>>::const_iterator it = grouped.begin(); it != grouped.end(); ++it) {
             pair_groups_.push_back(it->second);
+
+            if (it->second.empty()) {
+                continue;
+            }
+
+            const LCSIndex& representative = matches_[it->second[0]];
+            int x = representative.shard_x_ - 1;
+            int y = representative.shard_y_ - 1;
+            if (x >= 0 && x < num_shards_ && y >= 0 && y < num_shards_) {
+                size_t group_idx = pair_groups_.size() - 1;
+                sherd_incident_groups_[x].push_back(group_idx);
+                sherd_incident_groups_[y].push_back(group_idx);
+            }
+        }
+
+        PrecomputeStaticCaches();
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------//
+
+    void PrecomputeStaticCaches()
+    {
+        max_neighbors_cap_ = 0;
+        vector<int> incident_count(num_shards_, 0);
+
+        for (size_t i = 0; i < matches_.size(); ++i) {
+            int x = matches_[i].shard_x_ - 1;
+            int y = matches_[i].shard_y_ - 1;
+            if (x < 0 || x >= num_shards_ || y < 0 || y >= num_shards_ || x == y) {
+                continue;
+            }
+
+            incident_count[x]++;
+            incident_count[y]++;
+        }
+
+        for (int i = 0; i < num_shards_; ++i) {
+            max_neighbors_cap_ = max(max_neighbors_cap_, incident_count[i]);
+        }
+        max_neighbors_cap_ = min(max_neighbors_cap_, max(0, num_shards_ - 1));
+
+        group_best_density_.assign(pair_groups_.size(), 0.0);
+        group_rep_x_.assign(pair_groups_.size(), -1);
+        group_rep_y_.assign(pair_groups_.size(), -1);
+
+        for (size_t group_idx = 0; group_idx < pair_groups_.size(); ++group_idx) {
+            const vector<size_t>& group = pair_groups_[group_idx];
+            if (group.empty()) {
+                continue;
+            }
+
+            const LCSIndex& representative = matches_[group[0]];
+            group_rep_x_[group_idx] = representative.shard_x_ - 1;
+            group_rep_y_[group_idx] = representative.shard_y_ - 1;
+
+            double best_density = 0.0;
+            for (size_t local_idx = 0; local_idx < group.size(); ++local_idx) {
+                const LCSIndex& lcs = matches_[group[local_idx]];
+                double density = static_cast<double>(lcs.inliner_) / (1.0 + lcs.score_);
+                if (density > best_density) {
+                    best_density = density;
+                }
+            }
+
+            group_best_density_[group_idx] = best_density;
+        }
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------//
+
+    int BestLocalChoiceForGroup(size_t group_idx) const
+    {
+        if (group_idx >= pair_groups_.size()) {
+            return 0;
+        }
+
+        const vector<size_t>& group = pair_groups_[group_idx];
+        if (group.empty()) {
+            return 0;
+        }
+
+        int best_choice = 0;
+        double best_density = -1.0;
+
+        for (size_t local_idx = 0; local_idx < group.size(); ++local_idx) {
+            const LCSIndex& lcs = matches_[group[local_idx]];
+            int x = lcs.shard_x_ - 1;
+            int y = lcs.shard_y_ - 1;
+            if (!IsShardValidAndOn(x) || !IsShardValidAndOn(y)) {
+                continue;
+            }
+
+            double density = static_cast<double>(lcs.inliner_) / (1.0 + lcs.score_);
+            if (density > best_density) {
+                best_density = density;
+                best_choice = static_cast<int>(local_idx) + 1;
+            }
+        }
+
+        return best_choice;
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------//
+
+    void EnsureSherdCoverage(Chromosome& chromosome) const
+    {
+        if (chromosome.genes.size() != pair_groups_.size()) {
+            return;
+        }
+
+        vector<int> sherd_degree(num_shards_, 0);
+
+        for (size_t group_idx = 0; group_idx < chromosome.genes.size(); ++group_idx) {
+            int choice = chromosome.genes[group_idx];
+            if (choice <= 0) {
+                continue;
+            }
+
+            const vector<size_t>& group = pair_groups_[group_idx];
+            int local_idx = choice - 1;
+            if (local_idx < 0 || local_idx >= static_cast<int>(group.size())) {
+                continue;
+            }
+
+            const LCSIndex& lcs = matches_[group[local_idx]];
+            int x = lcs.shard_x_ - 1;
+            int y = lcs.shard_y_ - 1;
+            if (!IsShardValidAndOn(x) || !IsShardValidAndOn(y)) {
+                continue;
+            }
+
+            sherd_degree[x]++;
+            sherd_degree[y]++;
+        }
+
+        for (int sherd_idx = 0; sherd_idx < num_shards_; ++sherd_idx) {
+            if (!IsShardValidAndOn(sherd_idx)) {
+                continue;
+            }
+            if (sherd_degree[sherd_idx] > 0) {
+                continue;
+            }
+            if (sherd_idx >= static_cast<int>(sherd_incident_groups_.size())) {
+                continue;
+            }
+
+            const vector<size_t>& incident_groups = sherd_incident_groups_[sherd_idx];
+            if (incident_groups.empty()) {
+                continue;
+            }
+
+            size_t best_group_idx = 0;
+            int best_choice = 0;
+            double best_density = -1.0;
+            bool found = false;
+
+            for (size_t i = 0; i < incident_groups.size(); ++i) {
+                size_t group_idx = incident_groups[i];
+                int candidate_choice = BestLocalChoiceForGroup(group_idx);
+                if (candidate_choice <= 0) {
+                    continue;
+                }
+
+                const vector<size_t>& group = pair_groups_[group_idx];
+                int local_idx = candidate_choice - 1;
+                if (local_idx < 0 || local_idx >= static_cast<int>(group.size())) {
+                    continue;
+                }
+
+                const LCSIndex& lcs = matches_[group[local_idx]];
+                double density = static_cast<double>(lcs.inliner_) / (1.0 + lcs.score_);
+                if (!found || density > best_density) {
+                    found = true;
+                    best_density = density;
+                    best_group_idx = group_idx;
+                    best_choice = candidate_choice;
+                }
+            }
+
+            if (!found) {
+                continue;
+            }
+
+            int previous_choice = chromosome.genes[best_group_idx];
+            chromosome.genes[best_group_idx] = best_choice;
+
+            if (previous_choice <= 0) {
+                const vector<size_t>& group = pair_groups_[best_group_idx];
+                if (!group.empty()) {
+                    const LCSIndex& representative = matches_[group[0]];
+                    int x = representative.shard_x_ - 1;
+                    int y = representative.shard_y_ - 1;
+                    if (IsShardValidAndOn(x) && IsShardValidAndOn(y)) {
+                        sherd_degree[x]++;
+                        sherd_degree[y]++;
+                    }
+                }
+            }
+        }
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------//
+
+    void RepairPositionCollisions(Chromosome& chromosome) const
+    {
+        for (int iter = 0; iter < kCollisionRepairMaxIter; ++iter) {
+            bool collision_resolved = false;
+
+            // Step 1: Build Adjacency List for Pose Propagation
+            struct AdjEdge {
+                int to;
+                Matrix4d T_to_current;
+                double density;
+                int gene_idx;
+            };
+
+            vector<vector<AdjEdge>> adjacency(num_shards_);
+            for (size_t group_idx = 0; group_idx < chromosome.genes.size(); ++group_idx) {
+                int choice = chromosome.genes[group_idx];
+                if (choice <= 0) continue;
+
+                const vector<size_t>& group = pair_groups_[group_idx];
+                int local_idx = choice - 1;
+                if (local_idx < 0 || local_idx >= static_cast<int>(group.size())) continue;
+
+                const LCSIndex& lcs = matches_[group[local_idx]];
+                int x = lcs.shard_x_ - 1;
+                int y = lcs.shard_y_ - 1;
+
+                if (!IsShardValidAndOn(x) || !IsShardValidAndOn(y)) continue;
+
+                double density = static_cast<double>(lcs.inliner_) / (1.0 + lcs.score_);
+                Matrix4d T_xy = Matrix4d::Identity();
+                lcs.trans_.Output(T_xy);
+                Matrix4d T_yx = T_xy.inverse();
+
+                adjacency[x].push_back({ y, T_yx, density, static_cast<int>(group_idx) });
+                adjacency[y].push_back({ x, T_xy, density, static_cast<int>(group_idx) });
+            }
+
+            // BFS State
+            vector<bool> visited(num_shards_, false);
+            vector<Matrix4d> T_to_root(num_shards_, Matrix4d::Identity());
+            vector<int> component_id(num_shards_, -1);
+            vector<int> incoming_gene_idx(num_shards_, -1);
+            vector<double> incoming_density(num_shards_, 0.0);
+            int current_comp_id = 0;
+
+            for (int start_node = 0; start_node < num_shards_; ++start_node) {
+                if (!IsShardValidAndOn(start_node) || visited[start_node]) continue;
+
+                queue<int> q;
+                q.push(start_node);
+                visited[start_node] = true;
+                component_id[start_node] = current_comp_id;
+                incoming_gene_idx[start_node] = -1; // Root
+                incoming_density[start_node] = 1e9; // Sentinel high density for root
+
+                while (!q.empty()) {
+                    int curr = q.front();
+                    q.pop();
+
+                    for (const auto& edge : adjacency[curr]) {
+                        if (visited[edge.to]) continue;
+
+                        T_to_root[edge.to] = T_to_root[curr] * edge.T_to_current;
+                        visited[edge.to] = true;
+                        component_id[edge.to] = current_comp_id;
+                        incoming_gene_idx[edge.to] = edge.gene_idx;
+                        incoming_density[edge.to] = edge.density;
+                        q.push(edge.to);
+                    }
+                }
+                current_comp_id++;
+            }
+
+            // Compute Global Centroids
+            vector<Vector3d> global_centroids(num_shards_, Vector3d::Zero());
+            for (int i = 0; i < num_shards_; ++i) {
+                if (visited[i]) {
+                    Vector4d c_h;
+                    c_h << shard_centroids_[i], 1.0;
+                    global_centroids[i] = (T_to_root[i] * c_h).head<3>();
+                }
+            }
+
+            // Step 2: Detect and Step 3: Resolve Collisions
+            bool local_collision_found = false;
+            for (int i = 0; i < num_shards_; ++i) {
+                if (!visited[i]) continue;
+                for (int j = i + 1; j < num_shards_; ++j) {
+                    if (!visited[j] || component_id[i] != component_id[j]) continue;
+
+                    // Condition 1: Centroid Distance
+                    double dist = (global_centroids[i] - global_centroids[j]).norm();
+                    double threshold = kCollisionCentroidScale * min(shard_radius_[i], shard_radius_[j]);
+                    if (dist >= threshold) continue;
+
+                    // Condition 2: Rotation Similarity
+                    Matrix3d Ri = T_to_root[i].block<3, 3>(0, 0);
+                    Matrix3d Rj = T_to_root[j].block<3, 3>(0, 0);
+                    double tr = (Ri.transpose() * Rj).trace();
+                    double angle = acos(max(-1.0, min(1.0, (tr - 1.0) / 2.0)));
+
+                    if (angle >= kCollisionRotAngleThreshold) continue;
+
+                    // Collision detected!
+                    local_collision_found = true;
+
+                    int loser_idx = -1;
+                    if (incoming_gene_idx[i] == -1) {
+                        loser_idx = j; // i is root, j must lose
+                    } else if (incoming_gene_idx[j] == -1) {
+                        loser_idx = i; // j is root, i must lose
+                    } else if (incoming_density[i] < incoming_density[j]) {
+                        loser_idx = i;
+                    } else {
+                        loser_idx = j;
+                    }
+
+                    if (loser_idx != -1 && incoming_gene_idx[loser_idx] != -1) {
+                        int bad_gene_idx = incoming_gene_idx[loser_idx];
+                        int current_choice = chromosome.genes[bad_gene_idx];
+                        
+                        const vector<size_t>& group = pair_groups_[bad_gene_idx];
+                        vector<int> candidates;
+                        vector<double> weights;
+                        double total_weight = 0.0;
+
+                        // Collect all OTHER matches in this group and their densities
+                        for (size_t c_idx = 0; c_idx < group.size(); ++c_idx) {
+                            int candidate = static_cast<int>(c_idx) + 1;
+                            if (candidate == current_choice) continue;
+
+                            const LCSIndex& lcs = matches_[group[c_idx]];
+                            double w = static_cast<double>(lcs.inliner_) / (1.0 + lcs.score_);
+                            if (w > 0) {
+                                candidates.push_back(candidate);
+                                weights.push_back(w);
+                                total_weight += w;
+                            }
+                        }
+
+                        // Perform weighted random selection
+                        if (total_weight > 0) {
+                            double r = static_cast<double>(rand()) / RAND_MAX * total_weight;
+                            double cumulative = 0.0;
+                            int selected = 0;
+                            for (size_t k = 0; k < candidates.size(); ++k) {
+                                cumulative += weights[k];
+                                if (r <= cumulative) {
+                                    selected = candidates[k];
+                                    break;
+                                }
+                            }
+                            chromosome.genes[bad_gene_idx] = selected;
+                        } else {
+                            chromosome.genes[bad_gene_idx] = 0; // No other valid matches for this pair
+                        }
+                        collision_resolved = true;
+                    }
+
+                    // To reflect changes (reachability/poses), break and re-run BFS
+                    goto next_repair_iter;
+                }
+            }
+
+            if (!local_collision_found) break;
+
+        next_repair_iter:
+            if (!collision_resolved) break;
         }
     }
 
@@ -1100,8 +1811,10 @@ private:
 
         if (!random_genes.empty()) {
             size_t repair_idx = random_genes[rand() % random_genes.size()];
-            GuidedRepair(replacement, repair_idx);
+            // GuidedRepair(replacement, repair_idx);
         }
+
+        EnsureSherdCoverage(replacement);
 
         replacement.fitness = EvaluateFitness(replacement);
         return replacement;
@@ -1141,8 +1854,8 @@ private:
             return 0;
         }
 
-        double activate_prob = static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
-        if (activate_prob >= kInitialPairActivationRate) {
+        double inactive_prob = static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+        if (inactive_prob < kInitialPairInactiveRate) {
             return 0;
         }
 
@@ -1151,13 +1864,32 @@ private:
             return 0;
         }
 
+        double greedy_pick_prob = static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+        if (greedy_pick_prob < kGreedyPairChoiceRate) {
+            int best_idx = -1;
+            double best_density = -1.0;
+            for (size_t i = 0; i < group.size(); ++i) {
+                const LCSIndex& lcs = matches_[group[i]];
+                double density = static_cast<double>(lcs.inliner_) / (1.0 + lcs.score_);
+                if (density > best_density) {
+                    best_density = density;
+                    best_idx = static_cast<int>(i);
+                }
+            }
+
+            if (best_idx >= 0) {
+                return best_idx + 1;
+            }
+        }
+
         double total_weight = 0.0;
         vector<double> cumulative;
         cumulative.reserve(group.size());
 
         for (size_t i = 0; i < group.size(); ++i) {
             const LCSIndex& lcs = matches_[group[i]];
-            double w = max(1.0, static_cast<double>(lcs.inliner_));
+            double density = static_cast<double>(lcs.inliner_) / (1.0 + lcs.score_);
+            double w = max(1.0e-6, density);
             total_weight += w;
             cumulative.push_back(total_weight);
         }
@@ -1181,27 +1913,39 @@ private:
 private:
     static constexpr int kPopulationSize = 100;
     static constexpr int kMaxGenerations = 100;
-    static constexpr int kElitismCount = 2;
-    static constexpr double kMutationRate = 0.08; // Increased from 0.05 for better symmetry exploration
+    static constexpr int kElitismCount = 10;
+    static constexpr double kMutationRate = 0.10; // Increased from 0.05 for better symmetry exploration
+    static constexpr double kSymmetryFlipRate = 0.15;
     static constexpr double kBiasInheritRatio = 0.4;
     static constexpr int kGuidedRepairTrials = 3;
-    static constexpr double kInitialPairActivationRate = 0.3;
+    static constexpr double kInitialPairInactiveRate = 0.05;
+    static constexpr double kGreedyPairChoiceRate = 0.5;
+    static constexpr double kPairChoicePenaltyWeight = 35.0;
+    static constexpr double kPairChoiceDensityEps = 1.0e-6;
+    static constexpr double kMinActivePairRatio = 0.65;
+    static constexpr double kMaxActivePairRatio = 0.90;
+    static constexpr double kActivePairRangePenaltyWeight = 8.0;
+    static constexpr double kExcessActivePairPenaltyScale = 0.5;
     static constexpr double kEdgeResidualThreshold = 50.0;
-    static constexpr double kEdgeResidualPenalty = 0.05;
+    static constexpr double kEdgeResidualPenalty = 1.0;
     static constexpr double kEdgeRotResidualThreshold = 0.35;
     static constexpr double kEdgeRotResidualPenalty = 1.0;
-    static constexpr double kConnectivityReward = 10.0;
-    static constexpr double kConnectivityComponentPenalty = 8.0;
-    static constexpr int kPoseRelaxIterations = 5;
+    static constexpr double kConnectivityReward = 100.0;
+    static constexpr double kConnectivityComponentPenalty = 100;
+    static constexpr int kPoseRelaxIterations = 0;
     static constexpr double kPoseRelaxAlpha = 0.5;
     
     // Overlap constants
     static constexpr double kOverlapPenalty = 1000.0;
-    static constexpr double kOverlapThresholdScale = 0.4; // % of combined radii to trigger overlap penalty
+    static constexpr double kOverlapThresholdScale = 0.5; // % of combined radii to trigger overlap penalty
+    static constexpr double kCollisionCentroidScale = 0.5;     // fraction of min radius for centroid threshold
+    static constexpr double kCollisionRotAngleThreshold = 1.57; // radians (~30 degrees)
+    static constexpr int kCollisionRepairMaxIter = 5;           // max repair iterations per chromosome
 
     vector<Geom> shard_;
     vector<LCSIndex> matches_;
     vector<vector<size_t>> pair_groups_;
+    vector<vector<size_t>> sherd_incident_groups_;
     int num_shards_;
 
     vector<Chromosome> population_;
@@ -1212,6 +1956,12 @@ private:
     // Adaptive Geometry for overlap checks
     vector<Vector3d> shard_centroids_;
     vector<double> shard_radius_;
+
+    // Static caches to avoid recomputing identical data in every fitness call.
+    int max_neighbors_cap_ = 0;
+    vector<double> group_best_density_;
+    vector<int> group_rep_x_;
+    vector<int> group_rep_y_;
 };
 
 #endif
