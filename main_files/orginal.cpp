@@ -283,7 +283,7 @@ int main(int argc, char** argv)
 		
 		// Run GA on current match list
 		GeneticAssembler ga_iter(shard, LCS_out, SHARD_NUMBER);
-		ga_iter.Run();
+		ga_iter.Run(GT_graph, GT_trans, T_axis);
 		T_ga = ga_iter.GetTransforms();
 
 		// Accumulate live transformation by composing delta (T_ga) on top of current T_live

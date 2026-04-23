@@ -4,14 +4,20 @@
 #ifndef _GENETIC_ALGORITHM_H_   
 #define _GENETIC_ALGORITHM_H_   
 
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
+#include <sstream>
 #include <algorithm>
+#include <iomanip>
 #include <cmath>
+#include <random>
+#include <queue>
+#include <map>
+#include <set>
 #include <cstdlib>
 #include <ctime>
-#include <iostream>
-#include <map>
-#include <queue>
-#include <vector>
 
 // Check # 02: #include "data_structure.h" should also work
 #include "../class/data_structure.h"
@@ -27,7 +33,7 @@ public:
     bool use_edge_residual       = true;
     bool use_rot_residual        = true;
     bool use_neighbor_penalty    = false;
-    bool use_overlap_penalty     = false;
+    bool use_overlap_penalty     = true;
     bool use_pair_choice_penalty = false;
     bool use_active_pair_range_penalty = false;
 
@@ -117,7 +123,7 @@ public:
 
     //-----------------------------------------------------------------------------------------------------------------//
 
-    void Run()
+    void Run(const MatrixXd& GT_graph, const vector<Trans>& GT_trans, const vector<Trans>& T_axis)
     {
         srand(42);
 
@@ -137,6 +143,7 @@ public:
         }
 
         InitializePopulation();
+        AuditGroundTruthCandidates(GT_graph, GT_trans, T_axis);
 
         for (int generation = 0; generation < kMaxGenerations; ++generation) {
             EvaluatePopulation();
@@ -165,7 +172,7 @@ public:
                     // GuidedRepair(child1, static_cast<size_t>(mutated_gene1));
                 }
                 EnsureSherdCoverage(child1);
-                RepairPositionCollisions(child1);
+                // RepairPositionCollisions(child1);
                 next_population.push_back(child1);
 
                 if (static_cast<int>(next_population.size()) < kPopulationSize) {
@@ -176,7 +183,7 @@ public:
                     }
 
                     EnsureSherdCoverage(child2);
-                    RepairPositionCollisions(child2);
+                    // RepairPositionCollisions(child2);
 
                     next_population.push_back(child2);
                 }
@@ -189,6 +196,12 @@ public:
                 return a.fitness > b.fitness;
             });
 
+            if (generation % 10 == 0 && !population_.empty()) {
+                // Diagnostic pass with logging for the current best
+                // RepairPositionCollisions(population_.front(), true);
+                LogBestChromosomeBreakdown(generation, population_.front());
+            }
+
             EnforceDiversity();
 
             sort(population_.begin(), population_.end(), [](const Chromosome& a, const Chromosome& b) {
@@ -200,6 +213,11 @@ public:
         sort(population_.begin(), population_.end(), [](const Chromosome& a, const Chromosome& b) {
             return a.fitness > b.fitness;
         });
+
+        if (!population_.empty()) {
+            LogBestChromosomeBreakdown(kMaxGenerations, population_.front());
+            AuditChromosomeCollisions(population_.front(), "FINAL BEST");
+        }
 
         const Chromosome& best = population_.front();
         const bool run_pair_diagnostics = enable_debug_logging || enable_swap_diagnostics;
@@ -366,7 +384,7 @@ private:
             }
 
             EnsureSherdCoverage(chromosome);
-            RepairPositionCollisions(chromosome);
+            // RepairPositionCollisions(chromosome);
             population_.push_back(chromosome);
         }
     }
@@ -712,9 +730,10 @@ private:
             pose_adj[edge.b].push_back(make_pair(edge.a, edge.T_ab));
         }
 
+        map<pair<int, int>, double> max_edge_residuals;
+        map<pair<int, int>, double> max_rot_residuals;
         double edge_residual_penalty = 0.0;
         double edge_rot_residual_penalty = 0.0;
-        int evaluated_roots = 0;
         
         for (int root = 0; root < num_shards_; ++root) {
             if (!IsShardValidAndOn(root)) {
@@ -744,15 +763,13 @@ private:
                 }
             }
 
-            bool root_used = false;
-
             for (const auto& kv : pair_edges) {
                 const PairEdge& edge = kv.second;
                 if (!pose_visited[edge.a] || !pose_visited[edge.b]) {
                     continue;
                 }
 
-                root_used = true;
+                auto key = make_pair(edge.a, edge.b);
 
                 Matrix4d T_pred_ab = T_pose[edge.b].inverse() * T_pose[edge.a];
                 Vector3d t_pred = T_pred_ab.block<3, 1>(0, 3);
@@ -761,7 +778,7 @@ private:
 
                 if (residual > kEdgeResidualThreshold) {
                     double excess = residual - kEdgeResidualThreshold;
-                    edge_residual_penalty += excess * excess;
+                    max_edge_residuals[key] = max(max_edge_residuals[key], excess * excess);
                 }
 
                 Matrix4d T_diff = T_pred_ab * edge.T_ab.inverse();
@@ -776,18 +793,17 @@ private:
                 double rot_residual = w.norm();
                 
                 if (rot_residual > kEdgeRotResidualThreshold) {
-                    edge_rot_residual_penalty += (rot_residual - kEdgeRotResidualThreshold);
+                    double excess = rot_residual - kEdgeRotResidualThreshold;
+                    max_rot_residuals[key] = max(max_rot_residuals[key], excess);
                 }
-            }
-
-            if (root_used) {
-                evaluated_roots++;
             }
         }
 
-        if (evaluated_roots > 0) {
-            edge_residual_penalty /= static_cast<double>(evaluated_roots);
-            edge_rot_residual_penalty /= static_cast<double>(evaluated_roots);
+        for (auto const& [key, val] : max_edge_residuals) {
+            edge_residual_penalty += val;
+        }
+        for (auto const& [key, val] : max_rot_residuals) {
+            edge_rot_residual_penalty += val;
         }
 
         if (use_edge_residual) {
@@ -808,7 +824,7 @@ private:
         // --- Overlap Penalty (Physical occupancy check to handle symmetry) ---
         if (use_overlap_penalty) {
             vector<bool> vis_global(num_shards_, false);
-            int overlap_violations = 0;
+            double overlap_penalty_sum = 0.0;
 
             for (int start_node = 0; start_node < num_shards_; ++start_node) {
                 if (!IsShardValidAndOn(start_node) || vis_global[start_node]) {
@@ -843,6 +859,7 @@ private:
                     for (size_t j = i + 1; j < placed.size(); ++j) {
                         int idx1 = placed[i];
                         int idx2 = placed[j];
+
                         Vector4d c1_h;
                         c1_h << shard_centroids_[idx1], 1.0;
                         Vector4d c2_h;
@@ -852,16 +869,17 @@ private:
                         double dist = (gc1 - gc2).norm();
                         double min_dist = (shard_radius_[idx1] + shard_radius_[idx2]) * kOverlapThresholdScale;
                         if (dist < min_dist) {
-                            overlap_violations++;
+                            // Depth-proportional penalty: linear scaling for stronger gradient on shallow overlaps
+                            double overlap_ratio = 1.0 - (dist / min_dist); // 0.0 = barely touching, 1.0 = fully inside
+                            overlap_penalty_sum += kOverlapPenalty * overlap_ratio;
                         }
                     }
                 }
             }
 
-            double penalty = overlap_violations * kOverlapPenalty;
-            fitness -= penalty;
+            fitness -= overlap_penalty_sum;
             if (breakdown != nullptr) {
-                breakdown->overlap_penalty = penalty;
+                breakdown->overlap_penalty = overlap_penalty_sum;
             }
         }
 
@@ -1036,7 +1054,7 @@ private:
                         //  if (new_choice == old_choice) {
                         //      new_choice = (draw + 1) % num_candidates + 1;
                         //  }
-                        while (new_choice != old_choice) {
+                        while (new_choice == old_choice) {
                             new_choice = SampleGroupChoice(i);
                         }
                     } else {
@@ -1589,7 +1607,7 @@ private:
 
     //-----------------------------------------------------------------------------------------------------------------//
 
-    void RepairPositionCollisions(Chromosome& chromosome) const
+    void RepairPositionCollisions(Chromosome& chromosome, bool verbose = false) const
     {
         for (int iter = 0; iter < kCollisionRepairMaxIter; ++iter) {
             bool collision_resolved = false;
@@ -1681,16 +1699,12 @@ private:
 
                     // Condition 1: Centroid Distance
                     double dist = (global_centroids[i] - global_centroids[j]).norm();
-                    double threshold = kCollisionCentroidScale * min(shard_radius_[i], shard_radius_[j]);
+                    double threshold = kCollisionCentroidScale * (shard_radius_[i] + shard_radius_[j]);
                     if (dist >= threshold) continue;
 
                     // Condition 2: Rotation Similarity
-                    Matrix3d Ri = T_to_root[i].block<3, 3>(0, 0);
-                    Matrix3d Rj = T_to_root[j].block<3, 3>(0, 0);
-                    double tr = (Ri.transpose() * Rj).trace();
-                    double angle = acos(max(-1.0, min(1.0, (tr - 1.0) / 2.0)));
-
-                    if (angle >= kCollisionRotAngleThreshold) continue;
+                    // Rotation check removed to sync with fitness evaluation. 
+                    // Any spatial overlap is now considered a collision.
 
                     // Collision detected!
                     local_collision_found = true;
@@ -1700,10 +1714,9 @@ private:
                         loser_idx = j; // i is root, j must lose
                     } else if (incoming_gene_idx[j] == -1) {
                         loser_idx = i; // j is root, i must lose
-                    } else if (incoming_density[i] < incoming_density[j]) {
-                        loser_idx = i;
                     } else {
-                        loser_idx = j;
+                        // 50/50 chance to pick loser to allow breaking out of local optima
+                        loser_idx = (rand() % 2 == 0) ? i : j;
                     }
 
                     if (loser_idx != -1 && incoming_gene_idx[loser_idx] != -1) {
@@ -1729,8 +1742,9 @@ private:
                             }
                         }
 
-                        // Perform weighted random selection
-                        if (total_weight > 0) {
+                        // Perform weighted random selection, fallback to 0 on last attempt
+                        bool force_zero = (iter == kCollisionRepairMaxIter - 1);
+                        if (!force_zero && total_weight > 0) {
                             double r = static_cast<double>(rand()) / RAND_MAX * total_weight;
                             double cumulative = 0.0;
                             int selected = 0;
@@ -1742,8 +1756,19 @@ private:
                                 }
                             }
                             chromosome.genes[bad_gene_idx] = selected;
+                            
+                            if (verbose) {
+                                stringstream ss;
+                                ss << "[REPAIR] Shard " << loser_idx << " resampled gene " << bad_gene_idx 
+                                << " from choice " << current_choice << " to " << selected;
+                                LogDiagnostic(ss.str());
+                            }
                         } else {
-                            chromosome.genes[bad_gene_idx] = 0; // No other valid matches for this pair
+                            chromosome.genes[bad_gene_idx] = 0; 
+                            if (verbose) {
+                                string reason = (force_zero) ? " (Hard Fallback)" : " (No alternatives)";
+                                LogDiagnostic("[REPAIR] Shard " + to_string(loser_idx) + " gene " + to_string(bad_gene_idx) + " set to 0" + reason);
+                            }
                         }
                         collision_resolved = true;
                     }
@@ -1758,6 +1783,158 @@ private:
         next_repair_iter:
             if (!collision_resolved) break;
         }
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------//
+
+    void LogDiagnostic(const string& message) const
+    {
+        static ofstream log_file("ga_diagnostics.log", ios::trunc);
+        if (log_file.is_open()) {
+            log_file << message << endl;
+        }
+    }
+
+    void AuditChromosomeCollisions(const Chromosome& chromosome, const string& label) const
+    {
+        // 1. Rebuild poses (copied from RepairPositionCollisions logic for independence)
+        struct AdjEdge { int to; Matrix4d T_to_current; };
+        vector<vector<AdjEdge>> adjacency(num_shards_);
+        for (size_t group_idx = 0; group_idx < chromosome.genes.size(); ++group_idx) {
+            int choice = chromosome.genes[group_idx];
+            if (choice <= 0) continue;
+            const vector<size_t>& group = pair_groups_[group_idx];
+            int local_idx = choice - 1;
+            if (local_idx < 0 || local_idx >= static_cast<int>(group.size())) continue;
+            const LCSIndex& lcs = matches_[group[local_idx]];
+            int x = lcs.shard_x_ - 1; int y = lcs.shard_y_ - 1;
+            if (!IsShardValidAndOn(x) || !IsShardValidAndOn(y)) continue;
+            Matrix4d T_xy = Matrix4d::Identity(); lcs.trans_.Output(T_xy);
+            adjacency[x].push_back({y, T_xy.inverse()});
+            adjacency[y].push_back({x, T_xy});
+        }
+
+        vector<bool> visited(num_shards_, false);
+        vector<Matrix4d> T_to_root(num_shards_, Matrix4d::Identity());
+        vector<int> component_id(num_shards_, -1);
+        int current_comp_id = 0;
+        for (int start_node = 0; start_node < num_shards_; ++start_node) {
+            if (!IsShardValidAndOn(start_node) || visited[start_node]) continue;
+            queue<int> q; q.push(start_node); visited[start_node] = true;
+            component_id[start_node] = current_comp_id;
+            while (!q.empty()) {
+                int curr = q.front(); q.pop();
+                for (const auto& edge : adjacency[curr]) {
+                    if (visited[edge.to]) continue;
+                    T_to_root[edge.to] = T_to_root[curr] * edge.T_to_current;
+                    visited[edge.to] = true;
+                    component_id[edge.to] = current_comp_id;
+                    q.push(edge.to);
+                }
+            }
+            current_comp_id++;
+        }
+
+        vector<Vector3d> global_centroids(num_shards_, Vector3d::Zero());
+        for (int i = 0; i < num_shards_; ++i) {
+            if (visited[i]) {
+                Vector4d c_h; c_h << shard_centroids_[i], 1.0;
+                global_centroids[i] = (T_to_root[i] * c_h).head<3>();
+            }
+        }
+
+        // 2. Log collisions and near-misses
+        stringstream ss;
+        ss << "\n--- COLLISION AUDIT [" << label << "] ---" << endl;
+        bool found_any = false;
+        for (int i = 0; i < num_shards_; ++i) {
+            if (!visited[i]) continue;
+            for (int j = i + 1; j < num_shards_; ++j) {
+                if (!visited[j]) continue;
+
+                double dist = (global_centroids[i] - global_centroids[j]).norm();
+                double threshold = kCollisionCentroidScale * (shard_radius_[i] + shard_radius_[j]);
+                double near_thresh = 1.0 * (shard_radius_[i] + shard_radius_[j]); // 100% of combined radii
+
+                if (dist < near_thresh) {
+                    found_any = true;
+                    bool same_comp = (component_id[i] == component_id[j]);
+                    Matrix3d Ri = T_to_root[i].block<3, 3>(0, 0);
+                    Matrix3d Rj = T_to_root[j].block<3, 3>(0, 0);
+                    double tr = (Ri.transpose() * Rj).trace();
+                    double angle = acos(max(-1.0, min(1.0, (tr - 1.0) / 2.0)));
+
+                    ss << "  Pair (" << i << "," << j << "): dist=" << fixed << setprecision(3) << dist 
+                       << " (thr=" << threshold << ") angle=" << angle << " (thr=" << kCollisionRotAngleThreshold 
+                       << ") same_comp=" << (same_comp ? "YES" : "NO");
+                    
+                    if (dist < threshold) {
+                        if (same_comp) ss << " [!!!] ACTIVE COLLISION UNRESOLVED";
+                        else ss << " [!] IGNORED: DIFF COMPONENT";
+                    } else {
+                        ss << " [-] NEAR MISS";
+                    }
+                    ss << endl;
+                }
+            }
+        }
+        if (!found_any) ss << "  No overlaps detected." << endl;
+        LogDiagnostic(ss.str());
+    }
+
+    void LogBestChromosomeBreakdown(int generation, const Chromosome& best) const
+    {
+        FitnessBreakdown breakdown;
+        EvaluateFitness(best, &breakdown);
+        
+        stringstream ss;
+        ss << "\n--- GENERATION " << generation << " BEST BREAKDOWN ---" << endl;
+        ss << "  Total Fitness: " << fixed << setprecision(2) << best.fitness << endl;
+        ss << "  Inlier Reward: " << breakdown.inlier_reward << endl;
+        ss << "  Overlap Penalty: " << breakdown.overlap_penalty << endl;
+        ss << "  Edge Residual Penalty: " << breakdown.edge_residual_penalty << endl;
+        ss << "  Edge Rot Residual Penalty: " << breakdown.edge_rot_residual_penalty << endl;
+        ss << "  Connectivity Reward: " << breakdown.connectivity_reward << endl;
+        ss << "  Component Penalty: " << breakdown.connectivity_component_penalty << endl;
+        ss << "  Largest Component: " << breakdown.largest_component << endl;
+        ss << "  Num Components: " << breakdown.num_components << endl;
+        ss << "  Active Pairs: " << breakdown.active_pair_count << endl;
+
+        ss << "\n  --- ACTIVE GENE MAP ---" << endl;
+        for (size_t i = 0; i < best.genes.size(); ++i) {
+            int choice = best.genes[i];
+            if (choice > 0) {
+                const vector<size_t>& group = pair_groups_[i];
+                int local_idx = choice - 1;
+                if (local_idx >= 0 && local_idx < static_cast<int>(group.size())) {
+                    const LCSIndex& lcs = matches_[group[local_idx]];
+                    ss << "    Gene " << setw(2) << i << " (Pair " << setw(2) << lcs.shard_x_ << "-" << setw(2) << lcs.shard_y_ << "): choice=" << choice << " (inl=" << lcs.inliner_ << ")" << endl;
+                }
+            }
+        }
+
+        // Specific Debug for Shard 4 (index 3)
+        int target_sherd = 3; 
+        ss << "\n  --- SHARD " << (target_sherd + 1) << " CANDIDATE ANALYSIS ---" << endl;
+        for (size_t i = 0; i < pair_groups_.size(); ++i) {
+            const vector<size_t>& group = pair_groups_[i];
+            if (group.empty()) continue;
+            
+            const LCSIndex& rep = matches_[group[0]];
+            int x = rep.shard_x_ - 1;
+            int y = rep.shard_y_ - 1;
+            
+            if (x == target_sherd || y == target_sherd) {
+                int selected_choice = best.genes[i];
+                ss << "    Pair (" << (x + 1) << "-" << (y + 1) << "): Selected=" << selected_choice << " / " << group.size() << " choices" << endl;
+                for (size_t c = 0; c < group.size(); ++c) {
+                    const LCSIndex& lcs = matches_[group[c]];
+                    ss << "      Choice " << (c + 1) << ": inliners=" << lcs.inliner_ << ( (int(c+1) == selected_choice) ? " [SELECTED]" : "" ) << endl;
+                }
+            }
+        }
+
+        LogDiagnostic(ss.str());
     }
 
     //-----------------------------------------------------------------------------------------------------------------//
@@ -1854,8 +2031,10 @@ private:
             return 0;
         }
 
-        double inactive_prob = static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
-        if (inactive_prob < kInitialPairInactiveRate) {
+        static thread_local std::mt19937 gen(std::random_device{}());
+        std::uniform_real_distribution<double> dist(0.0, 1.0);
+
+        if (dist(gen) < kInitialPairInactiveRate) {
             return 0;
         }
 
@@ -1864,30 +2043,14 @@ private:
             return 0;
         }
 
-        double greedy_pick_prob = static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
-        if (greedy_pick_prob < kGreedyPairChoiceRate) {
-            int best_idx = -1;
-            double best_density = -1.0;
-            for (size_t i = 0; i < group.size(); ++i) {
-                const LCSIndex& lcs = matches_[group[i]];
-                double density = static_cast<double>(lcs.inliner_) / (1.0 + lcs.score_);
-                if (density > best_density) {
-                    best_density = density;
-                    best_idx = static_cast<int>(i);
-                }
-            }
-
-            if (best_idx >= 0) {
-                return best_idx + 1;
-            }
-        }
-
+        // --- Density-Based Selection ---
         double total_weight = 0.0;
         vector<double> cumulative;
         cumulative.reserve(group.size());
 
         for (size_t i = 0; i < group.size(); ++i) {
             const LCSIndex& lcs = matches_[group[i]];
+            // density = inliner / (1 + score)
             double density = static_cast<double>(lcs.inliner_) / (1.0 + lcs.score_);
             double w = max(1.0e-6, density);
             total_weight += w;
@@ -1895,23 +2058,102 @@ private:
         }
 
         if (total_weight <= 0.0) {
-            return 1 + (rand() % static_cast<int>(group.size()));
+            return 1 + (gen() % static_cast<int>(group.size()));
         }
 
-        double r = (static_cast<double>(rand()) / static_cast<double>(RAND_MAX)) * total_weight;
+        double r = dist(gen) * total_weight;
         for (size_t i = 0; i < cumulative.size(); ++i) {
             if (r <= cumulative[i]) {
-                return static_cast<int>(i) + 1;
+                return static_cast<int>(i + 1);
             }
         }
 
-        return static_cast<int>(group.size());
+        return 1;
+    }
+    
+    void AuditGroundTruthCandidates(const MatrixXd& GT_graph, const vector<Trans>& GT_trans, const vector<Trans>& T_axis)
+    {
+        cout << "#################### GROUND TRUTH CANDIDATE AUDIT ####################" << endl;
+        for (size_t group_idx = 0; group_idx < pair_groups_.size(); ++group_idx) {
+            const vector<size_t>& group = pair_groups_[group_idx];
+            if (group.empty()) continue;
+
+            const LCSIndex& rep = matches_[group[0]];
+            int gx = rep.shard_x_ - 1;
+            int gy = rep.shard_y_ - 1;
+
+            int mi = min(gx, gy);
+            int ma = max(gx, gy);
+
+            if (GT_graph(mi, ma) == 0) continue;
+
+            cout << "[GT AUDIT] Edge " << (mi + 1) << "-" << (ma + 1) << " (GT=1) Candidates: " << group.size() << endl;
+
+            int best_choice = -1;
+            double min_rad_err = 1e9;
+            double min_trans_err = 1e9;
+
+            for (size_t i = 0; i < group.size(); ++i) {
+                const LCSIndex& lcs = matches_[group[i]];
+                int x = lcs.shard_x_ - 1;
+                int y = lcs.shard_y_ - 1;
+
+                Matrix4d T_ax, T_ay_inv, T_gx_inv, T_gy;
+                T_axis[x].Output(T_ax);
+                T_axis[y].InvOut(T_ay_inv);
+                GT_trans[x].InvOut(T_gx_inv);
+                GT_trans[y].Output(T_gy);
+
+                Matrix4d T_gt_wrapped = T_ax * T_gx_inv * T_gy * T_ay_inv;
+                Matrix4d T_gt_raw = T_gx_inv * T_gy;
+
+                Matrix4d T_candidate = Matrix4d::Identity();
+                lcs.trans_.Output(T_candidate);
+
+                auto calc_err = [](const Matrix4d& T1, const Matrix4d& T2, double& r_err, double& t_err) {
+                    Matrix4d T_diff = T1 * T2.inverse();
+                    Matrix3d R_diff; Vector3d t_diff, w;
+                    for (int r = 0; r < 3; r++) {
+                        R_diff.row(r) << T_diff(r, 0), T_diff(r, 1), T_diff(r, 2);
+                        t_diff[r] = T_diff(r, 3);
+                    }
+                    Matrix3d log_R = R_diff.log();
+                    w << -log_R(1, 2), log_R(0, 2), -log_R(0, 1);
+                    r_err = w.norm();
+                    t_err = t_diff.norm();
+                };
+
+                double r_wrapped, t_wrapped, r_raw, t_raw;
+                calc_err(T_gt_wrapped, T_candidate, r_wrapped, t_wrapped);
+                calc_err(T_gt_raw, T_candidate, r_raw, t_raw);
+
+                double density = static_cast<double>(lcs.inliner_) / (1.0 + lcs.score_);
+
+                cout << "  Choice " << (i + 1) << ": inliner=" << setw(3) << lcs.inliner_ 
+                     << " score=" << fixed << setprecision(3) << lcs.score_ 
+                     << " density=" << fixed << setprecision(3) << density
+                     << " [Wrapped] rad=" << fixed << setprecision(4) << r_wrapped << " trans=" << t_wrapped;
+                
+                if (r_wrapped < 0.35 && t_wrapped < 50.0) {
+                    cout << " [VALID GT MATCH]";
+                }
+                cout << endl;
+
+                if (r_wrapped < min_rad_err) {
+                    min_rad_err = r_wrapped;
+                    min_trans_err = t_wrapped;
+                    best_choice = static_cast<int>(i + 1);
+                }
+            }
+            cout << "  -> Best Match for GT: Choice " << best_choice << " (rad_err=" << min_rad_err << ")" << endl;
+        }
+        cout << "######################################################################" << endl;
     }
 
     //-----------------------------------------------------------------------------------------------------------------//
 
 private:
-    static constexpr int kPopulationSize = 100;
+    static constexpr int kPopulationSize = 200;
     static constexpr int kMaxGenerations = 100;
     static constexpr int kElitismCount = 10;
     static constexpr double kMutationRate = 0.10; // Increased from 0.05 for better symmetry exploration
@@ -1919,28 +2161,28 @@ private:
     static constexpr double kBiasInheritRatio = 0.4;
     static constexpr int kGuidedRepairTrials = 3;
     static constexpr double kInitialPairInactiveRate = 0.05;
-    static constexpr double kGreedyPairChoiceRate = 0.5;
+    static constexpr double kGreedyPairChoiceRate = 0.0;
     static constexpr double kPairChoicePenaltyWeight = 35.0;
     static constexpr double kPairChoiceDensityEps = 1.0e-6;
     static constexpr double kMinActivePairRatio = 0.65;
     static constexpr double kMaxActivePairRatio = 0.90;
     static constexpr double kActivePairRangePenaltyWeight = 8.0;
     static constexpr double kExcessActivePairPenaltyScale = 0.5;
-    static constexpr double kEdgeResidualThreshold = 50.0;
-    static constexpr double kEdgeResidualPenalty = 1.0;
-    static constexpr double kEdgeRotResidualThreshold = 0.35;
-    static constexpr double kEdgeRotResidualPenalty = 1.0;
+    static constexpr double kEdgeResidualThreshold = 80.0;
+    static constexpr double kEdgeResidualPenalty = 2.0;
+    static constexpr double kEdgeRotResidualThreshold = 1.2;
+    static constexpr double kEdgeRotResidualPenalty = 5.0;
     static constexpr double kConnectivityReward = 100.0;
     static constexpr double kConnectivityComponentPenalty = 100;
     static constexpr int kPoseRelaxIterations = 0;
     static constexpr double kPoseRelaxAlpha = 0.5;
     
     // Overlap constants
-    static constexpr double kOverlapPenalty = 1000.0;
-    static constexpr double kOverlapThresholdScale = 0.5; // % of combined radii to trigger overlap penalty
-    static constexpr double kCollisionCentroidScale = 0.5;     // fraction of min radius for centroid threshold
-    static constexpr double kCollisionRotAngleThreshold = 1.57; // radians (~30 degrees)
-    static constexpr int kCollisionRepairMaxIter = 5;           // max repair iterations per chromosome
+    static constexpr double kOverlapPenalty = 500.0;
+    static constexpr double kOverlapThresholdScale = 0.70; // % of combined radii to trigger overlap penalty
+    static constexpr double kCollisionCentroidScale = 0.70;     // fraction of combined radii for centroid threshold
+    static constexpr double kCollisionRotAngleThreshold = 0.53; // radians (~90 degrees)
+    static constexpr int kCollisionRepairMaxIter = 20;           // max repair iterations per chromosome
 
     vector<Geom> shard_;
     vector<LCSIndex> matches_;

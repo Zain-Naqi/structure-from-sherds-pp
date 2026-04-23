@@ -454,7 +454,7 @@ int main(int argc, char** argv)
 	for (ga_iteration = 0; ga_iteration < kMaxGAIterations; ++ga_iteration) {
 		cout << "=== GA Iteration " << ga_iteration + 1 << " / " << kMaxGAIterations << " ===" << endl;
 		GeneticAssembler ga_iter(shard, LCS_out, SHARD_NUMBER);
-		ga_iter.Run();
+		ga_iter.Run(GT_graph, GT_trans, T_axis);
 		T_ga = ga_iter.GetTransforms();
 
 		for (int i = 0; i < SHARD_NUMBER; ++i) {
