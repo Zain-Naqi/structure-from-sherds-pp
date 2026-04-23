@@ -14,10 +14,12 @@
 #include <cmath>
 #include <random>
 #include <queue>
+#include <array>
 #include <map>
 #include <set>
 #include <cstdlib>
 #include <ctime>
+#include <limits>
 
 // Check # 02: #include "data_structure.h" should also work
 #include "../class/data_structure.h"
@@ -64,6 +66,34 @@ public:
         int largest_component = 0;
         int num_components = 0;
         double total_fitness = 0.0;
+    };
+
+    struct CollisionCloudStats {
+        int sur_in_count = 0;
+        int sur_out_count = 0;
+        int edge_filtered_count = 0;
+        int candidate_count = 0;
+        int voxel_count = 0;
+        int final_count = 0;
+        bool used_fallback = false;
+    };
+
+    struct PairOverlapDiagnostic {
+        int idx_a = -1;
+        int idx_b = -1;
+        bool same_component = false;
+        bool cloud_a_empty = false;
+        bool cloud_b_empty = false;
+        bool broad_phase_rejected = false;
+        double center_distance = 0.0;
+        double broad_radius = 0.0;
+        int query_size = 0;
+        int target_size = 0;
+        int collision_hits = 0;
+        double hit_ratio = 0.0;
+        double avg_depth = 0.0;
+        double min_nn_distance = 0.0;
+        double pair_penalty = 0.0;
     };
 
     //-----------------------------------------------------------------------------------------------------------------//
@@ -119,6 +149,9 @@ public:
             }
             shard_radius_[i] = avg_dist / static_cast<double>(pts.cols());
         }
+
+        PrecomputeCollisionClouds();
+        LogCollisionCloudSummary();
     }
 
     //-----------------------------------------------------------------------------------------------------------------//
@@ -855,24 +888,46 @@ private:
                     }
                 }
 
+                vector<vector<Vector3d>> cloud_global(num_shards_);
+                vector<Vector3d> center_global(num_shards_, Vector3d::Zero());
+                for (size_t i = 0; i < placed.size(); ++i) {
+                    int shard_idx = placed[i];
+                    const vector<Vector3d>& cloud_local = collision_clouds_[shard_idx];
+                    const Matrix4d& T = T_comp[shard_idx];
+
+                    vector<Vector3d>& transformed_cloud = cloud_global[shard_idx];
+                    transformed_cloud.reserve(cloud_local.size());
+
+                    for (size_t p = 0; p < cloud_local.size(); ++p) {
+                        Vector4d h;
+                        h << cloud_local[p], 1.0;
+                        transformed_cloud.push_back((T * h).head<3>());
+                    }
+
+                    Vector4d c_h;
+                    c_h << collision_cloud_centroids_[shard_idx], 1.0;
+                    center_global[shard_idx] = (T * c_h).head<3>();
+                }
+
                 for (size_t i = 0; i < placed.size(); ++i) {
                     for (size_t j = i + 1; j < placed.size(); ++j) {
                         int idx1 = placed[i];
                         int idx2 = placed[j];
 
-                        Vector4d c1_h;
-                        c1_h << shard_centroids_[idx1], 1.0;
-                        Vector4d c2_h;
-                        c2_h << shard_centroids_[idx2], 1.0;
-                        Vector3d gc1 = (T_comp[idx1] * c1_h).head<3>();
-                        Vector3d gc2 = (T_comp[idx2] * c2_h).head<3>();
-                        double dist = (gc1 - gc2).norm();
-                        double min_dist = (shard_radius_[idx1] + shard_radius_[idx2]) * kOverlapThresholdScale;
-                        if (dist < min_dist) {
-                            // Depth-proportional penalty: linear scaling for stronger gradient on shallow overlaps
-                            double overlap_ratio = 1.0 - (dist / min_dist); // 0.0 = barely touching, 1.0 = fully inside
-                            overlap_penalty_sum += kOverlapPenalty * overlap_ratio;
+                        const vector<Vector3d>& cloud1 = cloud_global[idx1];
+                        const vector<Vector3d>& cloud2 = cloud_global[idx2];
+                        if (cloud1.empty() || cloud2.empty()) {
+                            continue;
                         }
+
+                        double broad_radius = collision_cloud_radii_[idx1] + collision_cloud_radii_[idx2] + kCollisionPointEpsilon;
+                        double broad_radius_sq = broad_radius * broad_radius;
+                        double center_dist_sq = (center_global[idx1] - center_global[idx2]).squaredNorm();
+                        if (center_dist_sq > broad_radius_sq) {
+                            continue;
+                        }
+
+                        overlap_penalty_sum += ComputeCloudOverlapPenalty(cloud1, cloud2);
                     }
                 }
             }
@@ -1474,6 +1529,446 @@ private:
 
     //-----------------------------------------------------------------------------------------------------------------//
 
+    void PrecomputeCollisionClouds()
+    {
+        collision_clouds_.assign(num_shards_, vector<Vector3d>());
+        collision_cloud_centroids_.assign(num_shards_, Vector3d::Zero());
+        collision_cloud_radii_.assign(num_shards_, 0.0);
+        collision_cloud_stats_.assign(num_shards_, CollisionCloudStats());
+
+        const double edge_exclusion_sq = kCollisionEdgeExclusion * kCollisionEdgeExclusion;
+
+        for (int shard_idx = 0; shard_idx < num_shards_; ++shard_idx) {
+            vector<Vector3d> candidate_points;
+            CollisionCloudStats stats;
+
+            const MatrixXd& sur_in_pts = shard_[shard_idx].sur_in_.point_;
+            stats.sur_in_count = sur_in_pts.cols();
+            for (int c = 0; c < sur_in_pts.cols(); ++c) {
+                Vector3d p = sur_in_pts.col(c);
+                if (!IsNearEdge(shard_idx, p, edge_exclusion_sq)) {
+                    candidate_points.push_back(p);
+                } else {
+                    stats.edge_filtered_count++;
+                }
+            }
+
+            const MatrixXd& sur_out_pts = shard_[shard_idx].sur_out_.point_;
+            stats.sur_out_count = sur_out_pts.cols();
+            for (int c = 0; c < sur_out_pts.cols(); ++c) {
+                Vector3d p = sur_out_pts.col(c);
+                if (!IsNearEdge(shard_idx, p, edge_exclusion_sq)) {
+                    candidate_points.push_back(p);
+                } else {
+                    stats.edge_filtered_count++;
+                }
+            }
+            stats.candidate_count = static_cast<int>(candidate_points.size());
+
+            // Safety fallback: if filtering is too strict, fall back to all available surface points.
+            if (candidate_points.empty()) {
+                stats.used_fallback = true;
+                for (int c = 0; c < sur_in_pts.cols(); ++c) {
+                    candidate_points.push_back(sur_in_pts.col(c));
+                }
+                for (int c = 0; c < sur_out_pts.cols(); ++c) {
+                    candidate_points.push_back(sur_out_pts.col(c));
+                }
+                stats.candidate_count = static_cast<int>(candidate_points.size());
+            }
+
+            vector<Vector3d> cloud = VoxelDownsample(candidate_points, kCollisionVoxelSize);
+            stats.voxel_count = static_cast<int>(cloud.size());
+            // CapPointCloudSize(cloud, kCollisionCloudMaxPoints);
+            stats.final_count = static_cast<int>(cloud.size());
+            collision_cloud_stats_[shard_idx] = stats;
+
+            if (cloud.empty()) {
+                collision_clouds_[shard_idx] = cloud;
+                collision_cloud_centroids_[shard_idx] = Vector3d::Zero();
+                collision_cloud_radii_[shard_idx] = 0.0;
+                continue;
+            }
+
+            Vector3d centroid = Vector3d::Zero();
+            for (size_t i = 0; i < cloud.size(); ++i) {
+                centroid += cloud[i];
+            }
+            centroid /= static_cast<double>(cloud.size());
+
+            double radius = 0.0;
+            for (size_t i = 0; i < cloud.size(); ++i) {
+                radius = max(radius, (cloud[i] - centroid).norm());
+            }
+
+            collision_clouds_[shard_idx] = cloud;
+            collision_cloud_centroids_[shard_idx] = centroid;
+            collision_cloud_radii_[shard_idx] = radius;
+        }
+    }
+
+    void LogCollisionCloudSummary() const
+    {
+        stringstream ss;
+        ss << "\n--- COLLISION CLOUD SUMMARY ---" << endl;
+        ss << "  Params: voxel=" << kCollisionVoxelSize
+           << " edge_exclusion=" << kCollisionEdgeExclusion
+           << " epsilon=" << kCollisionPointEpsilon
+           << " max_points=" << kCollisionCloudMaxPoints << endl;
+
+        int valid_shards = 0;
+        int empty_clouds = 0;
+        for (int shard_idx = 0; shard_idx < num_shards_; ++shard_idx) {
+            if (!IsShardValidAndOn(shard_idx)) {
+                continue;
+            }
+            valid_shards++;
+
+            const CollisionCloudStats& stats = collision_cloud_stats_[shard_idx];
+            if (stats.final_count == 0) {
+                empty_clouds++;
+            }
+
+            ss << "  Sherd " << (shard_idx + 1)
+               << ": in=" << stats.sur_in_count
+               << " out=" << stats.sur_out_count
+               << " filtered=" << stats.edge_filtered_count
+               << " candidate=" << stats.candidate_count
+               << " voxel=" << stats.voxel_count
+               << " final=" << stats.final_count
+               << " radius=" << fixed << setprecision(3) << collision_cloud_radii_[shard_idx];
+            if (stats.used_fallback) {
+                ss << " [FALLBACK]";
+            }
+            if (stats.final_count == 0) {
+                ss << " [EMPTY]";
+            }
+            ss << endl;
+        }
+
+        ss << "  Valid sherds=" << valid_shards
+           << " empty_clouds=" << empty_clouds << endl;
+        LogDiagnostic(ss.str());
+    }
+
+    bool IsNearEdge(int shard_idx, const Vector3d& p, double edge_exclusion_sq) const
+    {
+        if (shard_idx < 0 || shard_idx >= num_shards_) {
+            return false;
+        }
+
+        const MatrixXd& edge_pts = shard_[shard_idx].edge_line_.point_;
+        if (edge_pts.cols() == 0) {
+            return false;
+        }
+
+        for (int c = 0; c < edge_pts.cols(); ++c) {
+            if ((p - edge_pts.col(c)).squaredNorm() <= edge_exclusion_sq) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    vector<Vector3d> VoxelDownsample(const vector<Vector3d>& input, double voxel_size) const
+    {
+        if (input.empty()) {
+            return vector<Vector3d>();
+        }
+        if (voxel_size <= 0.0) {
+            return input;
+        }
+
+        struct VoxelAccum {
+            Vector3d sum = Vector3d::Zero();
+            int count = 0;
+        };
+
+        map<array<int, 3>, VoxelAccum> voxels;
+        const double inv_voxel = 1.0 / voxel_size;
+
+        for (size_t i = 0; i < input.size(); ++i) {
+            const Vector3d& p = input[i];
+            array<int, 3> key = {
+                static_cast<int>(floor(p(0) * inv_voxel)),
+                static_cast<int>(floor(p(1) * inv_voxel)),
+                static_cast<int>(floor(p(2) * inv_voxel))
+            };
+
+            VoxelAccum& voxel = voxels[key];
+            voxel.sum += p;
+            voxel.count++;
+        }
+
+        vector<Vector3d> output;
+        output.reserve(voxels.size());
+        for (const auto& kv : voxels) {
+            const VoxelAccum& voxel = kv.second;
+            output.push_back(voxel.sum / static_cast<double>(max(1, voxel.count)));
+        }
+        return output;
+    }
+
+    void CapPointCloudSize(vector<Vector3d>& cloud, int max_points) const
+    {
+        if (max_points <= 0) {
+            cloud.clear();
+            return;
+        }
+        if (static_cast<int>(cloud.size()) <= max_points) {
+            return;
+        }
+
+        vector<Vector3d> reduced;
+        reduced.reserve(max_points);
+
+        const double step = static_cast<double>(cloud.size()) / static_cast<double>(max_points);
+        for (int i = 0; i < max_points; ++i) {
+            size_t idx = static_cast<size_t>(floor(static_cast<double>(i) * step));
+            if (idx >= cloud.size()) {
+                idx = cloud.size() - 1;
+            }
+            reduced.push_back(cloud[idx]);
+        }
+
+        cloud.swap(reduced);
+    }
+
+    double ComputeCloudOverlapPenalty(const vector<Vector3d>& cloud_a, const vector<Vector3d>& cloud_b) const
+    {
+        return ComputeCloudOverlapDiagnostic(cloud_a, cloud_b).pair_penalty;
+    }
+
+    PairOverlapDiagnostic ComputeCloudOverlapDiagnostic(const vector<Vector3d>& cloud_a,
+                                                        const vector<Vector3d>& cloud_b,
+                                                        int idx_a = -1,
+                                                        int idx_b = -1) const
+    {
+        PairOverlapDiagnostic diag;
+        diag.idx_a = idx_a;
+        diag.idx_b = idx_b;
+        diag.cloud_a_empty = cloud_a.empty();
+        diag.cloud_b_empty = cloud_b.empty();
+        diag.query_size = static_cast<int>(cloud_a.size());
+        diag.target_size = static_cast<int>(cloud_b.size());
+        diag.min_nn_distance = 0.0;
+
+        if (diag.cloud_a_empty || diag.cloud_b_empty) {
+            return diag;
+        }
+
+        const vector<Vector3d>* query = &cloud_a;
+        const vector<Vector3d>* target = &cloud_b;
+        if (query->size() > target->size()) {
+            query = &cloud_b;
+            target = &cloud_a;
+        }
+        diag.query_size = static_cast<int>(query->size());
+        diag.target_size = static_cast<int>(target->size());
+
+        const double epsilon_sq = kCollisionPointEpsilon * kCollisionPointEpsilon;
+        double depth_sum = 0.0;
+        double min_best_sq = numeric_limits<double>::max();
+
+        for (size_t i = 0; i < query->size(); ++i) {
+            const Vector3d& q = (*query)[i];
+            double best_sq = numeric_limits<double>::max();
+
+            for (size_t j = 0; j < target->size(); ++j) {
+                double d_sq = (q - (*target)[j]).squaredNorm();
+                if (d_sq < best_sq) {
+                    best_sq = d_sq;
+                }
+            }
+
+            if (best_sq < min_best_sq) {
+                min_best_sq = best_sq;
+            }
+
+            if (best_sq < epsilon_sq) {
+                double d = sqrt(best_sq);
+                double depth_ratio = 1.0 - (d / kCollisionPointEpsilon);
+                depth_sum += max(0.0, depth_ratio);
+                diag.collision_hits++;
+            }
+        }
+
+        if (min_best_sq < numeric_limits<double>::max()) {
+            diag.min_nn_distance = sqrt(min_best_sq);
+        }
+
+        if (diag.collision_hits <= 0) {
+            return diag;
+        }
+
+        diag.hit_ratio = static_cast<double>(diag.collision_hits) / static_cast<double>(max(1, diag.query_size));
+        diag.avg_depth = depth_sum / static_cast<double>(diag.collision_hits);
+        diag.pair_penalty = kOverlapPenalty * diag.hit_ratio * diag.avg_depth;
+        return diag;
+    }
+
+    void CollectChromosomeOverlapDiagnostics(const Chromosome& chromosome,
+                                             vector<PairOverlapDiagnostic>& pair_diags,
+                                             double& overlap_sum,
+                                             int& same_component_pair_count,
+                                             int& broad_phase_reject_count,
+                                             int& narrow_phase_pair_count,
+                                             int& active_collision_pair_count) const
+    {
+        pair_diags.clear();
+        overlap_sum = 0.0;
+        same_component_pair_count = 0;
+        broad_phase_reject_count = 0;
+        narrow_phase_pair_count = 0;
+        active_collision_pair_count = 0;
+
+        struct AdjEdge {
+            int to;
+            Matrix4d T_to_current;
+        };
+
+        vector<vector<AdjEdge>> adjacency(num_shards_);
+        for (size_t group_idx = 0; group_idx < chromosome.genes.size(); ++group_idx) {
+            int choice = chromosome.genes[group_idx];
+            if (choice <= 0) {
+                continue;
+            }
+
+            const vector<size_t>& group = pair_groups_[group_idx];
+            int local_idx = choice - 1;
+            if (local_idx < 0 || local_idx >= static_cast<int>(group.size())) {
+                continue;
+            }
+
+            const LCSIndex& lcs = matches_[group[local_idx]];
+            int x = lcs.shard_x_ - 1;
+            int y = lcs.shard_y_ - 1;
+            if (!IsShardValidAndOn(x) || !IsShardValidAndOn(y)) {
+                continue;
+            }
+
+            Matrix4d T_xy = Matrix4d::Identity();
+            lcs.trans_.Output(T_xy);
+            adjacency[x].push_back({ y, T_xy.inverse() });
+            adjacency[y].push_back({ x, T_xy });
+        }
+
+        vector<bool> visited(num_shards_, false);
+        vector<Matrix4d> T_to_root(num_shards_, Matrix4d::Identity());
+        vector<int> component_id(num_shards_, -1);
+        int current_comp_id = 0;
+
+        for (int start_node = 0; start_node < num_shards_; ++start_node) {
+            if (!IsShardValidAndOn(start_node) || visited[start_node]) {
+                continue;
+            }
+
+            queue<int> q;
+            q.push(start_node);
+            visited[start_node] = true;
+            component_id[start_node] = current_comp_id;
+
+            while (!q.empty()) {
+                int curr = q.front();
+                q.pop();
+
+                for (const auto& edge : adjacency[curr]) {
+                    if (visited[edge.to]) {
+                        continue;
+                    }
+
+                    T_to_root[edge.to] = T_to_root[curr] * edge.T_to_current;
+                    visited[edge.to] = true;
+                    component_id[edge.to] = current_comp_id;
+                    q.push(edge.to);
+                }
+            }
+            current_comp_id++;
+        }
+
+        vector<vector<Vector3d>> global_clouds(num_shards_);
+        vector<Vector3d> global_centers(num_shards_, Vector3d::Zero());
+        for (int i = 0; i < num_shards_; ++i) {
+            if (!visited[i] || !IsShardValidAndOn(i)) {
+                continue;
+            }
+
+            const Matrix4d& T = T_to_root[i];
+            const vector<Vector3d>& cloud_local = collision_clouds_[i];
+            vector<Vector3d>& cloud_global = global_clouds[i];
+            cloud_global.reserve(cloud_local.size());
+
+            for (size_t p = 0; p < cloud_local.size(); ++p) {
+                Vector4d h;
+                h << cloud_local[p], 1.0;
+                cloud_global.push_back((T * h).head<3>());
+            }
+
+            Vector4d c_h;
+            c_h << collision_cloud_centroids_[i], 1.0;
+            global_centers[i] = (T * c_h).head<3>();
+        }
+
+        for (int i = 0; i < num_shards_; ++i) {
+            if (!visited[i] || !IsShardValidAndOn(i)) {
+                continue;
+            }
+
+            for (int j = i + 1; j < num_shards_; ++j) {
+                if (!visited[j] || !IsShardValidAndOn(j)) {
+                    continue;
+                }
+
+                PairOverlapDiagnostic diag;
+                diag.idx_a = i;
+                diag.idx_b = j;
+                diag.same_component = (component_id[i] >= 0 && component_id[i] == component_id[j]);
+                if (!diag.same_component) {
+                    pair_diags.push_back(diag);
+                    continue;
+                }
+
+                same_component_pair_count++;
+                const vector<Vector3d>& cloud_i = global_clouds[i];
+                const vector<Vector3d>& cloud_j = global_clouds[j];
+                diag.cloud_a_empty = cloud_i.empty();
+                diag.cloud_b_empty = cloud_j.empty();
+                if (diag.cloud_a_empty || diag.cloud_b_empty) {
+                    pair_diags.push_back(diag);
+                    continue;
+                }
+
+                diag.center_distance = (global_centers[i] - global_centers[j]).norm();
+                diag.broad_radius = collision_cloud_radii_[i] + collision_cloud_radii_[j] + kCollisionPointEpsilon;
+                if (diag.center_distance * diag.center_distance > diag.broad_radius * diag.broad_radius) {
+                    diag.broad_phase_rejected = true;
+                    broad_phase_reject_count++;
+                    pair_diags.push_back(diag);
+                    continue;
+                }
+
+                narrow_phase_pair_count++;
+                PairOverlapDiagnostic narrow = ComputeCloudOverlapDiagnostic(cloud_i, cloud_j, i, j);
+                diag.query_size = narrow.query_size;
+                diag.target_size = narrow.target_size;
+                diag.collision_hits = narrow.collision_hits;
+                diag.hit_ratio = narrow.hit_ratio;
+                diag.avg_depth = narrow.avg_depth;
+                diag.min_nn_distance = narrow.min_nn_distance;
+                diag.pair_penalty = narrow.pair_penalty;
+
+                if (diag.pair_penalty > 1.0e-12) {
+                    active_collision_pair_count++;
+                    overlap_sum += diag.pair_penalty;
+                }
+                pair_diags.push_back(diag);
+            }
+        }
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------//
+
     int BestLocalChoiceForGroup(size_t group_idx) const
     {
         if (group_idx >= pair_groups_.size()) {
@@ -1797,88 +2292,75 @@ private:
 
     void AuditChromosomeCollisions(const Chromosome& chromosome, const string& label) const
     {
-        // 1. Rebuild poses (copied from RepairPositionCollisions logic for independence)
-        struct AdjEdge { int to; Matrix4d T_to_current; };
-        vector<vector<AdjEdge>> adjacency(num_shards_);
-        for (size_t group_idx = 0; group_idx < chromosome.genes.size(); ++group_idx) {
-            int choice = chromosome.genes[group_idx];
-            if (choice <= 0) continue;
-            const vector<size_t>& group = pair_groups_[group_idx];
-            int local_idx = choice - 1;
-            if (local_idx < 0 || local_idx >= static_cast<int>(group.size())) continue;
-            const LCSIndex& lcs = matches_[group[local_idx]];
-            int x = lcs.shard_x_ - 1; int y = lcs.shard_y_ - 1;
-            if (!IsShardValidAndOn(x) || !IsShardValidAndOn(y)) continue;
-            Matrix4d T_xy = Matrix4d::Identity(); lcs.trans_.Output(T_xy);
-            adjacency[x].push_back({y, T_xy.inverse()});
-            adjacency[y].push_back({x, T_xy});
-        }
+        FitnessBreakdown breakdown;
+        EvaluateFitness(chromosome, &breakdown);
 
-        vector<bool> visited(num_shards_, false);
-        vector<Matrix4d> T_to_root(num_shards_, Matrix4d::Identity());
-        vector<int> component_id(num_shards_, -1);
-        int current_comp_id = 0;
-        for (int start_node = 0; start_node < num_shards_; ++start_node) {
-            if (!IsShardValidAndOn(start_node) || visited[start_node]) continue;
-            queue<int> q; q.push(start_node); visited[start_node] = true;
-            component_id[start_node] = current_comp_id;
-            while (!q.empty()) {
-                int curr = q.front(); q.pop();
-                for (const auto& edge : adjacency[curr]) {
-                    if (visited[edge.to]) continue;
-                    T_to_root[edge.to] = T_to_root[curr] * edge.T_to_current;
-                    visited[edge.to] = true;
-                    component_id[edge.to] = current_comp_id;
-                    q.push(edge.to);
-                }
-            }
-            current_comp_id++;
-        }
+        vector<PairOverlapDiagnostic> pair_diags;
+        double overlap_sum = 0.0;
+        int same_component_pairs = 0;
+        int broad_phase_rejects = 0;
+        int narrow_phase_pairs = 0;
+        int active_collision_pairs = 0;
 
-        vector<Vector3d> global_centroids(num_shards_, Vector3d::Zero());
-        for (int i = 0; i < num_shards_; ++i) {
-            if (visited[i]) {
-                Vector4d c_h; c_h << shard_centroids_[i], 1.0;
-                global_centroids[i] = (T_to_root[i] * c_h).head<3>();
-            }
-        }
+        CollectChromosomeOverlapDiagnostics(chromosome,
+                                            pair_diags,
+                                            overlap_sum,
+                                            same_component_pairs,
+                                            broad_phase_rejects,
+                                            narrow_phase_pairs,
+                                            active_collision_pairs);
 
-        // 2. Log collisions and near-misses
         stringstream ss;
         ss << "\n--- COLLISION AUDIT [" << label << "] ---" << endl;
-        bool found_any = false;
-        for (int i = 0; i < num_shards_; ++i) {
-            if (!visited[i]) continue;
-            for (int j = i + 1; j < num_shards_; ++j) {
-                if (!visited[j]) continue;
+        ss << "  Fitness overlap penalty: " << fixed << setprecision(4) << breakdown.overlap_penalty << endl;
+        ss << "  Recomputed cloud-overlap sum: " << fixed << setprecision(4) << overlap_sum
+           << " (delta=" << fabs(overlap_sum - breakdown.overlap_penalty) << ")" << endl;
+        ss << "  Pair counts: total=" << pair_diags.size()
+           << " same_comp=" << same_component_pairs
+           << " broad_reject=" << broad_phase_rejects
+           << " narrow_checked=" << narrow_phase_pairs
+           << " active=" << active_collision_pairs << endl;
 
-                double dist = (global_centroids[i] - global_centroids[j]).norm();
-                double threshold = kCollisionCentroidScale * (shard_radius_[i] + shard_radius_[j]);
-                double near_thresh = 1.0 * (shard_radius_[i] + shard_radius_[j]); // 100% of combined radii
-
-                if (dist < near_thresh) {
-                    found_any = true;
-                    bool same_comp = (component_id[i] == component_id[j]);
-                    Matrix3d Ri = T_to_root[i].block<3, 3>(0, 0);
-                    Matrix3d Rj = T_to_root[j].block<3, 3>(0, 0);
-                    double tr = (Ri.transpose() * Rj).trace();
-                    double angle = acos(max(-1.0, min(1.0, (tr - 1.0) / 2.0)));
-
-                    ss << "  Pair (" << i << "," << j << "): dist=" << fixed << setprecision(3) << dist 
-                       << " (thr=" << threshold << ") angle=" << angle << " (thr=" << kCollisionRotAngleThreshold 
-                       << ") same_comp=" << (same_comp ? "YES" : "NO");
-                    
-                    if (dist < threshold) {
-                        if (same_comp) ss << " [!!!] ACTIVE COLLISION UNRESOLVED";
-                        else ss << " [!] IGNORED: DIFF COMPONENT";
-                    } else {
-                        ss << " [-] NEAR MISS";
-                    }
-                    ss << endl;
-                }
+        bool found_active = false;
+        for (size_t i = 0; i < pair_diags.size(); ++i) {
+            const PairOverlapDiagnostic& diag = pair_diags[i];
+            if (!diag.same_component) {
+                continue;
             }
+
+            ss << "  Pair (" << diag.idx_a << "," << diag.idx_b << "):";
+            if (diag.cloud_a_empty || diag.cloud_b_empty) {
+                ss << " [WARN] EMPTY CLOUD";
+                ss << " cloudA=" << (diag.cloud_a_empty ? "EMPTY" : "OK")
+                   << " cloudB=" << (diag.cloud_b_empty ? "EMPTY" : "OK") << endl;
+                continue;
+            }
+
+            ss << " center_dist=" << fixed << setprecision(3) << diag.center_distance
+               << " broad_radius=" << diag.broad_radius;
+
+            if (diag.broad_phase_rejected) {
+                ss << " [OK] BROAD-PHASE SEPARATED" << endl;
+                continue;
+            }
+
+            ss << " min_nn=" << diag.min_nn_distance
+               << " hits=" << diag.collision_hits << "/" << diag.query_size
+               << " hit_ratio=" << diag.hit_ratio
+               << " avg_depth=" << diag.avg_depth
+               << " pair_pen=" << diag.pair_penalty;
+
+            if (diag.pair_penalty > 1.0e-12) {
+                ss << " [!!!] ACTIVE COLLISION UNRESOLVED";
+                found_active = true;
+            } else {
+                ss << " [OK] NARROW-PHASE CLEAR";
+            }
+            ss << endl;
         }
-        if (!found_any) ss << "  No overlaps detected." << endl;
+        if (!found_active) {
+            ss << "  No active cloud collisions detected." << endl;
+        }
         LogDiagnostic(ss.str());
     }
 
@@ -1899,6 +2381,55 @@ private:
         ss << "  Largest Component: " << breakdown.largest_component << endl;
         ss << "  Num Components: " << breakdown.num_components << endl;
         ss << "  Active Pairs: " << breakdown.active_pair_count << endl;
+
+        vector<PairOverlapDiagnostic> pair_diags;
+        double overlap_sum = 0.0;
+        int same_component_pairs = 0;
+        int broad_phase_rejects = 0;
+        int narrow_phase_pairs = 0;
+        int active_collision_pairs = 0;
+        CollectChromosomeOverlapDiagnostics(best,
+                                            pair_diags,
+                                            overlap_sum,
+                                            same_component_pairs,
+                                            broad_phase_rejects,
+                                            narrow_phase_pairs,
+                                            active_collision_pairs);
+
+        ss << "  OverlapDiag Sum: " << fixed << setprecision(4) << overlap_sum
+           << " (delta_vs_fitness=" << fabs(overlap_sum - breakdown.overlap_penalty) << ")" << endl;
+        ss << "  OverlapDiag Pairs: total=" << pair_diags.size()
+           << " same_comp=" << same_component_pairs
+           << " broad_reject=" << broad_phase_rejects
+           << " narrow_checked=" << narrow_phase_pairs
+           << " active=" << active_collision_pairs << endl;
+
+        vector<PairOverlapDiagnostic> active_diags;
+        for (size_t i = 0; i < pair_diags.size(); ++i) {
+            if (pair_diags[i].pair_penalty > 1.0e-12) {
+                active_diags.push_back(pair_diags[i]);
+            }
+        }
+        sort(active_diags.begin(), active_diags.end(),
+             [](const PairOverlapDiagnostic& a, const PairOverlapDiagnostic& b) {
+                 return a.pair_penalty > b.pair_penalty;
+             });
+
+        if (active_diags.empty()) {
+            ss << "  OverlapDiag Active Pairs: none" << endl;
+        } else {
+            ss << "  OverlapDiag Top Active Pairs:" << endl;
+            int top_k = min(static_cast<int>(active_diags.size()), 5);
+            for (int i = 0; i < top_k; ++i) {
+                const PairOverlapDiagnostic& diag = active_diags[i];
+                ss << "    Pair (" << diag.idx_a << "," << diag.idx_b << ")"
+                   << " pen=" << diag.pair_penalty
+                   << " hits=" << diag.collision_hits << "/" << diag.query_size
+                   << " hit_ratio=" << diag.hit_ratio
+                   << " avg_depth=" << diag.avg_depth
+                   << " min_nn=" << diag.min_nn_distance << endl;
+            }
+        }
 
         ss << "\n  --- ACTIVE GENE MAP ---" << endl;
         for (size_t i = 0; i < best.genes.size(); ++i) {
@@ -2178,8 +2709,11 @@ private:
     static constexpr double kPoseRelaxAlpha = 0.5;
     
     // Overlap constants
-    static constexpr double kOverlapPenalty = 500.0;
-    static constexpr double kOverlapThresholdScale = 0.70; // % of combined radii to trigger overlap penalty
+    static constexpr double kOverlapPenalty = 1500.0;
+    static constexpr double kCollisionPointEpsilon = 2.0;   // mm
+    static constexpr double kCollisionEdgeExclusion = 2.0;  // mm
+    static constexpr double kCollisionVoxelSize = 5.0;      // mm
+    static constexpr int kCollisionCloudMaxPoints = 64;
     static constexpr double kCollisionCentroidScale = 0.70;     // fraction of combined radii for centroid threshold
     static constexpr double kCollisionRotAngleThreshold = 0.53; // radians (~90 degrees)
     static constexpr int kCollisionRepairMaxIter = 20;           // max repair iterations per chromosome
@@ -2198,6 +2732,10 @@ private:
     // Adaptive Geometry for overlap checks
     vector<Vector3d> shard_centroids_;
     vector<double> shard_radius_;
+    vector<vector<Vector3d>> collision_clouds_;
+    vector<CollisionCloudStats> collision_cloud_stats_;
+    vector<Vector3d> collision_cloud_centroids_;
+    vector<double> collision_cloud_radii_;
 
     // Static caches to avoid recomputing identical data in every fitness call.
     int max_neighbors_cap_ = 0;
@@ -2207,4 +2745,3 @@ private:
 };
 
 #endif
-

@@ -7,3 +7,6 @@ Dataset/
 *.log
 *.cam
 *.png
+build_local/
+.codex/
+.codex
