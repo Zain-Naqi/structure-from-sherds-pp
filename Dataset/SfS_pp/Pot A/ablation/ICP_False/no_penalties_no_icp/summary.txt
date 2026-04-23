@@ -1,0 +1,18 @@
+Experiment: no_penalties_no_icp
+ICP Refinement: False
+Trials: 1
+Seeds: 42 123 456 789 1024 
+Components active:
+  use_inlier_score        = 1
+  use_connectivity_reward = 1
+  use_cycle_penalty       = 0
+  use_edge_residual       = 0
+  use_rot_residual        = 0
+  use_neighbor_penalty    = 0
+  use_overlap_penalty     = 1
+
+Trial 1 seed=42 sherd=8/8 edge=10/15 fitness=828.92
+
+Average sherd accuracy : 100%
+Average edge accuracy  : 66.6667%
+Average fitness        : 828.92

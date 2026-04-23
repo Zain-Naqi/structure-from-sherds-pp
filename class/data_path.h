@@ -6,13 +6,13 @@
 #ifndef _DATA_PATH_H_
 #define _DATA_PATH_H_
 
-#define POT_A	
+// #define POT_A	
 // #define POT_B
 // #define POT_C
 // #define POT_D	// Skip
 // #define POT_E	// Skip
 // #define POT_F
-// #define POT_G
+#define POT_G	
 // #define POT_H	// Skip
 // #define POT_I	// Skip
 // #define POT_J	// Skip
@@ -21,7 +21,7 @@
 //#define POT_E_I
 //#define POT_C_J
 //#define POT_A_B_F_G_H
-//#define POT_A_B_C_D_E
+// #define POT_A_B_C_D_E
 //#define POT_All
 //#define BB_Bwl_1 			// Bowl B1, B2, B3
 //#define BB_Plt_1			// Plate P1, P2, P3
