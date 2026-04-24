@@ -195,8 +195,8 @@ public:
             }
 
             while (static_cast<int>(next_population.size()) < kPopulationSize) {
-                Chromosome parent1 = TournamentSelect();
-                Chromosome parent2 = TournamentSelect();
+                const Chromosome& parent1 = TournamentSelect();
+                const Chromosome& parent2 = TournamentSelect();
 
                 Chromosome child1 = Crossover(parent1, parent2);
                 int mutated_gene1 = Mutate(child1);
@@ -205,7 +205,7 @@ public:
                     // GuidedRepair(child1, static_cast<size_t>(mutated_gene1));
                 }
                 EnsureSherdCoverage(child1);
-                // RepairPositionCollisions(child1);
+                RepairPositionCollisions(child1);
                 next_population.push_back(child1);
 
                 if (static_cast<int>(next_population.size()) < kPopulationSize) {
@@ -216,7 +216,7 @@ public:
                     }
 
                     EnsureSherdCoverage(child2);
-                    // RepairPositionCollisions(child2);
+                    RepairPositionCollisions(child2);
 
                     next_population.push_back(child2);
                 }
@@ -231,7 +231,7 @@ public:
 
             if (generation % 10 == 0 && !population_.empty()) {
                 // Diagnostic pass with logging for the current best
-                // RepairPositionCollisions(population_.front(), true);
+                RepairPositionCollisions(population_.front(), true);
                 LogBestChromosomeBreakdown(generation, population_.front());
             }
 
@@ -417,7 +417,7 @@ private:
             }
 
             EnsureSherdCoverage(chromosome);
-            // RepairPositionCollisions(chromosome);
+            RepairPositionCollisions(chromosome);
             population_.push_back(chromosome);
         }
     }
@@ -426,7 +426,11 @@ private:
 
     void EvaluatePopulation()
     {
-        for (size_t i = 0; i < population_.size(); ++i) {
+        const int pop_size = static_cast<int>(population_.size());
+#ifdef _OPENMP
+#pragma omp parallel for schedule(static)
+#endif
+        for (int i = 0; i < pop_size; ++i) {
             population_[i].fitness = EvaluateFitness(population_[i]);
         }
     }
@@ -458,38 +462,14 @@ private:
 
     // Check # 13: The fitness function might need a thorough analysis again. Moreover, why are we not using functions in other files (feature_matchings, ranking_system, etc.) at all? We have only used LCS so far?
     double EvaluateFitness(const Chromosome& chromosome, FitnessBreakdown* breakdown = nullptr) const
-    {   
+    {
         if (breakdown != nullptr) {
             *breakdown = FitnessBreakdown();
         }
 
         const int kMaxNeighbors = max_neighbors_cap_;
-
-        int valid_shard_count = 0;
-        for (int shard_idx = 0; shard_idx < num_shards_; ++shard_idx) {
-            if (IsShardValidAndOn(shard_idx)) {
-                valid_shard_count++;
-            }
-        }
-
-        int valid_group_count = 0;
-        for (size_t group_idx = 0; group_idx < pair_groups_.size(); ++group_idx) {
-            if (group_idx >= group_rep_x_.size() || group_idx >= group_rep_y_.size()) {
-                continue;
-            }
-
-            int gx = group_rep_x_[group_idx];
-            int gy = group_rep_y_[group_idx];
-            if (gx < 0 || gy < 0) {
-                continue;
-            }
-
-            if (!IsShardValidAndOn(gx) || !IsShardValidAndOn(gy)) {
-                continue;
-            }
-
-            valid_group_count++;
-        }
+        const int valid_shard_count = valid_shard_count_;
+        const int valid_group_count = valid_group_count_;
 
         if (breakdown != nullptr) {
             breakdown->valid_group_count = valid_group_count;
@@ -498,10 +478,16 @@ private:
         double fitness = 0.0;
         vector<int> neighbor_count(num_shards_, 0);
         vector<vector<int>> adjacency(num_shards_);
+        vector<int> active_groups;
+        active_groups.reserve(pair_groups_.size());
+        vector<char> group_active(pair_groups_.size(), 0);
+        vector<Matrix4d> group_T_ab(pair_groups_.size(), Matrix4d::Identity());
+        vector<double> group_weight(pair_groups_.size(), 0.0);
+
         double pair_choice_gap_sum = 0.0;
         int active_pair_count = 0;
 
-        for (size_t group_idx = 0; group_idx < chromosome.genes.size(); group_idx++) {
+        for (size_t group_idx = 0; group_idx < chromosome.genes.size(); ++group_idx) {
             int choice = chromosome.genes[group_idx];
             if (choice <= 0) {
                 continue;
@@ -519,7 +505,7 @@ private:
             if (!IsShardValidAndOn(x) || !IsShardValidAndOn(y)) {
                 continue;
             }
-            
+
             // Check # 09: This fitness function might be incorrect. A higher inliner is better while a lower score is better which means that both contradict each other.
             // fitness += static_cast<double>(lcs.inliner_) * lcs.score_;
 
@@ -556,14 +542,27 @@ private:
             neighbor_count[y]++;
             adjacency[x].push_back(y);
             adjacency[y].push_back(x);
+
+            if (!group_active[group_idx]) {
+                group_active[group_idx] = 1;
+                active_groups.push_back(static_cast<int>(group_idx));
+
+                Matrix4d T_xy = Matrix4d::Identity();
+                lcs.trans_.Output(T_xy);
+
+                int a = min(x, y);
+                int b = max(x, y);
+                if (x == a && y == b) {
+                    group_T_ab[group_idx] = T_xy;
+                } else {
+                    group_T_ab[group_idx] = T_xy.inverse();
+                }
+                group_weight[group_idx] = max(1.0, static_cast<double>(lcs.inliner_));
+            }
         }
 
         if (use_neighbor_penalty) {
-            for (int shard_idx = 0; shard_idx < num_shards_; ++shard_idx) {
-                if (!IsShardValidAndOn(shard_idx)) {
-                    continue;
-                }
-
+            for (int shard_idx : valid_shard_indices_) {
                 // Check # 10: This condition might be totally illogical because neighbor_count[shard_idx] can never exceed kMaxNeighbors as per the above implementation. A more useful function migh help here.
                 if (neighbor_count[shard_idx] > kMaxNeighbors) {
                     double penalty = 50.0 * static_cast<double>(neighbor_count[shard_idx] - kMaxNeighbors);
@@ -611,95 +610,40 @@ private:
             }
         }
 
-        map<pair<int, int>, Matrix4d> active_transforms;
-
-        for (size_t group_idx = 0; group_idx < chromosome.genes.size(); ++group_idx) {
-            int choice = chromosome.genes[group_idx];
-            if (choice <= 0) {
-                continue;
-            }
-
-            const vector<size_t>& group = pair_groups_[group_idx];
-            int local_idx = choice - 1;
-            if (local_idx < 0 || local_idx >= static_cast<int>(group.size())) {
-                continue;
-            }
-
-            const LCSIndex& lcs = matches_[group[local_idx]];
-            int x = lcs.shard_x_ - 1;
-            int y = lcs.shard_y_ - 1;
-            if (!IsShardValidAndOn(x) || !IsShardValidAndOn(y)) {
-                continue;
-            }
-
-            Matrix4d T_xy = Matrix4d::Identity();
-            lcs.trans_.Output(T_xy);
-
-            int a = min(x, y);
-            int b = max(x, y);
-            Matrix4d T_ab = Matrix4d::Identity();
-            if (x == a && y == b) {
-                T_ab = T_xy;
-            } else {
-                T_ab = T_xy.inverse();
-            }
-
-            auto key = make_pair(a, b);
-            if (active_transforms.find(key) == active_transforms.end()) {
-                active_transforms[key] = T_ab;
-            }
-        }
-
         // Check # 11: It can be tried to change the threshold or weight (currently -2.0) or re-verify the logic of this cycle consistency code
-        double cycle_penalty = 0.0;
-        const double cycle_threshold = 30.0;
+        if (use_cycle_penalty) {
+            double cycle_penalty = 0.0;
+            const double cycle_threshold = 30.0;
 
-        for (int a = 0; a < num_shards_; ++a) {
-            if (!IsShardValidAndOn(a)) {
-                continue;
-            }
+            for (const array<int, 3>& tri : valid_shard_triplets_) {
+                const int a = tri[0];
+                const int b = tri[1];
+                const int c = tri[2];
 
-            for (int b = a + 1; b < num_shards_; ++b) {
-                if (!IsShardValidAndOn(b)) {
+                const int group_ab = PairGroupIndex(a, b);
+                const int group_bc = PairGroupIndex(b, c);
+                const int group_ac = PairGroupIndex(a, c);
+
+                if (group_ab < 0 || group_bc < 0 || group_ac < 0) {
+                    continue;
+                }
+                if (!group_active[group_ab] || !group_active[group_bc] || !group_active[group_ac]) {
                     continue;
                 }
 
-                for (int c = b + 1; c < num_shards_; ++c) {
-                    if (!IsShardValidAndOn(c)) {
-                        continue;
-                    }
+                const Matrix4d& T_ab = group_T_ab[group_ab];
+                const Matrix4d& T_bc = group_T_ab[group_bc];
+                const Matrix4d& T_ac = group_T_ab[group_ac];
 
-                    auto key_ab = make_pair(a, b);
-                    auto key_bc = make_pair(b, c);
-                    auto key_ac = make_pair(a, c);
-
-                    bool has_ab = active_transforms.count(key_ab) > 0;
-                    bool has_bc = active_transforms.count(key_bc) > 0;
-                    bool has_ac = active_transforms.count(key_ac) > 0;
-
-                    if (!has_ab || !has_bc || !has_ac) {
-                        continue;
-                    }
-
-                    Matrix4d T_ab = active_transforms[key_ab];
-                    Matrix4d T_bc = active_transforms[key_bc];
-                    Matrix4d T_ac = active_transforms[key_ac];
-
-                    Matrix4d T_composed = T_bc * T_ab;
-
-                    Vector3d t_composed = T_composed.block<3, 1>(0, 3);
-                    Vector3d t_direct = T_ac.block<3, 1>(0, 3);
-                    double error = (t_composed - t_direct).norm();
-
-                    if (error > cycle_threshold) {
-                        cycle_penalty += error;
-                    }
-
+                Matrix4d T_composed = T_bc * T_ab;
+                Vector3d t_composed = T_composed.block<3, 1>(0, 3);
+                Vector3d t_direct = T_ac.block<3, 1>(0, 3);
+                double error = (t_composed - t_direct).norm();
+                if (error > cycle_threshold) {
+                    cycle_penalty += error;
                 }
             }
-        }
 
-        if (use_cycle_penalty) {
             double penalty = 2.0 * cycle_penalty;
             fitness -= penalty;
             if (breakdown != nullptr) {
@@ -708,135 +652,112 @@ private:
         }
 
         struct PairEdge {
+            int group_idx;
             int a;
             int b;
             Matrix4d T_ab;
             double weight;
         };
 
-        map<pair<int, int>, PairEdge> pair_edges;
-
-        for (size_t group_idx = 0; group_idx < chromosome.genes.size(); ++group_idx) {
-            int choice = chromosome.genes[group_idx];
-            if (choice <= 0) {
+        vector<PairEdge> pair_edges;
+        pair_edges.reserve(active_groups.size());
+        for (int group_idx : active_groups) {
+            if (group_idx < 0 || group_idx >= static_cast<int>(pair_groups_.size())) {
+                continue;
+            }
+            if (!group_active[group_idx]) {
                 continue;
             }
 
-            const vector<size_t>& group = pair_groups_[group_idx];
-            int local_idx = choice - 1;
-            if (local_idx < 0 || local_idx >= static_cast<int>(group.size())) {
+            if (group_idx >= static_cast<int>(group_rep_x_.size()) || group_idx >= static_cast<int>(group_rep_y_.size())) {
                 continue;
             }
 
-            const LCSIndex& lcs = matches_[group[local_idx]];
-            int x = lcs.shard_x_ - 1;
-            int y = lcs.shard_y_ - 1;
+            int x = group_rep_x_[group_idx];
+            int y = group_rep_y_[group_idx];
             if (!IsShardValidAndOn(x) || !IsShardValidAndOn(y)) {
                 continue;
             }
 
             int a = min(x, y);
             int b = max(x, y);
-            Matrix4d T_xy = Matrix4d::Identity();
-            lcs.trans_.Output(T_xy);
-
-            Matrix4d T_ab = Matrix4d::Identity();
-            if (x == a && y == b) {
-                T_ab = T_xy;
-            } else {
-                T_ab = T_xy.inverse();
-            }
-
-            auto key = make_pair(a, b);
-            auto it = pair_edges.find(key);
-            double w = max(1.0, static_cast<double>(lcs.inliner_));
-            if (it == pair_edges.end() || w > it->second.weight) {
-                pair_edges[key] = { a, b, T_ab, w };
-            }
+            pair_edges.push_back({ group_idx, a, b, group_T_ab[group_idx], group_weight[group_idx] });
         }
 
         vector<vector<pair<int, Matrix4d>>> pose_adj(num_shards_);
-
-        for (const auto& kv : pair_edges) {
-            const PairEdge& edge = kv.second;
+        for (const PairEdge& edge : pair_edges) {
             pose_adj[edge.a].push_back(make_pair(edge.b, edge.T_ab.inverse()));
             pose_adj[edge.b].push_back(make_pair(edge.a, edge.T_ab));
         }
 
-        map<pair<int, int>, double> max_edge_residuals;
-        map<pair<int, int>, double> max_rot_residuals;
         double edge_residual_penalty = 0.0;
         double edge_rot_residual_penalty = 0.0;
-        
-        for (int root = 0; root < num_shards_; ++root) {
-            if (!IsShardValidAndOn(root)) {
-                continue;
-            }
 
-            vector<bool> pose_visited(num_shards_, false);
-            vector<Matrix4d> T_pose(num_shards_, Matrix4d::Identity());
-            queue<int> q;
-            q.push(root);
-            pose_visited[root] = true;
+        if (use_edge_residual || use_rot_residual) {
+            vector<double> max_edge_residuals(pair_groups_.size(), 0.0);
+            vector<double> max_rot_residuals(pair_groups_.size(), 0.0);
 
-            while (!q.empty()) {
-                int current = q.front();
-                q.pop();
+            for (int root : valid_shard_indices_) {
+                vector<bool> pose_visited(num_shards_, false);
+                vector<Matrix4d> T_pose(num_shards_, Matrix4d::Identity());
+                queue<int> q;
+                q.push(root);
+                pose_visited[root] = true;
 
-                for (size_t i = 0; i < pose_adj[current].size(); ++i) {
-                    int next = pose_adj[current][i].first;
-                    const Matrix4d& T_next_current = pose_adj[current][i].second;
-                    if (pose_visited[next]) {
+                while (!q.empty()) {
+                    int current = q.front();
+                    q.pop();
+
+                    for (size_t i = 0; i < pose_adj[current].size(); ++i) {
+                        int next = pose_adj[current][i].first;
+                        const Matrix4d& T_next_current = pose_adj[current][i].second;
+                        if (pose_visited[next]) {
+                            continue;
+                        }
+
+                        T_pose[next] = T_pose[current] * T_next_current;
+                        pose_visited[next] = true;
+                        q.push(next);
+                    }
+                }
+
+                for (const PairEdge& edge : pair_edges) {
+                    if (!pose_visited[edge.a] || !pose_visited[edge.b]) {
                         continue;
                     }
 
-                    T_pose[next] = T_pose[current] * T_next_current;
-                    pose_visited[next] = true;
-                    q.push(next);
+                    Matrix4d T_pred_ab = T_pose[edge.b].inverse() * T_pose[edge.a];
+                    Vector3d t_pred = T_pred_ab.block<3, 1>(0, 3);
+                    Vector3d t_ab = edge.T_ab.block<3, 1>(0, 3);
+                    double residual = (t_pred - t_ab).norm();
+
+                    if (residual > kEdgeResidualThreshold) {
+                        double excess = residual - kEdgeResidualThreshold;
+                        max_edge_residuals[edge.group_idx] = max(max_edge_residuals[edge.group_idx], excess * excess);
+                    }
+
+                    Matrix4d T_diff = T_pred_ab * edge.T_ab.inverse();
+                    Matrix3d R_diff;
+                    for (int r = 0; r < 3; ++r) {
+                        R_diff.row(r) << T_diff(r, 0), T_diff(r, 1), T_diff(r, 2);
+                    }
+
+                    Matrix3d log_R = R_diff.log();
+                    Vector3d w;
+                    w << -log_R(1, 2), log_R(0, 2), -log_R(0, 1);
+                    double rot_residual = w.norm();
+
+                    if (rot_residual > kEdgeRotResidualThreshold) {
+                        double excess = rot_residual - kEdgeRotResidualThreshold;
+                        max_rot_residuals[edge.group_idx] = max(max_rot_residuals[edge.group_idx], excess);
+                    }
                 }
             }
 
-            for (const auto& kv : pair_edges) {
-                const PairEdge& edge = kv.second;
-                if (!pose_visited[edge.a] || !pose_visited[edge.b]) {
-                    continue;
-                }
-
-                auto key = make_pair(edge.a, edge.b);
-
-                Matrix4d T_pred_ab = T_pose[edge.b].inverse() * T_pose[edge.a];
-                Vector3d t_pred = T_pred_ab.block<3, 1>(0, 3);
-                Vector3d t_ab = edge.T_ab.block<3, 1>(0, 3);
-                double residual = (t_pred - t_ab).norm();
-
-                if (residual > kEdgeResidualThreshold) {
-                    double excess = residual - kEdgeResidualThreshold;
-                    max_edge_residuals[key] = max(max_edge_residuals[key], excess * excess);
-                }
-
-                Matrix4d T_diff = T_pred_ab * edge.T_ab.inverse();
-                Matrix3d R_diff;
-                for (int r = 0; r < 3; ++r) {
-                    R_diff.row(r) << T_diff(r, 0), T_diff(r, 1), T_diff(r, 2);
-                }
-
-                Matrix3d log_R = R_diff.log();
-                Vector3d w;
-                w << -log_R(1, 2), log_R(0, 2), -log_R(0, 1);
-                double rot_residual = w.norm();
-                
-                if (rot_residual > kEdgeRotResidualThreshold) {
-                    double excess = rot_residual - kEdgeRotResidualThreshold;
-                    max_rot_residuals[key] = max(max_rot_residuals[key], excess);
-                }
+            for (int group_idx : active_groups) {
+                edge_residual_penalty += max_edge_residuals[group_idx];
+                edge_rot_residual_penalty += max_rot_residuals[group_idx];
             }
-        }
-
-        for (auto const& [key, val] : max_edge_residuals) {
-            edge_residual_penalty += val;
-        }
-        for (auto const& [key, val] : max_rot_residuals) {
-            edge_rot_residual_penalty += val;
         }
 
         if (use_edge_residual) {
@@ -859,8 +780,8 @@ private:
             vector<bool> vis_global(num_shards_, false);
             double overlap_penalty_sum = 0.0;
 
-            for (int start_node = 0; start_node < num_shards_; ++start_node) {
-                if (!IsShardValidAndOn(start_node) || vis_global[start_node]) {
+            for (int start_node : valid_shard_indices_) {
+                if (vis_global[start_node]) {
                     continue;
                 }
 
@@ -964,7 +885,7 @@ private:
             breakdown->num_components = num_components;
             breakdown->total_fitness = fitness;
         }
-        
+
         return fitness;
     }
 
@@ -1031,7 +952,7 @@ private:
 
     //-----------------------------------------------------------------------------------------------------------------//
 
-    Chromosome TournamentSelect() const
+    const Chromosome& TournamentSelect() const
     {
         int size = static_cast<int>(population_.size());
         int best_index = rand() % size;
@@ -1434,6 +1355,14 @@ private:
         return (shard_idx >= 0) && (shard_idx < num_shards_) && shard_on_off[shard_idx];
     }
 
+    int PairGroupIndex(int a, int b) const
+    {
+        if (a < 0 || b < 0 || a >= num_shards_ || b >= num_shards_ || a == b) {
+            return -1;
+        }
+        return pair_group_lookup_[a * num_shards_ + b];
+    }
+
     //-----------------------------------------------------------------------------------------------------------------//
 
     void BuildPairGroups()
@@ -1482,6 +1411,29 @@ private:
     void PrecomputeStaticCaches()
     {
         max_neighbors_cap_ = 0;
+        valid_shard_indices_.clear();
+        valid_shard_triplets_.clear();
+        pair_group_lookup_.assign(num_shards_ * num_shards_, -1);
+
+        for (int i = 0; i < num_shards_; ++i) {
+            if (IsShardValidAndOn(i)) {
+                valid_shard_indices_.push_back(i);
+            }
+        }
+        valid_shard_count_ = static_cast<int>(valid_shard_indices_.size());
+
+        for (size_t i = 0; i < valid_shard_indices_.size(); ++i) {
+            for (size_t j = i + 1; j < valid_shard_indices_.size(); ++j) {
+                for (size_t k = j + 1; k < valid_shard_indices_.size(); ++k) {
+                    valid_shard_triplets_.push_back({
+                        valid_shard_indices_[i],
+                        valid_shard_indices_[j],
+                        valid_shard_indices_[k]
+                    });
+                }
+            }
+        }
+
         vector<int> incident_count(num_shards_, 0);
 
         for (size_t i = 0; i < matches_.size(); ++i) {
@@ -1503,6 +1455,7 @@ private:
         group_best_density_.assign(pair_groups_.size(), 0.0);
         group_rep_x_.assign(pair_groups_.size(), -1);
         group_rep_y_.assign(pair_groups_.size(), -1);
+        valid_group_count_ = 0;
 
         for (size_t group_idx = 0; group_idx < pair_groups_.size(); ++group_idx) {
             const vector<size_t>& group = pair_groups_[group_idx];
@@ -1513,6 +1466,18 @@ private:
             const LCSIndex& representative = matches_[group[0]];
             group_rep_x_[group_idx] = representative.shard_x_ - 1;
             group_rep_y_[group_idx] = representative.shard_y_ - 1;
+
+            int gx = group_rep_x_[group_idx];
+            int gy = group_rep_y_[group_idx];
+            if (gx >= 0 && gx < num_shards_ && gy >= 0 && gy < num_shards_) {
+                int a = min(gx, gy);
+                int b = max(gx, gy);
+                pair_group_lookup_[a * num_shards_ + b] = static_cast<int>(group_idx);
+                pair_group_lookup_[b * num_shards_ + a] = static_cast<int>(group_idx);
+            }
+            if (IsShardValidAndOn(gx) && IsShardValidAndOn(gy)) {
+                valid_group_count_++;
+            }
 
             double best_density = 0.0;
             for (size_t local_idx = 0; local_idx < group.size(); ++local_idx) {
@@ -1758,53 +1723,98 @@ private:
             return diag;
         }
 
-        const vector<Vector3d>* query = &cloud_a;
-        const vector<Vector3d>* target = &cloud_b;
-        if (query->size() > target->size()) {
-            query = &cloud_b;
-            target = &cloud_a;
-        }
-        diag.query_size = static_cast<int>(query->size());
-        diag.target_size = static_cast<int>(target->size());
+        struct DirectionalStats {
+            int query_size = 0;
+            int target_size = 0;
+            int hits = 0;
+            double depth_sum = 0.0;
+            double min_nn_distance = 0.0;
+        };
 
-        const double epsilon_sq = kCollisionPointEpsilon * kCollisionPointEpsilon;
-        double depth_sum = 0.0;
-        double min_best_sq = numeric_limits<double>::max();
+        auto ComputeDirectionalStats = [](const vector<Vector3d>& query,
+                                          const vector<Vector3d>& target) -> DirectionalStats {
+            DirectionalStats stats;
+            stats.query_size = static_cast<int>(query.size());
+            stats.target_size = static_cast<int>(target.size());
+            if (query.empty() || target.empty()) {
+                return stats;
+            }
 
-        for (size_t i = 0; i < query->size(); ++i) {
-            const Vector3d& q = (*query)[i];
-            double best_sq = numeric_limits<double>::max();
+            const double epsilon_sq = GeneticAssembler::kCollisionPointEpsilon * GeneticAssembler::kCollisionPointEpsilon;
+            double min_best_sq = numeric_limits<double>::max();
 
-            for (size_t j = 0; j < target->size(); ++j) {
-                double d_sq = (q - (*target)[j]).squaredNorm();
-                if (d_sq < best_sq) {
-                    best_sq = d_sq;
+            for (size_t i = 0; i < query.size(); ++i) {
+                const Vector3d& q = query[i];
+                double best_sq = numeric_limits<double>::max();
+
+                for (size_t j = 0; j < target.size(); ++j) {
+                    double d_sq = (q - target[j]).squaredNorm();
+                    if (d_sq < best_sq) {
+                        best_sq = d_sq;
+                    }
+                }
+
+                if (best_sq < min_best_sq) {
+                    min_best_sq = best_sq;
+                }
+
+                if (best_sq < epsilon_sq) {
+                    double d = sqrt(best_sq);
+                    double depth_ratio = 1.0 - (d / GeneticAssembler::kCollisionPointEpsilon);
+                    stats.depth_sum += max(0.0, depth_ratio);
+                    stats.hits++;
                 }
             }
 
-            if (best_sq < min_best_sq) {
-                min_best_sq = best_sq;
+            if (min_best_sq < numeric_limits<double>::max()) {
+                stats.min_nn_distance = sqrt(min_best_sq);
             }
+            return stats;
+        };
 
-            if (best_sq < epsilon_sq) {
-                double d = sqrt(best_sq);
-                double depth_ratio = 1.0 - (d / kCollisionPointEpsilon);
-                depth_sum += max(0.0, depth_ratio);
-                diag.collision_hits++;
-            }
+        const DirectionalStats ab = ComputeDirectionalStats(cloud_a, cloud_b);
+        const DirectionalStats ba = ComputeDirectionalStats(cloud_b, cloud_a);
+
+        DirectionalStats primary = ab;
+        if (ba.hits > ab.hits) {
+            primary = ba;
         }
 
-        if (min_best_sq < numeric_limits<double>::max()) {
-            diag.min_nn_distance = sqrt(min_best_sq);
+        diag.query_size = max(1, primary.query_size);
+        diag.target_size = primary.target_size;
+        diag.collision_hits = primary.hits;
+
+        if (ab.min_nn_distance > 0.0 && ba.min_nn_distance > 0.0) {
+            diag.min_nn_distance = min(ab.min_nn_distance, ba.min_nn_distance);
+        }
+        else if (ab.min_nn_distance > 0.0) {
+            diag.min_nn_distance = ab.min_nn_distance;
+        }
+        else {
+            diag.min_nn_distance = ba.min_nn_distance;
         }
 
-        if (diag.collision_hits <= 0) {
+        const int total_hits = ab.hits + ba.hits;
+        if (total_hits <= 0) {
             return diag;
         }
 
-        diag.hit_ratio = static_cast<double>(diag.collision_hits) / static_cast<double>(max(1, diag.query_size));
-        diag.avg_depth = depth_sum / static_cast<double>(diag.collision_hits);
-        diag.pair_penalty = kOverlapPenalty * diag.hit_ratio * diag.avg_depth;
+        const double ratio_ab = static_cast<double>(ab.hits) / static_cast<double>(max(1, ab.query_size));
+        const double ratio_ba = static_cast<double>(ba.hits) / static_cast<double>(max(1, ba.query_size));
+        diag.hit_ratio = max(ratio_ab, ratio_ba);
+        diag.avg_depth = (ab.depth_sum + ba.depth_sum) / static_cast<double>(total_hits);
+
+        const double h = static_cast<double>(max(ab.hits, ba.hits));
+        const double hit_confidence = h / (h + kOverlapDepthConfidenceCount);
+        const double absolute_overlap = h / (h + kOverlapHitSaturationCount);
+        const double absolute_overlap_effective = hit_confidence * absolute_overlap;
+        const double mixed_overlap = (kOverlapFractionMix * diag.hit_ratio)
+                                   + ((1.0 - kOverlapFractionMix) * absolute_overlap_effective);
+        const double depth_effective = (hit_confidence * diag.avg_depth)
+                                     + ((1.0 - hit_confidence) * kOverlapDepthPrior);
+        const double depth_term = pow(max(0.0, min(1.0, depth_effective)), kOverlapDepthGamma);
+
+        diag.pair_penalty = kOverlapPenalty * mixed_overlap * depth_term;
         return diag;
     }
 
@@ -2194,7 +2204,7 @@ private:
 
                     // Condition 1: Centroid Distance
                     double dist = (global_centroids[i] - global_centroids[j]).norm();
-                    double threshold = kCollisionCentroidScale * (shard_radius_[i] + shard_radius_[j]);
+                    double threshold = 0.5 * min(shard_radius_[i], shard_radius_[j]);
                     if (dist >= threshold) continue;
 
                     // Condition 2: Rotation Similarity
@@ -2211,7 +2221,8 @@ private:
                         loser_idx = i; // j is root, i must lose
                     } else {
                         // 50/50 chance to pick loser to allow breaking out of local optima
-                        loser_idx = (rand() % 2 == 0) ? i : j;
+                        // loser_idx = (rand() % 2 == 0) ? i : j;
+                        loser_idx = (incoming_density[i] < incoming_density[j]) ? i : j;
                     }
 
                     if (loser_idx != -1 && incoming_gene_idx[loser_idx] != -1) {
@@ -2373,6 +2384,7 @@ private:
         ss << "\n--- GENERATION " << generation << " BEST BREAKDOWN ---" << endl;
         ss << "  Total Fitness: " << fixed << setprecision(2) << best.fitness << endl;
         ss << "  Inlier Reward: " << breakdown.inlier_reward << endl;
+        ss << "  Cycle Penalty: " << breakdown.cycle_penalty << endl;
         ss << "  Overlap Penalty: " << breakdown.overlap_penalty << endl;
         ss << "  Edge Residual Penalty: " << breakdown.edge_residual_penalty << endl;
         ss << "  Edge Rot Residual Penalty: " << breakdown.edge_rot_residual_penalty << endl;
@@ -2544,6 +2556,9 @@ private:
                 for (int g = 0; g < chromosome_length; ++g) {
                     if (population_[i].genes[g] != population_[j].genes[g]) {
                         hamming_distance++;
+                        if (hamming_distance >= kDiversityK) {
+                            break;
+                        }
                     }
                 }
 
@@ -2685,7 +2700,7 @@ private:
 
 private:
     static constexpr int kPopulationSize = 200;
-    static constexpr int kMaxGenerations = 100;
+    static constexpr int kMaxGenerations = 30;
     static constexpr int kElitismCount = 10;
     static constexpr double kMutationRate = 0.10; // Increased from 0.05 for better symmetry exploration
     static constexpr double kSymmetryFlipRate = 0.15;
@@ -2703,13 +2718,18 @@ private:
     static constexpr double kEdgeResidualPenalty = 2.0;
     static constexpr double kEdgeRotResidualThreshold = 1.2;
     static constexpr double kEdgeRotResidualPenalty = 5.0;
-    static constexpr double kConnectivityReward = 100.0;
+    static constexpr double kConnectivityReward = 10.0;
     static constexpr double kConnectivityComponentPenalty = 100;
     static constexpr int kPoseRelaxIterations = 0;
     static constexpr double kPoseRelaxAlpha = 0.5;
     
     // Overlap constants
-    static constexpr double kOverlapPenalty = 1500.0;
+    static constexpr double kOverlapPenalty = 1000.0;
+    static constexpr double kOverlapFractionMix = 0.75;
+    static constexpr double kOverlapHitSaturationCount = 12.0;
+    static constexpr double kOverlapDepthConfidenceCount = 12.0;
+    static constexpr double kOverlapDepthPrior = 0.15;
+    static constexpr double kOverlapDepthGamma = 1.3;
     static constexpr double kCollisionPointEpsilon = 2.0;   // mm
     static constexpr double kCollisionEdgeExclusion = 2.0;  // mm
     static constexpr double kCollisionVoxelSize = 5.0;      // mm
@@ -2742,6 +2762,11 @@ private:
     vector<double> group_best_density_;
     vector<int> group_rep_x_;
     vector<int> group_rep_y_;
+    vector<int> valid_shard_indices_;
+    vector<array<int, 3>> valid_shard_triplets_;
+    vector<int> pair_group_lookup_;
+    int valid_shard_count_ = 0;
+    int valid_group_count_ = 0;
 };
 
 #endif
