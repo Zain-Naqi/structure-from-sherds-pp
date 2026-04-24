@@ -20,9 +20,13 @@
 #include <cstdlib>
 #include <ctime>
 #include <limits>
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 // Check # 02: #include "data_structure.h" should also work
 #include "../class/data_structure.h"
+#include "../class/KDTree.h"
 
 // extern: there is a shard_on_off array somewhere in the codebase, I want to use it here, but I'm not defining it
 extern bool shard_on_off[];
@@ -809,21 +813,10 @@ private:
                     }
                 }
 
-                vector<vector<Vector3d>> cloud_global(num_shards_);
                 vector<Vector3d> center_global(num_shards_, Vector3d::Zero());
                 for (size_t i = 0; i < placed.size(); ++i) {
                     int shard_idx = placed[i];
-                    const vector<Vector3d>& cloud_local = collision_clouds_[shard_idx];
                     const Matrix4d& T = T_comp[shard_idx];
-
-                    vector<Vector3d>& transformed_cloud = cloud_global[shard_idx];
-                    transformed_cloud.reserve(cloud_local.size());
-
-                    for (size_t p = 0; p < cloud_local.size(); ++p) {
-                        Vector4d h;
-                        h << cloud_local[p], 1.0;
-                        transformed_cloud.push_back((T * h).head<3>());
-                    }
 
                     Vector4d c_h;
                     c_h << collision_cloud_centroids_[shard_idx], 1.0;
@@ -835,9 +828,7 @@ private:
                         int idx1 = placed[i];
                         int idx2 = placed[j];
 
-                        const vector<Vector3d>& cloud1 = cloud_global[idx1];
-                        const vector<Vector3d>& cloud2 = cloud_global[idx2];
-                        if (cloud1.empty() || cloud2.empty()) {
+                        if (collision_clouds_[idx1].empty() || collision_clouds_[idx2].empty()) {
                             continue;
                         }
 
@@ -848,7 +839,7 @@ private:
                             continue;
                         }
 
-                        overlap_penalty_sum += ComputeCloudOverlapPenalty(cloud1, cloud2);
+                        overlap_penalty_sum += ComputeCloudOverlapPenalty(idx1, idx2, T_comp[idx1], T_comp[idx2]);
                     }
                 }
             }
@@ -1501,6 +1492,8 @@ private:
         collision_cloud_radii_.assign(num_shards_, 0.0);
         collision_cloud_stats_.assign(num_shards_, CollisionCloudStats());
 
+        collision_kdtrees_.assign(num_shards_, nullptr);
+
         const double edge_exclusion_sq = kCollisionEdgeExclusion * kCollisionEdgeExclusion;
 
         for (int shard_idx = 0; shard_idx < num_shards_; ++shard_idx) {
@@ -1569,6 +1562,12 @@ private:
             collision_clouds_[shard_idx] = cloud;
             collision_cloud_centroids_[shard_idx] = centroid;
             collision_cloud_radii_[shard_idx] = radius;
+
+            struct kdtree *tree = kd_create(3);
+            for (size_t i = 0; i < cloud.size(); ++i) {
+                kd_insert3(tree, cloud[i].x(), cloud[i].y(), cloud[i].z(), nullptr);
+            }
+            collision_kdtrees_[shard_idx] = tree;
         }
     }
 
@@ -1700,19 +1699,23 @@ private:
         cloud.swap(reduced);
     }
 
-    double ComputeCloudOverlapPenalty(const vector<Vector3d>& cloud_a, const vector<Vector3d>& cloud_b) const
+    double ComputeCloudOverlapPenalty(int idx_a, int idx_b, const Matrix4d& T_a, const Matrix4d& T_b) const
     {
-        return ComputeCloudOverlapDiagnostic(cloud_a, cloud_b).pair_penalty;
+        return ComputeCloudOverlapDiagnostic(idx_a, idx_b, T_a, T_b).pair_penalty;
     }
 
-    PairOverlapDiagnostic ComputeCloudOverlapDiagnostic(const vector<Vector3d>& cloud_a,
-                                                        const vector<Vector3d>& cloud_b,
-                                                        int idx_a = -1,
-                                                        int idx_b = -1) const
+    PairOverlapDiagnostic ComputeCloudOverlapDiagnostic(int idx_a,
+                                                        int idx_b,
+                                                        const Matrix4d& T_a,
+                                                        const Matrix4d& T_b) const
     {
         PairOverlapDiagnostic diag;
         diag.idx_a = idx_a;
         diag.idx_b = idx_b;
+        
+        const vector<Vector3d>& cloud_a = collision_clouds_[idx_a];
+        const vector<Vector3d>& cloud_b = collision_clouds_[idx_b];
+        
         diag.cloud_a_empty = cloud_a.empty();
         diag.cloud_b_empty = cloud_b.empty();
         diag.query_size = static_cast<int>(cloud_a.size());
@@ -1731,38 +1734,49 @@ private:
             double min_nn_distance = 0.0;
         };
 
-        auto ComputeDirectionalStats = [](const vector<Vector3d>& query,
-                                          const vector<Vector3d>& target) -> DirectionalStats {
+        auto ComputeDirectionalStats = [&](int q_idx, int t_idx, const Matrix4d& T_q, const Matrix4d& T_t) -> DirectionalStats {
             DirectionalStats stats;
+            const vector<Vector3d>& query = collision_clouds_[q_idx];
+            const vector<Vector3d>& target = collision_clouds_[t_idx];
+            struct kdtree* target_tree = collision_kdtrees_[t_idx];
+            
             stats.query_size = static_cast<int>(query.size());
             stats.target_size = static_cast<int>(target.size());
-            if (query.empty() || target.empty()) {
+            if (query.empty() || target.empty() || target_tree == nullptr) {
                 return stats;
             }
 
-            const double epsilon_sq = GeneticAssembler::kCollisionPointEpsilon * GeneticAssembler::kCollisionPointEpsilon;
+            const double epsilon = GeneticAssembler::kCollisionPointEpsilon;
+            const double epsilon_sq = epsilon * epsilon;
             double min_best_sq = numeric_limits<double>::max();
 
-            for (size_t i = 0; i < query.size(); ++i) {
-                const Vector3d& q = query[i];
-                double best_sq = numeric_limits<double>::max();
+            Matrix4d T_q_to_t = T_t.inverse() * T_q;
 
-                for (size_t j = 0; j < target.size(); ++j) {
-                    double d_sq = (q - target[j]).squaredNorm();
-                    if (d_sq < best_sq) {
-                        best_sq = d_sq;
+            for (size_t i = 0; i < query.size(); ++i) {
+                Vector4d p_q_h;
+                p_q_h << query[i], 1.0;
+                Vector3d p_t = (T_q_to_t * p_q_h).head<3>();
+
+                struct kdres *res = kd_nearest3(target_tree, p_t.x(), p_t.y(), p_t.z());
+                if (res != nullptr && !kd_res_end(res)) {
+                    double nx, ny, nz;
+                    kd_res_item3(res, &nx, &ny, &nz);
+                    Vector3d nearest(nx, ny, nz);
+                    double d_sq = (p_t - nearest).squaredNorm();
+                    
+                    if (d_sq < min_best_sq) {
+                        min_best_sq = d_sq;
+                    }
+
+                    if (d_sq < epsilon_sq) {
+                        double d = sqrt(d_sq);
+                        double depth_ratio = 1.0 - (d / epsilon);
+                        stats.depth_sum += max(0.0, depth_ratio);
+                        stats.hits++;
                     }
                 }
-
-                if (best_sq < min_best_sq) {
-                    min_best_sq = best_sq;
-                }
-
-                if (best_sq < epsilon_sq) {
-                    double d = sqrt(best_sq);
-                    double depth_ratio = 1.0 - (d / GeneticAssembler::kCollisionPointEpsilon);
-                    stats.depth_sum += max(0.0, depth_ratio);
-                    stats.hits++;
+                if (res != nullptr) {
+                    kd_res_free(res);
                 }
             }
 
@@ -1772,8 +1786,8 @@ private:
             return stats;
         };
 
-        const DirectionalStats ab = ComputeDirectionalStats(cloud_a, cloud_b);
-        const DirectionalStats ba = ComputeDirectionalStats(cloud_b, cloud_a);
+        const DirectionalStats ab = ComputeDirectionalStats(idx_a, idx_b, T_a, T_b);
+        const DirectionalStats ba = ComputeDirectionalStats(idx_b, idx_a, T_b, T_a);
 
         DirectionalStats primary = ab;
         if (ba.hits > ab.hits) {
@@ -1897,7 +1911,6 @@ private:
             current_comp_id++;
         }
 
-        vector<vector<Vector3d>> global_clouds(num_shards_);
         vector<Vector3d> global_centers(num_shards_, Vector3d::Zero());
         for (int i = 0; i < num_shards_; ++i) {
             if (!visited[i] || !IsShardValidAndOn(i)) {
@@ -1905,15 +1918,6 @@ private:
             }
 
             const Matrix4d& T = T_to_root[i];
-            const vector<Vector3d>& cloud_local = collision_clouds_[i];
-            vector<Vector3d>& cloud_global = global_clouds[i];
-            cloud_global.reserve(cloud_local.size());
-
-            for (size_t p = 0; p < cloud_local.size(); ++p) {
-                Vector4d h;
-                h << cloud_local[p], 1.0;
-                cloud_global.push_back((T * h).head<3>());
-            }
 
             Vector4d c_h;
             c_h << collision_cloud_centroids_[i], 1.0;
@@ -1940,10 +1944,8 @@ private:
                 }
 
                 same_component_pair_count++;
-                const vector<Vector3d>& cloud_i = global_clouds[i];
-                const vector<Vector3d>& cloud_j = global_clouds[j];
-                diag.cloud_a_empty = cloud_i.empty();
-                diag.cloud_b_empty = cloud_j.empty();
+                diag.cloud_a_empty = collision_clouds_[i].empty();
+                diag.cloud_b_empty = collision_clouds_[j].empty();
                 if (diag.cloud_a_empty || diag.cloud_b_empty) {
                     pair_diags.push_back(diag);
                     continue;
@@ -1959,7 +1961,7 @@ private:
                 }
 
                 narrow_phase_pair_count++;
-                PairOverlapDiagnostic narrow = ComputeCloudOverlapDiagnostic(cloud_i, cloud_j, i, j);
+                PairOverlapDiagnostic narrow = ComputeCloudOverlapDiagnostic(i, j, T_to_root[i], T_to_root[j]);
                 diag.query_size = narrow.query_size;
                 diag.target_size = narrow.target_size;
                 diag.collision_hits = narrow.collision_hits;
@@ -2550,8 +2552,14 @@ private:
 
         int kDiversityK = chromosome_length / 3;
 
+        vector<int> replace_with_source(population_.size(), -1);
+
         for (size_t i = kElitismCount; i < population_.size(); ++i) {
+            if (replace_with_source[i] != -1) continue;
+
             for (size_t j = i + 1; j < population_.size(); ++j) {
+                if (replace_with_source[j] != -1) continue;
+
                 int hamming_distance = 0;
                 for (int g = 0; g < chromosome_length; ++g) {
                     if (population_[i].genes[g] != population_[j].genes[g]) {
@@ -2563,8 +2571,25 @@ private:
                 }
 
                 if (hamming_distance < kDiversityK) {
-                    population_[j] = GenerateBiasedReplacement(population_[i]);
+                    replace_with_source[j] = static_cast<int>(i);
                 }
+            }
+        }
+
+        vector<Chromosome> replacements(population_.size());
+        
+#ifdef _OPENMP
+#pragma omp parallel for schedule(dynamic)
+#endif
+        for (int j = 0; j < static_cast<int>(population_.size()); ++j) {
+            if (replace_with_source[j] != -1) {
+                replacements[j] = GenerateBiasedReplacement(population_[replace_with_source[j]]);
+            }
+        }
+
+        for (size_t j = 0; j < population_.size(); ++j) {
+            if (replace_with_source[j] != -1) {
+                population_[j] = replacements[j];
             }
         }
     }
@@ -2756,8 +2781,24 @@ private:
     vector<CollisionCloudStats> collision_cloud_stats_;
     vector<Vector3d> collision_cloud_centroids_;
     vector<double> collision_cloud_radii_;
+    vector<struct kdtree*> collision_kdtrees_;
 
+public:
+    ~GeneticAssembler() {
+        for (size_t i = 0; i < collision_kdtrees_.size(); ++i) {
+            if (collision_kdtrees_[i] != nullptr) {
+                kd_free(collision_kdtrees_[i]);
+                collision_kdtrees_[i] = nullptr;
+            }
+        }
+    }
+
+    GeneticAssembler(const GeneticAssembler&) = delete;
+    GeneticAssembler& operator=(const GeneticAssembler&) = delete;
+
+private:
     // Static caches to avoid recomputing identical data in every fitness call.
+
     int max_neighbors_cap_ = 0;
     vector<double> group_best_density_;
     vector<int> group_rep_x_;
