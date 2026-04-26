@@ -304,6 +304,9 @@ int main(int argc, char** argv)
 
 	PairwisePruning(shard, LCS_out);
 
+	cout << "Pruned match count: " << LCS_out.size() << endl;
+
+
 	// Save matches computed on original axis-aligned positions
 	// (LCS_out gets overwritten during iterative GA, so preserve it here)
 
@@ -319,7 +322,7 @@ int main(int argc, char** argv)
 	const int kMaxPatience = 5;
 
 	vector<Trans> T_ga;
-	MatrixXd graph_ga;
+	MatrixXd graph_ga = MatrixXd::Zero(SHARD_NUMBER, SHARD_NUMBER);
 	vector<Trans> T_ga_eval = T_axis;
 	vector<Trans> T_ga_vis(SHARD_NUMBER); // Tracks overall best GA movement (axis->assembled)
 	vector<Trans> T_live(SHARD_NUMBER);   // The currently exploring accumulated transform (axis->assembled)

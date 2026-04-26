@@ -23,6 +23,7 @@
 
 // Check # 02: #include "data_structure.h" should also work
 #include "../class/data_structure.h"
+#include "../class/KDTree.h"
 
 // extern: there is a shard_on_off array somewhere in the codebase, I want to use it here, but I'm not defining it
 extern bool shard_on_off[];
@@ -131,8 +132,29 @@ public:
         for (int i = 0; i < num_shards_; ++i) {
             if (!IsShardValidAndOn(i)) continue;
 
-            const MatrixXd& pts = shard_[i].edge_line_.point_;
-            if (pts.cols() == 0) continue;
+            int total_cols = shard_[i].edge_line_.point_.cols()
+               + shard_[i].sur_in_.point_.cols()
+               + shard_[i].sur_out_.point_.cols();
+
+            if (total_cols == 0) continue;
+
+            MatrixXd pts(3, total_cols);
+            int offset = 0;
+
+            int c1 = shard_[i].edge_line_.point_.cols();
+            if (c1 > 0) {
+                pts.block(0, offset, 3, c1) = shard_[i].edge_line_.point_;
+                offset += c1;
+            }
+            int c2 = shard_[i].sur_in_.point_.cols();
+            if (c2 > 0) {
+                pts.block(0, offset, 3, c2) = shard_[i].sur_in_.point_;
+                offset += c2;
+            }
+            int c3 = shard_[i].sur_out_.point_.cols();
+            if (c3 > 0) {
+                pts.block(0, offset, 3, c3) = shard_[i].sur_out_.point_;
+            }
 
             // Calculate Centroid (Center of Mass)
             Vector3d centroid = Vector3d::Zero();
@@ -154,11 +176,24 @@ public:
         LogCollisionCloudSummary();
     }
 
+    ~GeneticAssembler()
+    {
+        for (int i = 0; i < num_shards_; ++i) {
+            if (i < static_cast<int>(collision_kdtrees_.size()) && collision_kdtrees_[i] != nullptr) {
+                kd_free(collision_kdtrees_[i]);
+                collision_kdtrees_[i] = nullptr;
+            }
+        }
+    }
+
     //-----------------------------------------------------------------------------------------------------------------//
 
     void Run(const MatrixXd& GT_graph, const vector<Trans>& GT_trans, const vector<Trans>& T_axis)
     {
-        srand(42);
+        rng_.seed(rng_seed_);
+        if (enable_debug_logging) {
+            cout << "[GA DEBUG] RNG seed: " << rng_seed_ << endl;
+        }
 
         if (pair_groups_.empty()) {
             cout << "PAIR GROUPS ARE EMPTY...WHY?" << endl;
@@ -809,46 +844,33 @@ private:
                     }
                 }
 
-                vector<vector<Vector3d>> cloud_global(num_shards_);
-                vector<Vector3d> center_global(num_shards_, Vector3d::Zero());
-                for (size_t i = 0; i < placed.size(); ++i) {
-                    int shard_idx = placed[i];
-                    const vector<Vector3d>& cloud_local = collision_clouds_[shard_idx];
-                    const Matrix4d& T = T_comp[shard_idx];
-
-                    vector<Vector3d>& transformed_cloud = cloud_global[shard_idx];
-                    transformed_cloud.reserve(cloud_local.size());
-
-                    for (size_t p = 0; p < cloud_local.size(); ++p) {
-                        Vector4d h;
-                        h << cloud_local[p], 1.0;
-                        transformed_cloud.push_back((T * h).head<3>());
-                    }
-
-                    Vector4d c_h;
-                    c_h << collision_cloud_centroids_[shard_idx], 1.0;
-                    center_global[shard_idx] = (T * c_h).head<3>();
-                }
-
                 for (size_t i = 0; i < placed.size(); ++i) {
                     for (size_t j = i + 1; j < placed.size(); ++j) {
                         int idx1 = placed[i];
                         int idx2 = placed[j];
 
-                        const vector<Vector3d>& cloud1 = cloud_global[idx1];
-                        const vector<Vector3d>& cloud2 = cloud_global[idx2];
-                        if (cloud1.empty() || cloud2.empty()) {
+                        if (collision_clouds_[idx1].empty() || collision_clouds_[idx2].empty()) {
                             continue;
                         }
+
+                        Vector4d c1_h;
+                        c1_h << collision_cloud_centroids_[idx1], 1.0;
+                        Vector3d center1 = (T_comp[idx1] * c1_h).head<3>();
+
+                        Vector4d c2_h;
+                        c2_h << collision_cloud_centroids_[idx2], 1.0;
+                        Vector3d center2 = (T_comp[idx2] * c2_h).head<3>();
 
                         double broad_radius = collision_cloud_radii_[idx1] + collision_cloud_radii_[idx2] + kCollisionPointEpsilon;
-                        double broad_radius_sq = broad_radius * broad_radius;
-                        double center_dist_sq = (center_global[idx1] - center_global[idx2]).squaredNorm();
-                        if (center_dist_sq > broad_radius_sq) {
+                        if ((center1 - center2).squaredNorm() > broad_radius * broad_radius) {
                             continue;
                         }
 
-                        overlap_penalty_sum += ComputeCloudOverlapPenalty(cloud1, cloud2);
+                        overlap_penalty_sum += ComputeCloudOverlapPenaltyIndexed(
+                            idx1,
+                            idx2,
+                            T_comp[idx1],
+                            T_comp[idx2]);
                     }
                 }
             }
@@ -955,11 +977,12 @@ private:
     const Chromosome& TournamentSelect() const
     {
         int size = static_cast<int>(population_.size());
-        int best_index = rand() % size;
+        std::uniform_int_distribution<int> dist(0, size - 1);
+        int best_index = dist(rng_);
 
         // Check # 13: The tournament size (2 here) can be experimented with...
         for (int i = 1; i < 3; ++i) {
-            int candidate_index = rand() % size;
+            int candidate_index = dist(rng_);
             if (population_[candidate_index].fitness > population_[best_index].fitness) {
                 best_index = candidate_index;
             }
@@ -976,20 +999,27 @@ private:
         child.fitness = 0.0;
         child.genes.resize(parent1.genes.size(), 0);
 
-        if (child.genes.empty()) {
-            return child;
+        if (child.genes.empty()) return child;
+
+        // Shard-Partition Crossover: Divide shards between parents to preserve local consensus
+        vector<int> shard_owner(num_shards_);
+        std::uniform_int_distribution<int> coin(0, 1);
+        for (int i = 0; i < num_shards_; ++i) {
+            shard_owner[i] = coin(rng_);
         }
 
-        int point = rand() % static_cast<int>(child.genes.size());
+        for (size_t gene_idx = 0; gene_idx < child.genes.size(); ++gene_idx) {
+            int x = group_rep_x_[gene_idx];
+            int y = group_rep_y_[gene_idx];
 
-        for (int i = 0; i < point; ++i) {
-            child.genes[i] = parent1.genes[i];
+            if (shard_owner[x] == shard_owner[y]) {
+                // Internal edge: inherit from the parent who "owns" these shards
+                child.genes[gene_idx] = (shard_owner[x] == 0) ? parent1.genes[gene_idx] : parent2.genes[gene_idx];
+            } else {
+                // Bridge edge: inherit from a random parent
+                child.genes[gene_idx] = (coin(rng_) == 0) ? parent1.genes[gene_idx] : parent2.genes[gene_idx];
+            }
         }
-
-        for (size_t i = point; i < child.genes.size(); ++i) {
-            child.genes[i] = parent2.genes[i];
-        }
-
         return child;
     }
 
@@ -998,84 +1028,41 @@ private:
     // Check # 16: There is a high potential in increasing the chances of mutation as based on this code, there are very less. Multiple genes can be mutated at once as well.
     int Mutate(Chromosome& chromosome) const
     {
-        int selected_mutated_gene = -1;
-        int mutated_count = 0;
+        std::uniform_real_distribution<double> real_dist(0.0, 1.0);
+        if (real_dist(rng_) >= kMutationRate) {
+            return -1;
+        }
 
-        for (size_t i = 0; i < chromosome.genes.size(); ++i) {
+        // Shard-Centric Mutation: Focus on a specific shard and its relationships
+        std::uniform_int_distribution<int> shard_dist(0, num_shards_ - 1);
+        int shard_idx = shard_dist(rng_);
 
-            // Check # 14: This might be a poor randomness technique which has to upgraded with moder C++ standards
-            double r = static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+        if (sherd_incident_groups_[shard_idx].empty()) {
+            return -1;
+        }
 
-            if (r < kMutationRate) {
-                int old_choice = chromosome.genes[i];
-                const vector<size_t>& group = pair_groups_[i];
-                int num_options = 1 + static_cast<int>(group.size()); // 0 (inactive) + candidates
+        // Pick one incident edge of the chosen shard
+        std::uniform_int_distribution<int> gene_dist(0, static_cast<int>(sherd_incident_groups_[shard_idx].size()) - 1);
+        int gene_idx = static_cast<int>(sherd_incident_groups_[shard_idx][gene_dist(rng_)]);
 
-                if (num_options <= 1) {
-                    continue;
-                }
+        int old_choice = chromosome.genes[gene_idx];
+        int new_choice = old_choice;
 
-                int new_choice = old_choice;
-
-                // --- Symmetry Aware Mutation (Symmetry Flip) ---
-                // Keep a small chance of random alternative to preserve exploration.
-                double symmetry_flip_prob = static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
-                if (symmetry_flip_prob < kSymmetryFlipRate) {
-                    // Forced Symmetry Flip: Pick any other candidate except the current one or 'inactive'
-                    // This forces the GA to explore the alternative high-quality matches in the group
-                    int num_candidates = static_cast<int>(group.size());
-                    if (num_candidates > 1) {
-                        //  int draw = rand() % num_candidates;
-                        //  new_choice = draw + 1; 
-                        //  if (new_choice == old_choice) {
-                        //      new_choice = (draw + 1) % num_candidates + 1;
-                        //  }
-                        while (new_choice == old_choice) {
-                            new_choice = SampleGroupChoice(i);
-                        }
-                    } else {
-                        //  new_choice = SampleGroupChoice(i);
-                        if (old_choice == 0){
-                            new_choice = 1;
-                        }
-                        else {
-                            new_choice = 0;
-                        }
-                    }
-                } 
-                // else {
-                //     const int kMaxResampleAttempts = 16;
-                //     for (int attempt = 0; attempt < kMaxResampleAttempts; ++attempt) {
-                //         new_choice = SampleGroupChoice(i);
-                //         if (new_choice != old_choice) {
-                //             break;
-                //         }
-                //     }
-                // }
-
-                // if (new_choice == old_choice) {
-                //     int clamped_old = old_choice;
-                //     if (clamped_old < 0 || clamped_old >= num_options) {
-                //         clamped_old = 0;
-                //     }
-
-                //     int draw = rand() % (num_options - 1);
-                //     if (draw >= clamped_old) {
-                //         draw++;
-                //     }
-                //     new_choice = draw;
-                // }
-
-                chromosome.genes[i] = new_choice;
-                mutated_count++;
-
-                if ((rand() % mutated_count) == 0) {
-                    selected_mutated_gene = static_cast<int>(i);
-                }
+        // Action Flip: Decide whether to turn off or explore another match
+        if (real_dist(rng_) < 0.5) {
+            // 50% chance: Deactivate to reduce potential conflicts/residuals
+            new_choice = 0;
+        } else {
+            // 50% chance: Try a different candidate (Symmetry/Density exploration)
+            new_choice = SampleGroupChoice(gene_idx);
+            if (new_choice == old_choice && !pair_groups_[gene_idx].empty()) {
+                // Force a flip if SampleGroupChoice happens to return current choice
+                new_choice = (old_choice == 0) ? 1 : 0;
             }
         }
 
-        return selected_mutated_gene;
+        chromosome.genes[gene_idx] = new_choice;
+        return gene_idx;
     }
 
     //-----------------------------------------------------------------------------------------------------------------//
@@ -1108,7 +1095,7 @@ private:
             return;
         }
 
-        random_shuffle(alternatives.begin(), alternatives.end());
+        std::shuffle(alternatives.begin(), alternatives.end(), rng_);
         int trials = min(kGuidedRepairTrials, static_cast<int>(alternatives.size()));
 
         if (trials <= 0) {
@@ -1496,7 +1483,15 @@ private:
 
     void PrecomputeCollisionClouds()
     {
+        for (size_t i = 0; i < collision_kdtrees_.size(); ++i) {
+            if (collision_kdtrees_[i] != nullptr) {
+                kd_free(collision_kdtrees_[i]);
+                collision_kdtrees_[i] = nullptr;
+            }
+        }
+
         collision_clouds_.assign(num_shards_, vector<Vector3d>());
+        collision_kdtrees_.assign(num_shards_, nullptr);
         collision_cloud_centroids_.assign(num_shards_, Vector3d::Zero());
         collision_cloud_radii_.assign(num_shards_, 0.0);
         collision_cloud_stats_.assign(num_shards_, CollisionCloudStats());
@@ -1569,6 +1564,14 @@ private:
             collision_clouds_[shard_idx] = cloud;
             collision_cloud_centroids_[shard_idx] = centroid;
             collision_cloud_radii_[shard_idx] = radius;
+
+            kdtree* tree = kd_create(3);
+            if (tree != nullptr) {
+                for (size_t i = 0; i < cloud.size(); ++i) {
+                    kd_insert3(tree, cloud[i](0), cloud[i](1), cloud[i](2), nullptr);
+                }
+                collision_kdtrees_[shard_idx] = tree;
+            }
         }
     }
 
@@ -1705,6 +1708,156 @@ private:
         return ComputeCloudOverlapDiagnostic(cloud_a, cloud_b).pair_penalty;
     }
 
+    PairOverlapDiagnostic ComputeCloudOverlapDiagnosticIndexed(int idx_a,
+                                                               int idx_b,
+                                                               const Matrix4d& T_a,
+                                                               const Matrix4d& T_b) const
+    {
+        PairOverlapDiagnostic diag;
+        diag.idx_a = idx_a;
+        diag.idx_b = idx_b;
+
+        if (idx_a < 0 || idx_a >= num_shards_ || idx_b < 0 || idx_b >= num_shards_) {
+            return diag;
+        }
+
+        const vector<Vector3d>& cloud_a = collision_clouds_[idx_a];
+        const vector<Vector3d>& cloud_b = collision_clouds_[idx_b];
+        diag.cloud_a_empty = cloud_a.empty();
+        diag.cloud_b_empty = cloud_b.empty();
+        diag.query_size = static_cast<int>(cloud_a.size());
+        diag.target_size = static_cast<int>(cloud_b.size());
+        diag.min_nn_distance = 0.0;
+
+        if (diag.cloud_a_empty || diag.cloud_b_empty ||
+            idx_a >= static_cast<int>(collision_kdtrees_.size()) ||
+            idx_b >= static_cast<int>(collision_kdtrees_.size()) ||
+            collision_kdtrees_[idx_a] == nullptr ||
+            collision_kdtrees_[idx_b] == nullptr) {
+            return diag;
+        }
+
+        Matrix4d T_b_inv = T_b.inverse();
+        Matrix4d T_a_inv = T_a.inverse();
+
+        struct DirectionalStats {
+            int query_size = 0;
+            int target_size = 0;
+            int hits = 0;
+            double depth_sum = 0.0;
+            double min_nn_distance = 0.0;
+        };
+
+        auto QueryDirection = [&](const vector<Vector3d>& query_local,
+                                  const Matrix4d& T_query,
+                                  const Matrix4d& T_target_inv,
+                                  kdtree* target_tree) -> DirectionalStats {
+            DirectionalStats stats;
+            stats.query_size = static_cast<int>(query_local.size());
+            stats.target_size = static_cast<int>(cloud_b.size());
+            if (query_local.empty() || target_tree == nullptr) {
+                return stats;
+            }
+
+            const double epsilon_sq = kCollisionPointEpsilon * kCollisionPointEpsilon;
+            const int min_hits_needed = static_cast<int>(
+                kOverlapMinHitRatio * static_cast<double>(query_local.size()));
+            const int max_misses = static_cast<int>(query_local.size()) - min_hits_needed;
+            int misses = 0;
+            double min_best_sq = numeric_limits<double>::max();
+            Matrix4d T_combined = T_target_inv * T_query;
+
+            for (size_t i = 0; i < query_local.size(); ++i) {
+                Vector4d h;
+                h << query_local[i], 1.0;
+                Vector3d q = (T_combined * h).head<3>();
+
+                kdres* result = kd_nearest3(target_tree, q(0), q(1), q(2));
+                if (!result) {
+                    misses++;
+                    if (misses > max_misses) {
+                        break;
+                    }
+                    continue;
+                }
+
+                double np[3] = { 0.0, 0.0, 0.0 };
+                kd_res_item(result, np);
+                kd_res_free(result);
+
+                double dx = q(0) - np[0];
+                double dy = q(1) - np[1];
+                double dz = q(2) - np[2];
+                double best_sq = dx * dx + dy * dy + dz * dz;
+
+                if (best_sq < min_best_sq) {
+                    min_best_sq = best_sq;
+                }
+
+                if (best_sq < epsilon_sq) {
+                    double depth_ratio = 1.0 - (sqrt(best_sq) / kCollisionPointEpsilon);
+                    stats.depth_sum += max(0.0, depth_ratio);
+                    stats.hits++;
+                } else {
+                    misses++;
+                    if (misses > max_misses) {
+                        break;
+                    }
+                }
+            }
+
+            if (min_best_sq < numeric_limits<double>::max()) {
+                stats.min_nn_distance = sqrt(min_best_sq);
+            }
+            return stats;
+        };
+
+        DirectionalStats ab = QueryDirection(cloud_a, T_a, T_b_inv, collision_kdtrees_[idx_b]);
+        DirectionalStats ba = QueryDirection(cloud_b, T_b, T_a_inv, collision_kdtrees_[idx_a]);
+
+        DirectionalStats primary = ab;
+        if (ba.hits > ab.hits) {
+            primary = ba;
+        }
+
+        diag.query_size = max(1, primary.query_size);
+        diag.target_size = primary.target_size;
+        diag.collision_hits = primary.hits;
+
+        if (ab.min_nn_distance > 0.0 && ba.min_nn_distance > 0.0) {
+            diag.min_nn_distance = min(ab.min_nn_distance, ba.min_nn_distance);
+        }
+        else if (ab.min_nn_distance > 0.0) {
+            diag.min_nn_distance = ab.min_nn_distance;
+        }
+        else {
+            diag.min_nn_distance = ba.min_nn_distance;
+        }
+
+        const int total_hits = ab.hits + ba.hits;
+        if (total_hits <= 0) {
+            return diag;
+        }
+
+        const double ratio_ab = static_cast<double>(ab.hits) / static_cast<double>(max(1, ab.query_size));
+        const double ratio_ba = static_cast<double>(ba.hits) / static_cast<double>(max(1, ba.query_size));
+        diag.hit_ratio = max(ratio_ab, ratio_ba);
+        diag.avg_depth = (ab.depth_sum + ba.depth_sum) / static_cast<double>(total_hits);
+
+        const double h = static_cast<double>(max(ab.hits, ba.hits));
+        const double hit_confidence = h / (h + kOverlapDepthConfidenceCount);
+        const double absolute_overlap = h / (h + kOverlapHitSaturationCount);
+        const double absolute_overlap_effective = hit_confidence * absolute_overlap;
+        const double mixed_overlap = (kOverlapFractionMix * diag.hit_ratio)
+                                   + ((1.0 - kOverlapFractionMix) * absolute_overlap_effective);
+        const double depth_effective = (hit_confidence * diag.avg_depth)
+                                     + ((1.0 - hit_confidence) * kOverlapDepthPrior);
+        const double depth_term = pow(max(0.0, min(1.0, depth_effective)), kOverlapDepthGamma);
+
+        diag.pair_penalty = kOverlapPenalty * mixed_overlap * depth_term;
+        return diag;
+    }
+
     PairOverlapDiagnostic ComputeCloudOverlapDiagnostic(const vector<Vector3d>& cloud_a,
                                                         const vector<Vector3d>& cloud_b,
                                                         int idx_a = -1,
@@ -1743,16 +1896,65 @@ private:
             const double epsilon_sq = GeneticAssembler::kCollisionPointEpsilon * GeneticAssembler::kCollisionPointEpsilon;
             double min_best_sq = numeric_limits<double>::max();
 
-            for (size_t i = 0; i < query.size(); ++i) {
-                const Vector3d& q = query[i];
-                double best_sq = numeric_limits<double>::max();
+            // Build KD-tree on target points for fast nearest-neighbor queries.
+            kdtree* tree = kd_create(3);
+            if (tree == nullptr) {
+                for (size_t i = 0; i < query.size(); ++i) {
+                    const Vector3d& q = query[i];
+                    double best_sq = numeric_limits<double>::max();
 
-                for (size_t j = 0; j < target.size(); ++j) {
-                    double d_sq = (q - target[j]).squaredNorm();
-                    if (d_sq < best_sq) {
-                        best_sq = d_sq;
+                    for (size_t j = 0; j < target.size(); ++j) {
+                        double d_sq = (q - target[j]).squaredNorm();
+                        if (d_sq < best_sq) {
+                            best_sq = d_sq;
+                        }
+                    }
+
+                    if (best_sq < min_best_sq) {
+                        min_best_sq = best_sq;
+                    }
+
+                    if (best_sq < epsilon_sq) {
+                        double d = sqrt(best_sq);
+                        double depth_ratio = 1.0 - (d / GeneticAssembler::kCollisionPointEpsilon);
+                        stats.depth_sum += max(0.0, depth_ratio);
+                        stats.hits++;
                     }
                 }
+
+                if (min_best_sq < numeric_limits<double>::max()) {
+                    stats.min_nn_distance = sqrt(min_best_sq);
+                }
+                return stats;
+            }
+
+            for (size_t j = 0; j < target.size(); ++j) {
+                kd_insert3(tree, target[j](0), target[j](1), target[j](2), nullptr);
+            }
+
+            const int min_hits_needed = static_cast<int>(
+                GeneticAssembler::kOverlapMinHitRatio * static_cast<double>(query.size()));
+            const int max_misses = static_cast<int>(query.size()) - min_hits_needed;
+            int misses = 0;
+
+            for (size_t i = 0; i < query.size(); ++i) {
+                kdres* result = kd_nearest3(tree, query[i](0), query[i](1), query[i](2));
+                if (result == nullptr) {
+                    misses++;
+                    if (misses > max_misses) {
+                        break;
+                    }
+                    continue;
+                }
+
+                double nearest_pos[3] = { 0.0, 0.0, 0.0 };
+                kd_res_item(result, nearest_pos);
+                kd_res_free(result);
+
+                const double dx = query[i](0) - nearest_pos[0];
+                const double dy = query[i](1) - nearest_pos[1];
+                const double dz = query[i](2) - nearest_pos[2];
+                const double best_sq = (dx * dx) + (dy * dy) + (dz * dz);
 
                 if (best_sq < min_best_sq) {
                     min_best_sq = best_sq;
@@ -1763,8 +1965,15 @@ private:
                     double depth_ratio = 1.0 - (d / GeneticAssembler::kCollisionPointEpsilon);
                     stats.depth_sum += max(0.0, depth_ratio);
                     stats.hits++;
+                } else {
+                    misses++;
+                    if (misses > max_misses) {
+                        break;
+                    }
                 }
             }
+
+            kd_free(tree);
 
             if (min_best_sq < numeric_limits<double>::max()) {
                 stats.min_nn_distance = sqrt(min_best_sq);
@@ -1897,27 +2106,15 @@ private:
             current_comp_id++;
         }
 
-        vector<vector<Vector3d>> global_clouds(num_shards_);
         vector<Vector3d> global_centers(num_shards_, Vector3d::Zero());
         for (int i = 0; i < num_shards_; ++i) {
             if (!visited[i] || !IsShardValidAndOn(i)) {
                 continue;
             }
 
-            const Matrix4d& T = T_to_root[i];
-            const vector<Vector3d>& cloud_local = collision_clouds_[i];
-            vector<Vector3d>& cloud_global = global_clouds[i];
-            cloud_global.reserve(cloud_local.size());
-
-            for (size_t p = 0; p < cloud_local.size(); ++p) {
-                Vector4d h;
-                h << cloud_local[p], 1.0;
-                cloud_global.push_back((T * h).head<3>());
-            }
-
             Vector4d c_h;
             c_h << collision_cloud_centroids_[i], 1.0;
-            global_centers[i] = (T * c_h).head<3>();
+            global_centers[i] = (T_to_root[i] * c_h).head<3>();
         }
 
         for (int i = 0; i < num_shards_; ++i) {
@@ -1940,10 +2137,8 @@ private:
                 }
 
                 same_component_pair_count++;
-                const vector<Vector3d>& cloud_i = global_clouds[i];
-                const vector<Vector3d>& cloud_j = global_clouds[j];
-                diag.cloud_a_empty = cloud_i.empty();
-                diag.cloud_b_empty = cloud_j.empty();
+                diag.cloud_a_empty = collision_clouds_[i].empty();
+                diag.cloud_b_empty = collision_clouds_[j].empty();
                 if (diag.cloud_a_empty || diag.cloud_b_empty) {
                     pair_diags.push_back(diag);
                     continue;
@@ -1959,7 +2154,7 @@ private:
                 }
 
                 narrow_phase_pair_count++;
-                PairOverlapDiagnostic narrow = ComputeCloudOverlapDiagnostic(cloud_i, cloud_j, i, j);
+                PairOverlapDiagnostic narrow = ComputeCloudOverlapDiagnosticIndexed(i, j, T_to_root[i], T_to_root[j]);
                 diag.query_size = narrow.query_size;
                 diag.target_size = narrow.target_size;
                 diag.collision_hits = narrow.collision_hits;
@@ -2251,7 +2446,8 @@ private:
                         // Perform weighted random selection, fallback to 0 on last attempt
                         bool force_zero = (iter == kCollisionRepairMaxIter - 1);
                         if (!force_zero && total_weight > 0) {
-                            double r = static_cast<double>(rand()) / RAND_MAX * total_weight;
+                            std::uniform_real_distribution<double> real_dist(0.0, total_weight);
+                            double r = real_dist(rng_);
                             double cumulative = 0.0;
                             int selected = 0;
                             for (size_t k = 0; k < candidates.size(); ++k) {
@@ -2324,7 +2520,7 @@ private:
         stringstream ss;
         ss << "\n--- COLLISION AUDIT [" << label << "] ---" << endl;
         ss << "  Fitness overlap penalty: " << fixed << setprecision(4) << breakdown.overlap_penalty << endl;
-        ss << "  Recomputed cloud-overlap sum: " << fixed << setprecision(4) << overlap_sum
+        ss << "  Recomputed indexed overlap sum: " << fixed << setprecision(4) << overlap_sum
            << " (delta=" << fabs(overlap_sum - breakdown.overlap_penalty) << ")" << endl;
         ss << "  Pair counts: total=" << pair_diags.size()
            << " same_comp=" << same_component_pairs
@@ -2408,7 +2604,7 @@ private:
                                             narrow_phase_pairs,
                                             active_collision_pairs);
 
-        ss << "  OverlapDiag Sum: " << fixed << setprecision(4) << overlap_sum
+        ss << "  OverlapDiag Sum (indexed): " << fixed << setprecision(4) << overlap_sum
            << " (delta_vs_fitness=" << fabs(overlap_sum - breakdown.overlap_penalty) << ")" << endl;
         ss << "  OverlapDiag Pairs: total=" << pair_diags.size()
            << " same_comp=" << same_component_pairs
@@ -2530,7 +2726,8 @@ private:
         }
 
         if (!random_genes.empty()) {
-            size_t repair_idx = random_genes[rand() % random_genes.size()];
+            std::uniform_int_distribution<int> dist(0, static_cast<int>(random_genes.size()) - 1);
+            size_t repair_idx = random_genes[dist(rng_)];
             // GuidedRepair(replacement, repair_idx);
         }
 
@@ -2577,10 +2774,9 @@ private:
             return 0;
         }
 
-        static thread_local std::mt19937 gen(std::random_device{}());
         std::uniform_real_distribution<double> dist(0.0, 1.0);
 
-        if (dist(gen) < kInitialPairInactiveRate) {
+        if (dist(rng_) < kInitialPairInactiveRate) {
             return 0;
         }
 
@@ -2589,32 +2785,46 @@ private:
             return 0;
         }
 
-        // --- Density-Based Selection ---
-        double total_weight = 0.0;
-        vector<double> cumulative;
-        cumulative.reserve(group.size());
+        // --- Rank-Based Selection (ranks assigned by density score) ---
+        vector<pair<double, int>> ranked_candidates;
+        ranked_candidates.reserve(group.size());
 
         for (size_t i = 0; i < group.size(); ++i) {
             const LCSIndex& lcs = matches_[group[i]];
             // density = inliner / (1 + score)
             double density = static_cast<double>(lcs.inliner_) / (1.0 + lcs.score_);
-            double w = max(1.0e-6, density);
+            ranked_candidates.push_back(make_pair(density, static_cast<int>(i)));
+        }
+
+        std::stable_sort(ranked_candidates.begin(), ranked_candidates.end(),
+            [](const pair<double, int>& a, const pair<double, int>& b) {
+                return a.first > b.first;
+            });
+
+        double total_weight = 0.0;
+        vector<double> cumulative;
+        cumulative.reserve(ranked_candidates.size());
+        const int rank_count = static_cast<int>(ranked_candidates.size());
+        for (int rank = 0; rank < rank_count; ++rank) {
+            // Linear rank weighting: best rank gets the largest weight.
+            double w = static_cast<double>(rank_count - rank);
             total_weight += w;
             cumulative.push_back(total_weight);
         }
 
         if (total_weight <= 0.0) {
-            return 1 + (gen() % static_cast<int>(group.size()));
+            std::uniform_int_distribution<int> choice_dist(1, static_cast<int>(group.size()));
+            return choice_dist(rng_);
         }
 
-        double r = dist(gen) * total_weight;
-        for (size_t i = 0; i < cumulative.size(); ++i) {
-            if (r <= cumulative[i]) {
-                return static_cast<int>(i + 1);
+        double r = dist(rng_) * total_weight;
+        for (size_t rank = 0; rank < cumulative.size(); ++rank) {
+            if (r <= cumulative[rank]) {
+                return ranked_candidates[rank].second + 1;
             }
         }
 
-        return 1;
+        return ranked_candidates.front().second + 1;
     }
     
     void AuditGroundTruthCandidates(const MatrixXd& GT_graph, const vector<Trans>& GT_trans, const vector<Trans>& T_axis)
@@ -2699,9 +2909,146 @@ private:
     //-----------------------------------------------------------------------------------------------------------------//
 
 private:
-    static constexpr int kPopulationSize = 200;
-    static constexpr int kMaxGenerations = 30;
-    static constexpr int kElitismCount = 10;
+    double ComputeCloudOverlapPenaltyIndexed(int idx_a,
+                                             int idx_b,
+                                             const Matrix4d& T_a,
+                                             const Matrix4d& T_b) const
+    {
+        if (idx_a < 0 || idx_a >= num_shards_ || idx_b < 0 || idx_b >= num_shards_) {
+            return 0.0;
+        }
+        if (idx_a >= static_cast<int>(collision_kdtrees_.size()) ||
+            idx_b >= static_cast<int>(collision_kdtrees_.size()) ||
+            collision_kdtrees_[idx_a] == nullptr ||
+            collision_kdtrees_[idx_b] == nullptr) {
+            return 0.0;
+        }
+
+        const vector<Vector3d>& cloud_a = collision_clouds_[idx_a];
+        const vector<Vector3d>& cloud_b = collision_clouds_[idx_b];
+        if (cloud_a.empty() || cloud_b.empty()) {
+            return 0.0;
+        }
+
+        Matrix4d T_b_inv = T_b.inverse();
+        Matrix4d T_a_inv = T_a.inverse();
+
+        struct DirectionalStats {
+            int query_size = 0;
+            int hits = 0;
+            double depth_sum = 0.0;
+            double min_nn_distance = 0.0;
+        };
+
+        auto QueryDirection = [&](const vector<Vector3d>& query_local,
+                                  const Matrix4d& T_query,
+                                  const Matrix4d& T_target_inv,
+                                  kdtree* target_tree) -> DirectionalStats {
+            DirectionalStats stats;
+            stats.query_size = static_cast<int>(query_local.size());
+            if (query_local.empty() || target_tree == nullptr) {
+                return stats;
+            }
+
+            const double epsilon_sq = kCollisionPointEpsilon * kCollisionPointEpsilon;
+            const int min_hits_needed = static_cast<int>(
+                kOverlapMinHitRatio * static_cast<double>(query_local.size()));
+            const int max_misses = static_cast<int>(query_local.size()) - min_hits_needed;
+            int misses = 0;
+            double min_best_sq = numeric_limits<double>::max();
+            Matrix4d T_combined = T_target_inv * T_query;
+
+            for (size_t i = 0; i < query_local.size(); ++i) {
+                Vector4d h;
+                h << query_local[i], 1.0;
+                Vector3d q = (T_combined * h).head<3>();
+
+                kdres* result = kd_nearest3(target_tree, q(0), q(1), q(2));
+                if (!result) {
+                    misses++;
+                    if (misses > max_misses) {
+                        break;
+                    }
+                    continue;
+                }
+
+                double np[3] = { 0.0, 0.0, 0.0 };
+                kd_res_item(result, np);
+                kd_res_free(result);
+
+                double dx = q(0) - np[0];
+                double dy = q(1) - np[1];
+                double dz = q(2) - np[2];
+                double best_sq = dx * dx + dy * dy + dz * dz;
+
+                if (best_sq < min_best_sq) {
+                    min_best_sq = best_sq;
+                }
+
+                if (best_sq < epsilon_sq) {
+                    double depth_ratio = 1.0 - (sqrt(best_sq) / kCollisionPointEpsilon);
+                    stats.depth_sum += max(0.0, depth_ratio);
+                    stats.hits++;
+                } else {
+                    misses++;
+                    if (misses > max_misses) {
+                        break;
+                    }
+                }
+            }
+
+            if (min_best_sq < numeric_limits<double>::max()) {
+                stats.min_nn_distance = sqrt(min_best_sq);
+            }
+            return stats;
+        };
+
+        DirectionalStats ab = QueryDirection(cloud_a, T_a, T_b_inv, collision_kdtrees_[idx_b]);
+        DirectionalStats ba = QueryDirection(cloud_b, T_b, T_a_inv, collision_kdtrees_[idx_a]);
+
+        DirectionalStats primary = (ba.hits > ab.hits) ? ba : ab;
+        if (primary.hits == 0) {
+            return 0.0;
+        }
+
+        const int total_hits = ab.hits + ba.hits;
+        const double ratio_ab = static_cast<double>(ab.hits) / static_cast<double>(max(1, ab.query_size));
+        const double ratio_ba = static_cast<double>(ba.hits) / static_cast<double>(max(1, ba.query_size));
+        const double hit_ratio = max(ratio_ab, ratio_ba);
+
+        if (hit_ratio < kOverlapMinHitRatio) {
+            return 0.0;
+        }
+
+        const double avg_depth = (ab.depth_sum + ba.depth_sum) / static_cast<double>(total_hits);
+        const double h = static_cast<double>(max(ab.hits, ba.hits));
+        const double hit_confidence = h / (h + kOverlapDepthConfidenceCount);
+        const double absolute_overlap = h / (h + kOverlapHitSaturationCount);
+        const double absolute_overlap_effective = hit_confidence * absolute_overlap;
+        const double mixed_overlap = (kOverlapFractionMix * hit_ratio)
+                                   + ((1.0 - kOverlapFractionMix) * absolute_overlap_effective);
+        const double depth_effective = (hit_confidence * avg_depth)
+                                     + ((1.0 - hit_confidence) * kOverlapDepthPrior);
+        const double depth_term = pow(max(0.0, min(1.0, depth_effective)), kOverlapDepthGamma);
+
+        return kOverlapPenalty * mixed_overlap * depth_term;
+    }
+
+    // static std::mt19937::result_type CreateSeed()
+    // {
+    //     std::random_device rd;
+    //     const unsigned int time_seed = static_cast<unsigned int>(std::time(nullptr));
+    //     const unsigned int clock_seed = static_cast<unsigned int>(std::clock());
+    //     std::seed_seq seed_seq { rd(), rd(), rd(), rd(), time_seed, clock_seed };
+    //     std::array<std::mt19937::result_type, 1> seed_data = { 0u };
+    //     seed_seq.generate(seed_data.begin(), seed_data.end());
+    //     return seed_data[0];
+    // }
+    
+
+    static constexpr int kPopulationSize = 100;
+    static constexpr int kMaxGenerations = 50;
+    static constexpr int kElitismCount = 6;
     static constexpr double kMutationRate = 0.10; // Increased from 0.05 for better symmetry exploration
     static constexpr double kSymmetryFlipRate = 0.15;
     static constexpr double kBiasInheritRatio = 0.4;
@@ -2714,9 +3061,9 @@ private:
     static constexpr double kMaxActivePairRatio = 0.90;
     static constexpr double kActivePairRangePenaltyWeight = 8.0;
     static constexpr double kExcessActivePairPenaltyScale = 0.5;
-    static constexpr double kEdgeResidualThreshold = 80.0;
+    static constexpr double kEdgeResidualThreshold = 30.0;
     static constexpr double kEdgeResidualPenalty = 2.0;
-    static constexpr double kEdgeRotResidualThreshold = 1.2;
+    static constexpr double kEdgeRotResidualThreshold = 0.2;
     static constexpr double kEdgeRotResidualPenalty = 5.0;
     static constexpr double kConnectivityReward = 10.0;
     static constexpr double kConnectivityComponentPenalty = 100;
@@ -2724,16 +3071,17 @@ private:
     static constexpr double kPoseRelaxAlpha = 0.5;
     
     // Overlap constants
-    static constexpr double kOverlapPenalty = 1000.0;
+    static constexpr double kOverlapPenalty = 1200.0;
     static constexpr double kOverlapFractionMix = 0.75;
     static constexpr double kOverlapHitSaturationCount = 12.0;
     static constexpr double kOverlapDepthConfidenceCount = 12.0;
     static constexpr double kOverlapDepthPrior = 0.15;
     static constexpr double kOverlapDepthGamma = 1.3;
-    static constexpr double kCollisionPointEpsilon = 2.0;   // mm
+    static constexpr double kOverlapMinHitRatio = 0.05;
+    static constexpr double kCollisionPointEpsilon = 2.5;   // mm
     static constexpr double kCollisionEdgeExclusion = 2.0;  // mm
     static constexpr double kCollisionVoxelSize = 5.0;      // mm
-    static constexpr int kCollisionCloudMaxPoints = 64;
+    static constexpr int kCollisionCloudMaxPoints = 300;
     static constexpr double kCollisionCentroidScale = 0.70;     // fraction of combined radii for centroid threshold
     static constexpr double kCollisionRotAngleThreshold = 0.53; // radians (~90 degrees)
     static constexpr int kCollisionRepairMaxIter = 20;           // max repair iterations per chromosome
@@ -2753,6 +3101,7 @@ private:
     vector<Vector3d> shard_centroids_;
     vector<double> shard_radius_;
     vector<vector<Vector3d>> collision_clouds_;
+    vector<kdtree*> collision_kdtrees_;
     vector<CollisionCloudStats> collision_cloud_stats_;
     vector<Vector3d> collision_cloud_centroids_;
     vector<double> collision_cloud_radii_;
@@ -2767,6 +3116,10 @@ private:
     vector<int> pair_group_lookup_;
     int valid_shard_count_ = 0;
     int valid_group_count_ = 0;
+
+    // std::mt19937::result_type rng_seed_ = CreateSeed();
+    std::mt19937::result_type rng_seed_ = 42;
+    mutable std::mt19937 rng_{rng_seed_};
 };
 
 #endif
