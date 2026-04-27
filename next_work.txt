@@ -1,1 +1,0 @@
-1) Add penalty where two sherds if have approximately the same rotation and translation parameters (near the same coordinates), then one of them has to switch the sherd pair (prefereably the one with lower density score). Replace overlap with this.

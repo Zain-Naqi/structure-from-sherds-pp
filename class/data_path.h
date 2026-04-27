@@ -6,9 +6,9 @@
 #ifndef _DATA_PATH_H_
 #define _DATA_PATH_H_
 
-#define POT_A	
+// #define POT_A	
 // #define POT_B
-// #define POT_C
+#define POT_C
 // #define POT_D	// Skip
 // #define POT_E	// Skip
 // #define POT_F

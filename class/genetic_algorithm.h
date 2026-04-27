@@ -853,19 +853,6 @@ private:
                             continue;
                         }
 
-                        Vector4d c1_h;
-                        c1_h << collision_cloud_centroids_[idx1], 1.0;
-                        Vector3d center1 = (T_comp[idx1] * c1_h).head<3>();
-
-                        Vector4d c2_h;
-                        c2_h << collision_cloud_centroids_[idx2], 1.0;
-                        Vector3d center2 = (T_comp[idx2] * c2_h).head<3>();
-
-                        double broad_radius = collision_cloud_radii_[idx1] + collision_cloud_radii_[idx2] + kCollisionPointEpsilon;
-                        if ((center1 - center2).squaredNorm() > broad_radius * broad_radius) {
-                            continue;
-                        }
-
                         overlap_penalty_sum += ComputeCloudOverlapPenaltyIndexed(
                             idx1,
                             idx2,
@@ -2140,15 +2127,6 @@ private:
                 diag.cloud_a_empty = collision_clouds_[i].empty();
                 diag.cloud_b_empty = collision_clouds_[j].empty();
                 if (diag.cloud_a_empty || diag.cloud_b_empty) {
-                    pair_diags.push_back(diag);
-                    continue;
-                }
-
-                diag.center_distance = (global_centers[i] - global_centers[j]).norm();
-                diag.broad_radius = collision_cloud_radii_[i] + collision_cloud_radii_[j] + kCollisionPointEpsilon;
-                if (diag.center_distance * diag.center_distance > diag.broad_radius * diag.broad_radius) {
-                    diag.broad_phase_rejected = true;
-                    broad_phase_reject_count++;
                     pair_diags.push_back(diag);
                     continue;
                 }
