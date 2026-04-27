@@ -4,9 +4,6 @@ build/Release/
 build/
 .vscode/
 Dataset/
-*.log
-*.cam
-*.png
 build_local/
 .codex/
 .codex
