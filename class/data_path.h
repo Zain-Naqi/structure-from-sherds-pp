@@ -8,8 +8,8 @@
 
 // #define POT_A	
 // #define POT_B
-#define POT_C
-// #define POT_D	// Skip
+// #define POT_C
+#define POT_D	// Skip
 // #define POT_E	// Skip
 // #define POT_F
 // #define POT_G

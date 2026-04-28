@@ -1,345 +1,516 @@
-user@taha-Latitude-5400:/SfS$ ./build/Hierarchy-Clear --icp-compare
 [ICP MODE] compare (flags: --icp-mode=global|incremental|compare)
 #################### Pottery Data load ####################
-Attempting to read file: /Dataset/SfS_pp/Axes/Pot_C_Piece_01_Axis.xyz
+Attempting to read file: /Dataset/SfS_pp/Axes/Pot_A_Piece_01_Axis.xyz
 File opened successfully
 Successfully read 1 points
-Attempting to read PCD file: /Dataset/SfS_pp/Breaklines/Pot_C_Piece_01_Breakline_0.pcd
+Attempting to read PCD file: /Dataset/SfS_pp/Breaklines/Pot_A_Piece_01_Breakline_0.pcd
 File opened successfully
-Found 5 segments, 211 total points
-Processing 211 points
-Found 211 unique points
+Found 5 segments, 208 total points
+Processing 208 points
+Found 208 unique points
 Successfully processed PCD file
-Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_C_Piece_01_Surface_0.xyz
-Found 29196 total points, reading 29196 points
-Successfully read 29196 points
-Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_C_Piece_01_Surface_1.xyz
-Found 33483 total points, reading 33483 points
-Successfully read 33483 points
-Attempting to read PCD file: /Dataset/SfS_pp/Surfaces/Pot_C_Piece_01_Surface_F.pcd
-Error: Could not open file /Dataset/SfS_pp/Surfaces/Pot_C_Piece_01_Surface_F.pcd
-Attempting to read file: /Dataset/SfS_pp/Axes/Pot_C_Piece_02_Axis.xyz
+Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_A_Piece_01_Surface_0.xyz
+Found 19463 total points, reading 19463 points
+Successfully read 19463 points
+Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_A_Piece_01_Surface_1.xyz
+Found 17145 total points, reading 17145 points
+Successfully read 17145 points
+Attempting to read PCD file: /Dataset/SfS_pp/Surfaces/Pot_A_Piece_01_Surface_F.pcd
+Attempting to read file: /Dataset/SfS_pp/Axes/Pot_A_Piece_02_Axis.xyz
+File opened successfully
+Successfully read 1 points
+Attempting to read PCD file: /Dataset/SfS_pp/Breaklines/Pot_A_Piece_02_Breakline_0.pcd
+File opened successfully
+Found 3 segments, 169 total points
+Processing 169 points
+Found 169 unique points
+Successfully processed PCD file
+Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_A_Piece_02_Surface_0.xyz
+Found 12178 total points, reading 12178 points
+Successfully read 12178 points
+Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_A_Piece_02_Surface_1.xyz
+Found 13455 total points, reading 13455 points
+Successfully read 13455 points
+Attempting to read PCD file: /Dataset/SfS_pp/Surfaces/Pot_A_Piece_02_Surface_F.pcd
+Attempting to read file: /Dataset/SfS_pp/Axes/Pot_A_Piece_03_Axis.xyz
+File opened successfully
+Successfully read 1 points
+Attempting to read PCD file: /Dataset/SfS_pp/Breaklines/Pot_A_Piece_03_Breakline_0.pcd
+File opened successfully
+Found 4 segments, 156 total points
+Processing 156 points
+Found 156 unique points
+Successfully processed PCD file
+Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_A_Piece_03_Surface_0.xyz
+Found 11577 total points, reading 11577 points
+Successfully read 11577 points
+Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_A_Piece_03_Surface_1.xyz
+Found 12798 total points, reading 12798 points
+Successfully read 12798 points
+Attempting to read PCD file: /Dataset/SfS_pp/Surfaces/Pot_A_Piece_03_Surface_F.pcd
+Attempting to read file: /Dataset/SfS_pp/Axes/Pot_A_Piece_04_Axis.xyz
+File opened successfully
+Successfully read 1 points
+Attempting to read PCD file: /Dataset/SfS_pp/Breaklines/Pot_A_Piece_04_Breakline_0.pcd
+File opened successfully
+Found 4 segments, 151 total points
+Processing 151 points
+Found 151 unique points
+Successfully processed PCD file
+Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_A_Piece_04_Surface_0.xyz
+Found 9399 total points, reading 9399 points
+Successfully read 9399 points
+Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_A_Piece_04_Surface_1.xyz
+Found 10462 total points, reading 10462 points
+Successfully read 10462 points
+Attempting to read PCD file: /Dataset/SfS_pp/Surfaces/Pot_A_Piece_04_Surface_F.pcd
+Attempting to read file: /Dataset/SfS_pp/Axes/Pot_A_Piece_05_Axis.xyz
+File opened successfully
+Successfully read 1 points
+Attempting to read PCD file: /Dataset/SfS_pp/Breaklines/Pot_A_Piece_05_Breakline_0.pcd
+File opened successfully
+Found 4 segments, 147 total points
+Processing 147 points
+Found 147 unique points
+Successfully processed PCD file
+Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_A_Piece_05_Surface_0.xyz
+Found 9309 total points, reading 9309 points
+Successfully read 9309 points
+Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_A_Piece_05_Surface_1.xyz
+Found 9798 total points, reading 9798 points
+Successfully read 9798 points
+Attempting to read PCD file: /Dataset/SfS_pp/Surfaces/Pot_A_Piece_05_Surface_F.pcd
+Attempting to read file: /Dataset/SfS_pp/Axes/Pot_A_Piece_06_Axis.xyz
+File opened successfully
+Successfully read 1 points
+Attempting to read PCD file: /Dataset/SfS_pp/Breaklines/Pot_A_Piece_06_Breakline_0.pcd
+File opened successfully
+Found 2 segments, 150 total points
+Processing 150 points
+Found 150 unique points
+Successfully processed PCD file
+Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_A_Piece_06_Surface_0.xyz
+Found 6574 total points, reading 6574 points
+Successfully read 6574 points
+Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_A_Piece_06_Surface_1.xyz
+Found 7317 total points, reading 7317 points
+Successfully read 7317 points
+Attempting to read PCD file: /Dataset/SfS_pp/Surfaces/Pot_A_Piece_06_Surface_F.pcd
+Attempting to read file: /Dataset/SfS_pp/Axes/Pot_A_Piece_07_Axis.xyz
+File opened successfully
+Successfully read 3 points
+Attempting to read PCD file: /Dataset/SfS_pp/Breaklines/Pot_A_Piece_07_Breakline_0.pcd
+File opened successfully
+Found 3 segments, 65 total points
+Processing 65 points
+Found 65 unique points
+Successfully processed PCD file
+Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_A_Piece_07_Surface_0.xyz
+Found 1745 total points, reading 1745 points
+Successfully read 1745 points
+Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_A_Piece_07_Surface_1.xyz
+Found 1796 total points, reading 1796 points
+Successfully read 1796 points
+Attempting to read PCD file: /Dataset/SfS_pp/Surfaces/Pot_A_Piece_07_Surface_F.pcd
+Attempting to read file: /Dataset/SfS_pp/Axes/Pot_A_Piece_08_Axis.xyz
 File opened successfully
 Successfully read 2 points
-Attempting to read PCD file: /Dataset/SfS_pp/Breaklines/Pot_C_Piece_02_Breakline_0.pcd
+Attempting to read PCD file: /Dataset/SfS_pp/Breaklines/Pot_A_Piece_08_Breakline_0.pcd
 File opened successfully
-Found 7 segments, 221 total points
-Processing 221 points
-Found 221 unique points
+Found 3 segments, 60 total points
+Processing 60 points
+Found 60 unique points
 Successfully processed PCD file
-Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_C_Piece_02_Surface_0.xyz
-Found 26028 total points, reading 26028 points
-Successfully read 26028 points
-Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_C_Piece_02_Surface_1.xyz
-Found 29475 total points, reading 29475 points
-Successfully read 29475 points
-Attempting to read PCD file: /Dataset/SfS_pp/Surfaces/Pot_C_Piece_02_Surface_F.pcd
-Error: Could not open file /Dataset/SfS_pp/Surfaces/Pot_C_Piece_02_Surface_F.pcd
-Attempting to read file: /Dataset/SfS_pp/Axes/Pot_C_Piece_03_Axis.xyz
-File opened successfully
-Successfully read 1 points
-Attempting to read PCD file: /Dataset/SfS_pp/Breaklines/Pot_C_Piece_03_Breakline_0.pcd
-File opened successfully
-Found 3 segments, 191 total points
-Processing 191 points
-Found 191 unique points
-Successfully processed PCD file
-Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_C_Piece_03_Surface_0.xyz
-Found 14590 total points, reading 14590 points
-Successfully read 14590 points
-Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_C_Piece_03_Surface_1.xyz
-Found 8150 total points, reading 8150 points
-Successfully read 8150 points
-Attempting to read PCD file: /Dataset/SfS_pp/Surfaces/Pot_C_Piece_03_Surface_F.pcd
-Error: Could not open file /Dataset/SfS_pp/Surfaces/Pot_C_Piece_03_Surface_F.pcd
-Attempting to read file: /Dataset/SfS_pp/Axes/Pot_C_Piece_04_Axis.xyz
-File opened successfully
-Successfully read 1 points
-Attempting to read PCD file: /Dataset/SfS_pp/Breaklines/Pot_C_Piece_04_Breakline_0.pcd
-File opened successfully
-Found 4 segments, 131 total points
-Processing 131 points
-Found 131 unique points
-Successfully processed PCD file
-Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_C_Piece_04_Surface_0.xyz
-Found 8442 total points, reading 8442 points
-Successfully read 8442 points
-Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_C_Piece_04_Surface_1.xyz
-Found 10188 total points, reading 10188 points
-Successfully read 10188 points
-Attempting to read PCD file: /Dataset/SfS_pp/Surfaces/Pot_C_Piece_04_Surface_F.pcd
-Error: Could not open file /Dataset/SfS_pp/Surfaces/Pot_C_Piece_04_Surface_F.pcd
+Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_A_Piece_08_Surface_0.xyz
+Found 1576 total points, reading 1576 points
+Successfully read 1576 points
+Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_A_Piece_08_Surface_1.xyz
+Found 1761 total points, reading 1761 points
+Successfully read 1761 points
+Attempting to read PCD file: /Dataset/SfS_pp/Surfaces/Pot_A_Piece_08_Surface_F.pcd
 #################### Ground Truth data load ####################
-0 1 1 1
-1 0 1 1
-1 1 0 0
-1 1 0 0
+0 1 1 1 1 1 1 0
+1 0 0 1 1 0 0 1
+1 0 0 0 1 1 0 0
+1 1 0 0 0 1 1 1
+1 1 1 0 0 0 0 0
+1 0 1 1 0 0 1 0
+1 0 0 1 0 1 0 0
+0 1 0 1 0 0 0 0
 #################### Save initial state ####################
 #################### Change Axis symmetrix to z axis ####################
 #################### Feature matching ####################
-Total Number : 125
+Total Number : 124
 #################### Pairwise pruning ####################
-WARNING: Logging before InitGoogleLogging() is written to STDERR
-W0427 06:42:35.792340    48 levenberg_marquardt_strategy.cc:114] Linear solver failure. Failed to compute a step: CXSparse Failure : Numeric factorization failed.
-W0427 06:42:36.375938    48 levenberg_marquardt_strategy.cc:114] Linear solver failure. Failed to compute a step: CXSparse Failure : Numeric factorization failed.
-Pruned match count: 40
+Pruned match count: 70
 #################### Genetic Algorithm search ####################
 === GA Iteration 1 / 2 ===
 #################### GROUND TRUTH CANDIDATE AUDIT ####################
-[GT AUDIT] Edge 1-2 (GT=1) Candidates: 4
-  Choice 1: inliner= 38 score=0.730 density=21.967 [Wrapped] rad=0.8956 trans=27.1254
-  Choice 2: inliner= 30 score=0.365 density=21.976 [Wrapped] rad=2.1818 trans=24.1029
-  Choice 3: inliner= 84 score=0.281 density=65.582 [Wrapped] rad=2.2218 trans=21.4785
-  Choice 4: inliner= 48 score=0.520 density=31.587 [Wrapped] rad=2.3865 trans=25.7267
-  -> Best Match for GT: Choice 1 (rad_err=0.8956)
-[GT AUDIT] Edge 1-3 (GT=1) Candidates: 4
-  Choice 1: inliner= 60 score=0.625 density=36.928 [Wrapped] rad=3.0647 trans=63.8364
-  Choice 2: inliner=179 score=0.275 density=140.364 [Wrapped] rad=1.0324 trans=66.4058
-  Choice 3: inliner=  4 score=11.000 density=0.333 [Wrapped] rad=2.9001 trans=69.5720
-  Choice 4: inliner= 50 score=0.768 density=28.276 [Wrapped] rad=2.0897 trans=68.9631
-  -> Best Match for GT: Choice 2 (rad_err=1.0324)
-[GT AUDIT] Edge 1-4 (GT=1) Candidates: 5
-  Choice 1: inliner= 46 score=0.492 density=30.834 [Wrapped] rad=3.0613 trans=28.3778
-  Choice 2: inliner=  0 score=11.000 density=0.000 [Wrapped] rad=2.8825 trans=31.3358
-  Choice 3: inliner= 42 score=0.540 density=27.268 [Wrapped] rad=0.9194 trans=22.1637
-  Choice 4: inliner= 55 score=0.591 density=34.563 [Wrapped] rad=3.0737 trans=22.6911
-  Choice 5: inliner= 38 score=0.309 density=29.034 [Wrapped] rad=3.1367 trans=30.6631
-  -> Best Match for GT: Choice 3 (rad_err=0.9194)
-[GT AUDIT] Edge 2-3 (GT=1) Candidates: 11
-  Choice 1: inliner= 22 score=0.783 density=12.336 [Wrapped] rad=2.3266 trans=53.2433
-  Choice 2: inliner= 48 score=0.648 density=29.124 [Wrapped] rad=2.9475 trans=51.7797
-  Choice 3: inliner= 24 score=0.500 density=16.004 [Wrapped] rad=2.1124 trans=55.4247
-  Choice 4: inliner= 54 score=0.861 density=29.022 [Wrapped] rad=2.3594 trans=48.4979
-  Choice 5: inliner= 12 score=0.654 density=7.254 [Wrapped] rad=2.9642 trans=65.0066
-  Choice 6: inliner= 50 score=0.651 density=30.278 [Wrapped] rad=1.2473 trans=40.4169
-  Choice 7: inliner= 97 score=0.494 density=64.933 [Wrapped] rad=1.1799 trans=39.8192
-  Choice 8: inliner= 30 score=0.596 density=18.801 [Wrapped] rad=1.2077 trans=47.5298
-  Choice 9: inliner=  0 score=11.000 density=0.000 [Wrapped] rad=2.2563 trans=35.8459
-  Choice 10: inliner= 20 score=0.647 density=12.143 [Wrapped] rad=0.5950 trans=46.8896
-  Choice 11: inliner=139 score=0.285 density=108.171 [Wrapped] rad=1.0812 trans=38.1683
-  -> Best Match for GT: Choice 10 (rad_err=0.5950)
-[GT AUDIT] Edge 2-4 (GT=1) Candidates: 7
-  Choice 1: inliner= 20 score=0.617 density=12.371 [Wrapped] rad=1.3346 trans=53.4564
-  Choice 2: inliner= 20 score=0.619 density=12.354 [Wrapped] rad=2.3901 trans=21.2433
-  Choice 3: inliner= 30 score=0.764 density=17.011 [Wrapped] rad=2.8130 trans=20.0337
-  Choice 4: inliner= 34 score=0.722 density=19.742 [Wrapped] rad=2.7424 trans=19.5990
-  Choice 5: inliner= 20 score=0.459 density=13.705 [Wrapped] rad=2.7640 trans=36.6025
-  Choice 6: inliner=114 score=0.336 density=85.355 [Wrapped] rad=2.5955 trans=33.7485
-  Choice 7: inliner= 40 score=0.592 density=25.119 [Wrapped] rad=1.1933 trans=41.3950
-  -> Best Match for GT: Choice 7 (rad_err=1.1933)
+[GT AUDIT] Edge 1-2 (GT=1) Candidates: 3
+  Choice 1: inliner= 78 score=0.268 density=61.504 [Wrapped] rad=2.7377 trans=40.1826
+  Choice 2: inliner= 46 score=0.510 density=30.457 [Wrapped] rad=2.3048 trans=40.3215
+  Choice 3: inliner= 70 score=0.483 density=47.190 [Wrapped] rad=1.0965 trans=39.7627
+  -> Best Match for GT: Choice 3 (rad_err=1.0965)
+[GT AUDIT] Edge 1-3 (GT=1) Candidates: 6
+  Choice 1: inliner= 61 score=0.426 density=42.777 [Wrapped] rad=1.9927 trans=34.3959
+  Choice 2: inliner= 46 score=0.803 density=25.508 [Wrapped] rad=2.7772 trans=33.5324
+  Choice 3: inliner=100 score=0.344 density=74.410 [Wrapped] rad=3.0781 trans=33.6786
+  Choice 4: inliner= 44 score=0.521 density=28.930 [Wrapped] rad=1.2772 trans=32.9385
+  Choice 5: inliner= 50 score=0.515 density=32.992 [Wrapped] rad=0.5972 trans=33.2371
+  Choice 6: inliner= 36 score=0.608 density=22.387 [Wrapped] rad=0.0620 trans=33.8302 [VALID GT MATCH]
+  -> Best Match for GT: Choice 6 (rad_err=0.0620)
+[GT AUDIT] Edge 1-4 (GT=1) Candidates: 7
+  Choice 1: inliner= 87 score=0.374 density=63.307 [Wrapped] rad=2.8768 trans=34.4829
+  Choice 2: inliner= 52 score=0.498 density=34.705 [Wrapped] rad=2.8761 trans=31.9271
+  Choice 3: inliner= 24 score=0.413 density=16.987 [Wrapped] rad=1.2279 trans=67.0858
+  Choice 4: inliner= 24 score=1.210 density=10.861 [Wrapped] rad=0.7689 trans=29.9804
+  Choice 5: inliner= 65 score=0.481 density=43.883 [Wrapped] rad=0.5518 trans=31.5860
+  Choice 6: inliner= 57 score=0.650 density=34.540 [Wrapped] rad=0.1355 trans=31.6098 [VALID GT MATCH]
+  Choice 7: inliner= 30 score=0.521 density=19.719 [Wrapped] rad=0.6699 trans=32.3211
+  -> Best Match for GT: Choice 6 (rad_err=0.1355)
+[GT AUDIT] Edge 1-5 (GT=1) Candidates: 6
+  Choice 1: inliner= 65 score=0.342 density=48.440 [Wrapped] rad=0.0948 trans=6.3972 [VALID GT MATCH]
+  Choice 2: inliner= 34 score=0.641 density=20.714 [Wrapped] rad=0.6883 trans=1.9260
+  Choice 3: inliner= 59 score=0.580 density=37.351 [Wrapped] rad=1.2211 trans=8.6289
+  Choice 4: inliner= 32 score=0.755 density=18.236 [Wrapped] rad=2.8462 trans=8.0251
+  Choice 5: inliner= 32 score=0.553 density=20.605 [Wrapped] rad=3.0334 trans=3.0397
+  Choice 6: inliner= 36 score=0.604 density=22.445 [Wrapped] rad=2.1742 trans=13.2752
+  -> Best Match for GT: Choice 1 (rad_err=0.0948)
+[GT AUDIT] Edge 1-6 (GT=1) Candidates: 1
+  Choice 1: inliner= 34 score=0.414 density=24.045 [Wrapped] rad=2.5977 trans=35.8661
+  -> Best Match for GT: Choice 1 (rad_err=2.5977)
+[GT AUDIT] Edge 1-7 (GT=1) Candidates: 5
+  Choice 1: inliner= 28 score=0.582 density=17.703 [Wrapped] rad=2.2734 trans=120.0161
+  Choice 2: inliner= 28 score=0.594 density=17.566 [Wrapped] rad=2.1696 trans=107.8243
+  Choice 3: inliner= 56 score=0.290 density=43.421 [Wrapped] rad=2.0728 trans=105.5251
+  Choice 4: inliner= 24 score=0.621 density=14.806 [Wrapped] rad=2.2268 trans=104.4575
+  Choice 5: inliner= 34 score=0.376 density=24.712 [Wrapped] rad=2.3528 trans=103.6445
+  -> Best Match for GT: Choice 3 (rad_err=2.0728)
+[GT AUDIT] Edge 2-4 (GT=1) Candidates: 2
+  Choice 1: inliner=  8 score=1.102 density=3.806 [Wrapped] rad=0.5360 trans=16.9002
+  Choice 2: inliner= 18 score=0.522 density=11.828 [Wrapped] rad=2.4190 trans=7.7697
+  -> Best Match for GT: Choice 1 (rad_err=0.5360)
+[GT AUDIT] Edge 2-5 (GT=1) Candidates: 2
+  Choice 1: inliner= 42 score=0.400 density=30.005 [Wrapped] rad=0.0479 trans=3.1318 [VALID GT MATCH]
+  Choice 2: inliner= 38 score=0.299 density=29.256 [Wrapped] rad=2.3178 trans=12.2739
+  -> Best Match for GT: Choice 1 (rad_err=0.0479)
+[GT AUDIT] Edge 2-8 (GT=1) Candidates: 2
+  Choice 1: inliner= 12 score=0.911 density=6.278 [Wrapped] rad=1.0112 trans=75.5576
+  Choice 2: inliner= 34 score=0.272 density=26.722 [Wrapped] rad=2.5477 trans=70.0351
+  -> Best Match for GT: Choice 1 (rad_err=1.0112)
+[GT AUDIT] Edge 3-5 (GT=1) Candidates: 3
+  Choice 1: inliner= 58 score=0.225 density=47.364 [Wrapped] rad=0.2140 trans=7.9950 [VALID GT MATCH]
+  Choice 2: inliner= 52 score=0.447 density=35.940 [Wrapped] rad=0.1856 trans=12.2799 [VALID GT MATCH]
+  Choice 3: inliner= 26 score=0.509 density=17.229 [Wrapped] rad=2.4796 trans=10.0883
+  -> Best Match for GT: Choice 2 (rad_err=0.1856)
+[GT AUDIT] Edge 3-6 (GT=1) Candidates: 1
+  Choice 1: inliner= 22 score=0.673 density=13.150 [Wrapped] rad=0.6459 trans=5.0780
+  -> Best Match for GT: Choice 1 (rad_err=0.6459)
+[GT AUDIT] Edge 4-6 (GT=1) Candidates: 2
+  Choice 1: inliner= 18 score=1.034 density=8.852 [Wrapped] rad=0.4328 trans=8.6296
+  Choice 2: inliner= 28 score=0.471 density=19.032 [Wrapped] rad=2.7070 trans=9.2374
+  -> Best Match for GT: Choice 1 (rad_err=0.4328)
+[GT AUDIT] Edge 4-7 (GT=1) Candidates: 3
+  Choice 1: inliner=  6 score=0.636 density=3.668 [Wrapped] rad=1.1219 trans=107.0722
+  Choice 2: inliner= 30 score=0.343 density=22.344 [Wrapped] rad=1.9415 trans=100.4015
+  Choice 3: inliner= 24 score=0.324 density=18.131 [Wrapped] rad=2.1278 trans=107.2245
+  -> Best Match for GT: Choice 1 (rad_err=1.1219)
+[GT AUDIT] Edge 4-8 (GT=1) Candidates: 3
+  Choice 1: inliner= 30 score=0.461 density=20.531 [Wrapped] rad=0.0725 trans=34.8619 [VALID GT MATCH]
+  Choice 2: inliner= 12 score=0.643 density=7.304 [Wrapped] rad=1.5240 trans=38.7635
+  Choice 3: inliner= 32 score=0.340 density=23.873 [Wrapped] rad=1.1215 trans=37.9700
+  -> Best Match for GT: Choice 1 (rad_err=0.0725)
+[GT AUDIT] Edge 6-7 (GT=1) Candidates: 3
+  Choice 1: inliner= 16 score=0.453 density=11.015 [Wrapped] rad=1.4529 trans=72.5507
+  Choice 2: inliner= 49 score=0.330 density=36.853 [Wrapped] rad=1.3168 trans=38.1841
+  Choice 3: inliner= 22 score=0.398 density=15.737 [Wrapped] rad=1.6299 trans=59.2112
+  -> Best Match for GT: Choice 2 (rad_err=1.3168)
 ######################################################################
-[GA] Generation 0 best fitness: 365.5322
-[GA] Generation 1 best fitness: 473.7028
-[GA] Generation 2 best fitness: 473.7028
-[GA] Generation 3 best fitness: 473.7028
-[GA] Generation 4 best fitness: 473.7028
-[GA] Generation 5 best fitness: 473.7028
-[GA] Generation 6 best fitness: 473.7028
-[GA] Generation 7 best fitness: 473.7028
-[GA] Generation 8 best fitness: 473.7028
-[GA] Generation 9 best fitness: 473.7028
-[GA] Generation 10 best fitness: 473.7028
-[GA] Generation 11 best fitness: 473.7028
-[GA] Generation 12 best fitness: 473.7028
-[GA] Generation 13 best fitness: 473.7028
-[GA] Generation 14 best fitness: 473.7028
-[GA] Generation 15 best fitness: 473.7028
-[GA] Generation 16 best fitness: 473.7028
-[GA] Generation 17 best fitness: 473.7028
-[GA] Generation 18 best fitness: 473.7028
-[GA] Generation 19 best fitness: 473.7028
-[GA] Generation 20 best fitness: 473.7028
-[GA] Generation 21 best fitness: 473.7028
-[GA] Generation 22 best fitness: 473.7028
-[GA] Generation 23 best fitness: 473.7028
-[GA] Generation 24 best fitness: 473.7028
-[GA] Generation 25 best fitness: 473.7028
-[GA] Generation 26 best fitness: 473.7028
-[GA] Generation 27 best fitness: 473.7028
-[GA] Generation 28 best fitness: 473.7028
-[GA] Generation 29 best fitness: 473.7028
-[GA] Generation 30 best fitness: 473.7028
-[GA] Generation 31 best fitness: 473.7028
-[GA] Generation 32 best fitness: 473.7028
-[GA] Generation 33 best fitness: 473.7028
-[GA] Generation 34 best fitness: 473.7028
-[GA] Generation 35 best fitness: 473.7028
-[GA] Generation 36 best fitness: 473.7028
-[GA] Generation 37 best fitness: 473.7028
-[GA] Generation 38 best fitness: 473.7028
-[GA] Generation 39 best fitness: 473.7028
-[GA] Generation 40 best fitness: 473.7028
-[GA] Generation 41 best fitness: 473.7028
-[GA] Generation 42 best fitness: 473.7028
-[GA] Generation 43 best fitness: 473.7028
-[GA] Generation 44 best fitness: 473.7028
-[GA] Generation 45 best fitness: 473.7028
-[GA] Generation 46 best fitness: 473.7028
-[GA] Generation 47 best fitness: 473.7028
-[GA] Generation 48 best fitness: 473.7028
-[GA] Generation 49 best fitness: 473.7028
-[GA Iter 1] Best fitness: 473.7028 (improvement: 1000000473.7028)
+[GA] Generation 0 best fitness: -21582.7288
+[GA] Generation 1 best fitness: -21582.7288
+[GA] Generation 2 best fitness: -21582.7288
+[GA] Generation 3 best fitness: -12418.2107
+[GA] Generation 4 best fitness: -11275.5095
+[GA] Generation 5 best fitness: -8670.4452
+[GA] Generation 6 best fitness: -6778.7875
+[GA] Generation 7 best fitness: -6693.6820
+[GA] Generation 8 best fitness: -1029.2439
+[GA] Generation 9 best fitness: -646.1642
+[GA] Generation 10 best fitness: -58.9178
+[GA] Generation 11 best fitness: -58.9178
+[GA] Generation 12 best fitness: -58.9178
+[GA] Generation 13 best fitness: 7.3136
+[GA] Generation 14 best fitness: 7.3136
+[GA] Generation 15 best fitness: 131.7631
+[GA] Generation 16 best fitness: 152.8786
+[GA] Generation 17 best fitness: 152.8786
+[GA] Generation 18 best fitness: 152.8786
+[GA] Generation 19 best fitness: 184.1923
+[GA] Generation 20 best fitness: 206.7098
+[GA] Generation 21 best fitness: 206.7098
+[GA] Generation 22 best fitness: 208.5605
+[GA] Generation 23 best fitness: 212.8747
+[GA] Generation 24 best fitness: 212.8747
+[GA] Generation 25 best fitness: 212.8747
+[GA] Generation 26 best fitness: 249.4064
+[GA] Generation 27 best fitness: 277.8806
+[GA] Generation 28 best fitness: 277.8806
+[GA] Generation 29 best fitness: 287.3147
+[GA] Generation 30 best fitness: 287.3147
+[GA] Generation 31 best fitness: 296.0066
+[GA] Generation 32 best fitness: 296.0066
+[GA] Generation 33 best fitness: 296.0066
+[GA] Generation 34 best fitness: 296.0066
+[GA] Generation 35 best fitness: 296.0066
+[GA] Generation 36 best fitness: 296.0066
+[GA] Generation 37 best fitness: 296.0066
+[GA] Generation 38 best fitness: 296.0066
+[GA] Generation 39 best fitness: 296.0066
+[GA] Generation 40 best fitness: 299.4410
+[GA] Generation 41 best fitness: 308.0662
+[GA] Generation 42 best fitness: 308.0662
+[GA] Generation 43 best fitness: 308.0662
+[GA] Generation 44 best fitness: 311.5006
+[GA] Generation 45 best fitness: 320.4275
+[GA] Generation 46 best fitness: 320.4275
+[GA] Generation 47 best fitness: 320.4275
+[GA] Generation 48 best fitness: 320.4275
+[GA] Generation 49 best fitness: 320.4275
+[GA Iter 1] Best fitness: 320.4275 (improvement: 1000000320.4275)
 [GA Iter 1] Recomputing matches on assembled positions...
-[GA Iter 1] New match count: 125
-[GA Iter 1] Pruned match count: 42
+[GA Iter 1] New match count: 124
+[GA Iter 1] Pruned match count: 67
 === GA Iteration 2 / 2 ===
 #################### GROUND TRUTH CANDIDATE AUDIT ####################
 [GT AUDIT] Edge 1-2 (GT=1) Candidates: 3
-  Choice 1: inliner= 38 score=0.730 density=21.967 [Wrapped] rad=0.5801 trans=18.9538
-  Choice 2: inliner= 30 score=0.430 density=20.982 [Wrapped] rad=2.6172 trans=17.0349
-  Choice 3: inliner= 84 score=0.281 density=65.579 [Wrapped] rad=1.1346 trans=14.8016
-  -> Best Match for GT: Choice 1 (rad_err=0.5801)
-[GT AUDIT] Edge 1-3 (GT=1) Candidates: 4
-  Choice 1: inliner= 56 score=0.694 density=33.056 [Wrapped] rad=0.6916 trans=31.3852
-  Choice 2: inliner=174 score=0.276 density=136.367 [Wrapped] rad=2.6341 trans=33.8291
-  Choice 3: inliner= 20 score=1.075 density=9.637 [Wrapped] rad=3.0049 trans=40.2823
-  Choice 4: inliner= 50 score=0.768 density=28.276 [Wrapped] rad=1.6011 trans=36.5460
-  -> Best Match for GT: Choice 1 (rad_err=0.6916)
-[GT AUDIT] Edge 1-4 (GT=1) Candidates: 5
-  Choice 1: inliner= 46 score=0.492 density=30.832 [Wrapped] rad=2.9290 trans=18.2016
-  Choice 2: inliner= 32 score=0.475 density=21.691 [Wrapped] rad=2.9792 trans=15.1088
-  Choice 3: inliner= 42 score=0.542 density=27.231 [Wrapped] rad=1.0187 trans=12.2284
-  Choice 4: inliner= 53 score=0.567 density=33.827 [Wrapped] rad=1.6628 trans=13.2513
-  Choice 5: inliner= 16 score=0.427 density=11.215 [Wrapped] rad=2.9975 trans=18.8498
-  -> Best Match for GT: Choice 3 (rad_err=1.0187)
-[GT AUDIT] Edge 2-3 (GT=1) Candidates: 14
-  Choice 1: inliner= 30 score=0.587 density=18.905 [Wrapped] rad=2.7074 trans=23.5165
-  Choice 2: inliner= 46 score=0.656 density=27.784 [Wrapped] rad=1.3247 trans=31.4833
-  Choice 3: inliner= 30 score=0.629 density=18.417 [Wrapped] rad=2.7886 trans=23.0512
-  Choice 4: inliner= 22 score=0.523 density=14.448 [Wrapped] rad=2.7146 trans=23.9219
-  Choice 5: inliner= 20 score=0.706 density=11.721 [Wrapped] rad=2.1387 trans=30.5856
-  Choice 6: inliner= 54 score=0.861 density=29.024 [Wrapped] rad=1.1627 trans=25.7318
-  Choice 7: inliner= 10 score=0.654 density=6.045 [Wrapped] rad=2.4482 trans=20.0263
-  Choice 8: inliner= 52 score=0.653 density=31.466 [Wrapped] rad=2.3753 trans=27.9321
-  Choice 9: inliner= 93 score=0.463 density=63.580 [Wrapped] rad=2.4249 trans=28.9438
-  Choice 10: inliner= 30 score=0.595 density=18.809 [Wrapped] rad=2.0314 trans=19.9394
-  Choice 11: inliner=  0 score=11.000 density=0.000 [Wrapped] rad=1.3239 trans=31.5298
-  Choice 12: inliner= 70 score=0.656 density=42.274 [Wrapped] rad=2.8133 trans=26.6906
-  Choice 13: inliner= 46 score=0.510 density=30.470 [Wrapped] rad=2.6014 trans=25.1109
-  Choice 14: inliner=149 score=0.284 density=116.001 [Wrapped] rad=2.5947 trans=27.4953
-  -> Best Match for GT: Choice 6 (rad_err=1.1627)
-[GT AUDIT] Edge 2-4 (GT=1) Candidates: 7
-  Choice 1: inliner= 20 score=0.619 density=12.355 [Wrapped] rad=1.8412 trans=17.9704
-  Choice 2: inliner= 28 score=0.783 density=15.706 [Wrapped] rad=2.0078 trans=22.2638
-  Choice 3: inliner= 38 score=0.696 density=22.403 [Wrapped] rad=1.8364 trans=21.9551
-  Choice 4: inliner= 22 score=0.464 density=15.024 [Wrapped] rad=1.5940 trans=18.5614
-  Choice 5: inliner= 28 score=0.403 density=19.954 [Wrapped] rad=2.8492 trans=27.5059
-  Choice 6: inliner=114 score=0.336 density=85.355 [Wrapped] rad=1.8575 trans=19.0112
-  Choice 7: inliner= 40 score=0.590 density=25.150 [Wrapped] rad=2.2427 trans=26.3208
-  -> Best Match for GT: Choice 4 (rad_err=1.5940)
+  Choice 1: inliner= 78 score=0.269 density=61.474 [Wrapped] rad=1.7769 trans=20.9748
+  Choice 2: inliner= 46 score=0.511 density=30.445 [Wrapped] rad=0.5383 trans=23.2896
+  Choice 3: inliner= 70 score=0.483 density=47.190 [Wrapped] rad=0.6772 trans=20.5705
+  -> Best Match for GT: Choice 2 (rad_err=0.5383)
+[GT AUDIT] Edge 1-3 (GT=1) Candidates: 6
+  Choice 1: inliner= 61 score=0.426 density=42.771 [Wrapped] rad=2.6915 trans=16.7130
+  Choice 2: inliner= 46 score=0.804 density=25.492 [Wrapped] rad=1.9092 trans=15.7861
+  Choice 3: inliner=100 score=0.344 density=74.420 [Wrapped] rad=1.6057 trans=15.9951
+  Choice 4: inliner= 44 score=0.521 density=28.937 [Wrapped] rad=0.3240 trans=15.3964 [VALID GT MATCH]
+  Choice 5: inliner= 50 score=0.515 density=33.000 [Wrapped] rad=1.0032 trans=15.6037
+  Choice 6: inliner= 36 score=0.609 density=22.378 [Wrapped] rad=1.6483 trans=16.4093
+  -> Best Match for GT: Choice 4 (rad_err=0.3240)
+[GT AUDIT] Edge 1-4 (GT=1) Candidates: 7
+  Choice 1: inliner= 78 score=0.389 density=56.172 [Wrapped] rad=3.1256 trans=20.4128
+  Choice 2: inliner= 52 score=0.498 density=34.709 [Wrapped] rad=2.6318 trans=17.2537
+  Choice 3: inliner= 24 score=0.414 density=16.976 [Wrapped] rad=0.9888 trans=61.3976
+  Choice 4: inliner= 24 score=1.190 density=10.959 [Wrapped] rad=0.5319 trans=15.4719
+  Choice 5: inliner= 65 score=0.482 density=43.872 [Wrapped] rad=0.3069 trans=16.7287 [VALID GT MATCH]
+  Choice 6: inliner= 57 score=0.650 density=34.539 [Wrapped] rad=0.1319 trans=16.6628 [VALID GT MATCH]
+  Choice 7: inliner= 30 score=0.521 density=19.727 [Wrapped] rad=0.9117 trans=18.4997
+  -> Best Match for GT: Choice 6 (rad_err=0.1319)
+[GT AUDIT] Edge 1-5 (GT=1) Candidates: 6
+  Choice 1: inliner= 65 score=0.342 density=48.452 [Wrapped] rad=3.1286 trans=18.2019
+  Choice 2: inliner= 34 score=0.632 density=20.831 [Wrapped] rad=3.1289 trans=18.4124
+  Choice 3: inliner= 59 score=0.580 density=37.342 [Wrapped] rad=3.1136 trans=14.4137
+  Choice 4: inliner= 40 score=0.603 density=24.955 [Wrapped] rad=3.1309 trans=18.0603
+  Choice 5: inliner= 32 score=0.553 density=20.599 [Wrapped] rad=3.1193 trans=17.2496
+  Choice 6: inliner= 38 score=0.612 density=23.577 [Wrapped] rad=3.0945 trans=19.7396
+  -> Best Match for GT: Choice 6 (rad_err=3.0945)
+[GT AUDIT] Edge 1-6 (GT=1) Candidates: 1
+  Choice 1: inliner= 34 score=0.414 density=24.048 [Wrapped] rad=1.8435 trans=15.8118
+  -> Best Match for GT: Choice 1 (rad_err=1.8435)
+[GT AUDIT] Edge 1-7 (GT=1) Candidates: 5
+  Choice 1: inliner= 30 score=0.545 density=19.418 [Wrapped] rad=1.9356 trans=67.6124
+  Choice 2: inliner= 34 score=0.493 density=22.768 [Wrapped] rad=2.1913 trans=62.0215
+  Choice 3: inliner= 56 score=0.289 density=43.435 [Wrapped] rad=2.0992 trans=58.7620
+  Choice 4: inliner= 36 score=0.487 density=24.203 [Wrapped] rad=2.2640 trans=58.5598
+  Choice 5: inliner= 34 score=0.393 density=24.401 [Wrapped] rad=2.4272 trans=57.8882
+  -> Best Match for GT: Choice 1 (rad_err=1.9356)
+[GT AUDIT] Edge 2-4 (GT=1) Candidates: 2
+  Choice 1: inliner=  8 score=1.247 density=3.560 [Wrapped] rad=1.0524 trans=20.8426
+  Choice 2: inliner= 18 score=0.487 density=12.109 [Wrapped] rad=2.3390 trans=7.7976
+  -> Best Match for GT: Choice 1 (rad_err=1.0524)
+[GT AUDIT] Edge 2-5 (GT=1) Candidates: 2
+  Choice 1: inliner= 42 score=0.403 density=29.939 [Wrapped] rad=3.1270 trans=6.2617
+  Choice 2: inliner= 36 score=0.401 density=25.690 [Wrapped] rad=2.7746 trans=26.6425
+  -> Best Match for GT: Choice 2 (rad_err=2.7746)
+[GT AUDIT] Edge 2-8 (GT=1) Candidates: 2
+  Choice 1: inliner= 14 score=0.738 density=8.055 [Wrapped] rad=0.6002 trans=38.7300
+  Choice 2: inliner= 34 score=0.273 density=26.719 [Wrapped] rad=1.2927 trans=39.9868
+  -> Best Match for GT: Choice 1 (rad_err=0.6002)
+[GT AUDIT] Edge 3-5 (GT=1) Candidates: 2
+  Choice 1: inliner= 58 score=0.241 density=46.744 [Wrapped] rad=3.1089 trans=5.3740
+  Choice 2: inliner= 26 score=0.505 density=17.273 [Wrapped] rad=3.1285 trans=7.8828
+  -> Best Match for GT: Choice 1 (rad_err=3.1089)
+[GT AUDIT] Edge 3-6 (GT=1) Candidates: 1
+  Choice 1: inliner= 22 score=0.673 density=13.151 [Wrapped] rad=2.7961 trans=9.4986
+  -> Best Match for GT: Choice 1 (rad_err=2.7961)
+[GT AUDIT] Edge 4-6 (GT=1) Candidates: 2
+  Choice 1: inliner= 30 score=0.680 density=17.862 [Wrapped] rad=2.4475 trans=23.8485
+  Choice 2: inliner= 28 score=0.469 density=19.063 [Wrapped] rad=1.4934 trans=18.1880
+  -> Best Match for GT: Choice 2 (rad_err=1.4934)
+[GT AUDIT] Edge 4-7 (GT=1) Candidates: 4
+  Choice 1: inliner= 36 score=0.461 density=24.648 [Wrapped] rad=3.0910 trans=63.7483
+  Choice 2: inliner= 47 score=0.434 density=32.768 [Wrapped] rad=3.0574 trans=58.9885
+  Choice 3: inliner= 28 score=0.428 density=19.611 [Wrapped] rad=2.1425 trans=53.8597
+  Choice 4: inliner= 24 score=0.332 density=18.016 [Wrapped] rad=2.0078 trans=65.0022
+  -> Best Match for GT: Choice 4 (rad_err=2.0078)
+[GT AUDIT] Edge 4-8 (GT=1) Candidates: 3
+  Choice 1: inliner= 34 score=0.202 density=28.290 [Wrapped] rad=2.7313 trans=30.7679
+  Choice 2: inliner= 12 score=0.643 density=7.304 [Wrapped] rad=1.2196 trans=31.2357
+  Choice 3: inliner= 32 score=0.341 density=23.857 [Wrapped] rad=1.6658 trans=40.7997
+  -> Best Match for GT: Choice 2 (rad_err=1.2196)
+[GT AUDIT] Edge 6-7 (GT=1) Candidates: 3
+  Choice 1: inliner= 16 score=0.454 density=11.008 [Wrapped] rad=2.5586 trans=86.6827
+  Choice 2: inliner= 49 score=0.330 density=36.843 [Wrapped] rad=2.4744 trans=51.8030
+  Choice 3: inliner= 22 score=0.399 density=15.724 [Wrapped] rad=3.0989 trans=41.7768
+  -> Best Match for GT: Choice 2 (rad_err=2.4744)
 ######################################################################
-[GA] Generation 0 best fitness: 360.7383
-[GA] Generation 1 best fitness: 381.6330
-[GA] Generation 2 best fitness: 476.7395
-[GA] Generation 3 best fitness: 476.7395
-[GA] Generation 4 best fitness: 476.7395
-[GA] Generation 5 best fitness: 476.7395
-[GA] Generation 6 best fitness: 476.7395
-[GA] Generation 7 best fitness: 476.7395
-[GA] Generation 8 best fitness: 476.7395
-[GA] Generation 9 best fitness: 476.7395
-[GA] Generation 10 best fitness: 476.7395
-[GA] Generation 11 best fitness: 476.7395
-[GA] Generation 12 best fitness: 476.7395
-[GA] Generation 13 best fitness: 476.7395
-[GA] Generation 14 best fitness: 476.7395
-[GA] Generation 15 best fitness: 476.7395
-[GA] Generation 16 best fitness: 476.7395
-[GA] Generation 17 best fitness: 476.7395
-        [GA] Generation 18 best fitness: 476.7395
-[GA] Generation 19 best fitness: 476.7395
-[GA] Generation 20 best fitness: 476.7395
-[GA] Generation 21 best fitness: 476.7395
-[GA] Generation 22 best fitness: 476.7395
-[GA] Generation 23 best fitness: 476.7395
-[GA] Generation 24 best fitness: 476.7395
-[GA] Generation 25 best fitness: 476.7395
-[GA] Generation 26 best fitness: 476.7395
-[GA] Generation 27 best fitness: 476.7395
-[GA] Generation 28 best fitness: 476.7395
-[GA] Generation 29 best fitness: 476.7395
-[GA] Generation 30 best fitness: 476.7395
-[GA] Generation 31 best fitness: 476.7395
-[GA] Generation 32 best fitness: 476.7395
-[GA] Generation 33 best fitness: 476.7395
-[GA] Generation 34 best fitness: 476.7395
-[GA] Generation 35 best fitness: 476.7395
-[GA] Generation 36 best fitness: 476.7395
-[GA] Generation 37 best fitness: 476.7395
-[GA] Generation 38 best fitness: 476.7395
-[GA] Generation 39 best fitness: 476.7395
-[GA] Generation 40 best fitness: 476.7395
-[GA] Generation 41 best fitness: 476.7395
-[GA] Generation 42 best fitness: 476.7395
-[GA] Generation 43 best fitness: 476.7395
-[GA] Generation 44 best fitness: 476.7395
-[GA] Generation 45 best fitness: 476.7395
-[GA] Generation 46 best fitness: 476.7395
-[GA] Generation 47 best fitness: 476.7395
-[GA] Generation 48 best fitness: 476.7395
-[GA] Generation 49 best fitness: 476.7395
-[GA Iter 2] Best fitness: 476.7395 (improvement: 3.0367)
-[GA Iter 2] Did not improve. Patience: 1 / 5
+[GA] Generation 0 best fitness: -78578.1083
+[GA] Generation 1 best fitness: -69584.5730
+[GA] Generation 2 best fitness: -37329.5410
+[GA] Generation 3 best fitness: -34364.8718
+[GA] Generation 4 best fitness: -29285.5020
+[GA] Generation 5 best fitness: -29285.5020
+[GA] Generation 6 best fitness: -25389.2677
+[GA] Generation 7 best fitness: -16127.8137
+[GA] Generation 8 best fitness: -9846.9741
+[GA] Generation 9 best fitness: -4257.8764
+[GA] Generation 10 best fitness: -1249.7546
+[GA] Generation 11 best fitness: -1070.1497
+[GA] Generation 12 best fitness: -1070.1497
+[GA] Generation 13 best fitness: -729.0802
+[GA] Generation 14 best fitness: -647.7853
+[GA] Generation 15 best fitness: -264.0364
+[GA] Generation 16 best fitness: -112.1883
+[GA] Generation 17 best fitness: 76.4828
+[GA] Generation 18 best fitness: 280.6019
+[GA] Generation 19 best fitness: 280.6019
+[GA] Generation 20 best fitness: 296.0693
+[GA] Generation 21 best fitness: 296.0693
+[GA] Generation 22 best fitness: 296.0693
+[GA] Generation 23 best fitness: 296.0693
+[GA] Generation 24 best fitness: 325.3241
+[GA] Generation 25 best fitness: 325.3241
+[GA] Generation 26 best fitness: 363.6447
+[GA] Generation 27 best fitness: 363.6447
+[GA] Generation 28 best fitness: 372.7168
+[GA] Generation 29 best fitness: 372.7168
+[GA] Generation 30 best fitness: 372.7168
+[GA] Generation 31 best fitness: 372.7168
+[GA] Generation 32 best fitness: 372.7168
+[GA] Generation 33 best fitness: 372.7168
+[GA] Generation 34 best fitness: 372.7168
+[GA] Generation 35 best fitness: 372.7168
+[GA] Generation 36 best fitness: 372.7168
+[GA] Generation 37 best fitness: 372.7168
+[GA] Generation 38 best fitness: 372.7168
+[GA] Generation 39 best fitness: 375.5179
+[GA] Generation 40 best fitness: 375.5179
+[GA] Generation 41 best fitness: 375.5179
+[GA] Generation 42 best fitness: 375.5179
+[GA] Generation 43 best fitness: 402.5182
+[GA] Generation 44 best fitness: 402.5182
+[GA] Generation 45 best fitness: 402.5182
+[GA] Generation 46 best fitness: 402.5182
+[GA] Generation 47 best fitness: 402.5182
+[GA] Generation 48 best fitness: 402.5182
+[GA] Generation 49 best fitness: 402.5182
+[GA Iter 2] Best fitness: 402.5182 (improvement: 82.0906)
 GA converged after 2 iteration(s).
 [CountResult DEBUG] Thresholds: rad=0.3500, trans=50.0000
-[CountResult DEBUG] Edge 1-2 GT=1.0000 Pred=1.0000 rad_err=0.0302 trans_err=9.0494 => PASS
-[CountResult DEBUG] Edge 1-3 GT=1.0000 Pred=1.0000 rad_err=0.0316 trans_err=9.7777 => PASS
-[CountResult DEBUG] Edge 1-4 GT=1.0000 Pred=1.0000 rad_err=0.0087 trans_err=2.2343 => PASS
-[CountResult DEBUG] Edge 2-3 GT=1.0000 Pred=1.0000 rad_err=0.0202 trans_err=9.2439 => PASS
-[CountResult DEBUG] Edge 2-4 GT=1.0000 Pred=1.0000 rad_err=0.0349 trans_err=15.6364 => PASS
-[CountResult DEBUG] Sherd 1 gt_edges=3 matched_edges=3 => MATCHED
-[CountResult DEBUG] Sherd 2 gt_edges=3 matched_edges=3 => MATCHED
-[CountResult DEBUG] Sherd 3 gt_edges=2 matched_edges=2 => MATCHED
-[CountResult DEBUG] Sherd 4 gt_edges=2 matched_edges=2 => MATCHED
-Sherd accuracy : 4 / 4 (100.0000%)
-Edge accuracy : 5 / 5 (100.0000%)
+[CountResult DEBUG] Edge 1-2 GT=1.0000 Pred=1.0000 rad_err=0.0311 trans_err=8.2083 => PASS
+[CountResult DEBUG] Edge 1-3 GT=1.0000 Pred=1.0000 rad_err=0.0515 trans_err=16.8697 => PASS
+[CountResult DEBUG] Edge 1-4 GT=1.0000 Pred=0.0000 rad_err=0.0563 trans_err=3.9424 => PASS
+[CountResult DEBUG] Edge 1-5 GT=1.0000 Pred=1.0000 rad_err=0.0729 trans_err=14.4204 => PASS
+[CountResult DEBUG] Edge 1-6 GT=1.0000 Pred=1.0000 rad_err=0.0842 trans_err=21.5319 => PASS
+[CountResult DEBUG] Edge 1-7 GT=1.0000 Pred=1.0000 rad_err=0.0902 trans_err=30.4270 => PASS
+[CountResult DEBUG] Edge 2-4 GT=1.0000 Pred=1.0000 rad_err=0.0430 trans_err=4.2451 => PASS
+[CountResult DEBUG] Edge 2-5 GT=1.0000 Pred=1.0000 rad_err=0.0534 trans_err=13.5801 => PASS
+[CountResult DEBUG] Edge 2-8 GT=1.0000 Pred=1.0000 rad_err=0.0451 trans_err=9.5480 => PASS
+[CountResult DEBUG] Edge 3-5 GT=1.0000 Pred=1.0000 rad_err=0.0488 trans_err=17.9063 => PASS
+[CountResult DEBUG] Edge 3-6 GT=1.0000 Pred=1.0000 rad_err=0.0653 trans_err=29.8232 => PASS
+[CountResult DEBUG] Edge 4-6 GT=1.0000 Pred=1.0000 rad_err=0.1117 trans_err=14.5294 => PASS
+[CountResult DEBUG] Edge 4-7 GT=1.0000 Pred=1.0000 rad_err=0.1300 trans_err=18.2792 => PASS
+[CountResult DEBUG] Edge 4-8 GT=1.0000 Pred=1.0000 rad_err=0.0266 trans_err=11.1756 => PASS
+[CountResult DEBUG] Edge 6-7 GT=1.0000 Pred=1.0000 rad_err=0.0943 trans_err=15.5037 => PASS
+[CountResult DEBUG] Sherd 1 gt_edges=6 matched_edges=6 => MATCHED
+[CountResult DEBUG] Sherd 2 gt_edges=4 matched_edges=4 => MATCHED
+[CountResult DEBUG] Sherd 3 gt_edges=3 matched_edges=3 => MATCHED
+[CountResult DEBUG] Sherd 4 gt_edges=5 matched_edges=5 => MATCHED
+[CountResult DEBUG] Sherd 5 gt_edges=3 matched_edges=3 => MATCHED
+[CountResult DEBUG] Sherd 6 gt_edges=4 matched_edges=4 => MATCHED
+[CountResult DEBUG] Sherd 7 gt_edges=3 matched_edges=3 => MATCHED
+[CountResult DEBUG] Sherd 8 gt_edges=2 matched_edges=2 => MATCHED
+Sherd accuracy : 8 / 8 (100.0000%)
+Edge accuracy : 15 / 15 (100.0000%)
 ########## Pre-ICP GA Results ##########
-Sherd Accuracy : 4 / 4
-Edge Accuracy  : 5 / 5
+Sherd Accuracy : 8 / 8
+Edge Accuracy  : 15 / 15
 ########################################
 #################### Post-GA Global ICP Refinement ####################
-W0427 06:47:49.839617    48 levenberg_marquardt_strategy.cc:114] Linear solver failure. Failed to compute a step: CXSparse Failure : Numeric factorization failed.
-W0427 06:47:49.844388    48 levenberg_marquardt_strategy.cc:114] Linear solver failure. Failed to compute a step: CXSparse Failure : Numeric factorization failed.
-W0427 06:47:49.845618    48 levenberg_marquardt_strategy.cc:114] Linear solver failure. Failed to compute a step: CXSparse Failure : Numeric factorization failed.
-W0427 06:47:49.856200    48 levenberg_marquardt_strategy.cc:114] Linear solver failure. Failed to compute a step: CXSparse Failure : Numeric factorization failed.
 #################### Fine reconstruction is converge ####################
 [CountResult DEBUG] Thresholds: rad=0.3500, trans=50.0000
-[CountResult DEBUG] Edge 1-2 GT=1.0000 Pred=1.0000 rad_err=0.0260 trans_err=10.0681 => PASS
-[CountResult DEBUG] Edge 1-3 GT=1.0000 Pred=0.0000 rad_err=1.2537 trans_err=374.7102 => FAIL
-[CountResult DEBUG] Edge 1-4 GT=1.0000 Pred=1.0000 rad_err=0.0190 trans_err=7.1617 => PASS
-[CountResult DEBUG] Edge 2-3 GT=1.0000 Pred=1.0000 rad_err=1.2349 trans_err=503.0290 => FAIL
-[CountResult DEBUG] Edge 2-4 GT=1.0000 Pred=1.0000 rad_err=0.0121 trans_err=3.5774 => PASS
-[CountResult DEBUG] Sherd 1 gt_edges=3 matched_edges=2 => MATCHED
-[CountResult DEBUG] Sherd 2 gt_edges=3 matched_edges=2 => MATCHED
-[CountResult DEBUG] Sherd 3 gt_edges=2 matched_edges=0 => MISSED
-[CountResult DEBUG] Sherd 4 gt_edges=2 matched_edges=2 => MATCHED
-Sherd accuracy : 3 / 4 (75.0000%)
-Edge accuracy : 3 / 5 (60.0000%)
+[CountResult DEBUG] Edge 1-2 GT=1.0000 Pred=1.0000 rad_err=0.0372 trans_err=15.8491 => PASS
+[CountResult DEBUG] Edge 1-3 GT=1.0000 Pred=1.0000 rad_err=0.0303 trans_err=8.2099 => PASS
+[CountResult DEBUG] Edge 1-4 GT=1.0000 Pred=1.0000 rad_err=0.0117 trans_err=5.8767 => PASS
+[CountResult DEBUG] Edge 1-5 GT=1.0000 Pred=1.0000 rad_err=0.0511 trans_err=13.0483 => PASS
+[CountResult DEBUG] Edge 1-6 GT=1.0000 Pred=1.0000 rad_err=0.0118 trans_err=3.9932 => PASS
+[CountResult DEBUG] Edge 1-7 GT=1.0000 Pred=1.0000 rad_err=0.0270 trans_err=8.1915 => PASS
+[CountResult DEBUG] Edge 2-4 GT=1.0000 Pred=1.0000 rad_err=0.0314 trans_err=9.6729 => PASS
+[CountResult DEBUG] Edge 2-5 GT=1.0000 Pred=1.0000 rad_err=0.0585 trans_err=9.4605 => PASS
+[CountResult DEBUG] Edge 2-8 GT=1.0000 Pred=1.0000 rad_err=0.0896 trans_err=3.5500 => PASS
+[CountResult DEBUG] Edge 3-5 GT=1.0000 Pred=1.0000 rad_err=0.0208 trans_err=4.1382 => PASS
+[CountResult DEBUG] Edge 3-6 GT=1.0000 Pred=1.0000 rad_err=0.0246 trans_err=4.6279 => PASS
+[CountResult DEBUG] Edge 4-6 GT=1.0000 Pred=1.0000 rad_err=0.0108 trans_err=2.7537 => PASS
+[CountResult DEBUG] Edge 4-7 GT=1.0000 Pred=1.0000 rad_err=0.0246 trans_err=8.4310 => PASS
+[CountResult DEBUG] Edge 4-8 GT=1.0000 Pred=1.0000 rad_err=0.0657 trans_err=11.1170 => PASS
+[CountResult DEBUG] Edge 6-7 GT=1.0000 Pred=1.0000 rad_err=0.0156 trans_err=8.1983 => PASS
+[CountResult DEBUG] Sherd 1 gt_edges=6 matched_edges=6 => MATCHED
+[CountResult DEBUG] Sherd 2 gt_edges=4 matched_edges=4 => MATCHED
+[CountResult DEBUG] Sherd 3 gt_edges=3 matched_edges=3 => MATCHED
+[CountResult DEBUG] Sherd 4 gt_edges=5 matched_edges=5 => MATCHED
+[CountResult DEBUG] Sherd 5 gt_edges=3 matched_edges=3 => MATCHED
+[CountResult DEBUG] Sherd 6 gt_edges=4 matched_edges=4 => MATCHED
+[CountResult DEBUG] Sherd 7 gt_edges=3 matched_edges=3 => MATCHED
+[CountResult DEBUG] Sherd 8 gt_edges=2 matched_edges=2 => MATCHED
+Sherd accuracy : 8 / 8 (100.0000%)
+Edge accuracy : 15 / 15 (100.0000%)
 ########## Post-ICP Global Results ##########
-Sherd Accuracy : 3 / 4
-Edge Accuracy  : 3 / 5
+Sherd Accuracy : 8 / 8
+Edge Accuracy  : 15 / 15
 ########################################
 #################### Post-GA Incremental ICP Refinement ####################
 [CountResult DEBUG] Thresholds: rad=0.3500, trans=50.0000
-[CountResult DEBUG] Edge 1-2 GT=1.0000 Pred=1.0000 rad_err=0.0706 trans_err=28.2580 => PASS
-[CountResult DEBUG] Edge 1-3 GT=1.0000 Pred=1.0000 rad_err=0.0166 trans_err=4.9079 => PASS
-[CountResult DEBUG] Edge 1-4 GT=1.0000 Pred=1.0000 rad_err=0.0613 trans_err=16.9884 => PASS
-[CountResult DEBUG] Edge 2-3 GT=1.0000 Pred=1.0000 rad_err=0.0760 trans_err=31.6435 => PASS
-[CountResult DEBUG] Edge 2-4 GT=1.0000 Pred=1.0000 rad_err=0.0653 trans_err=27.3476 => PASS
-[CountResult DEBUG] Sherd 1 gt_edges=3 matched_edges=3 => MATCHED
-[CountResult DEBUG] Sherd 2 gt_edges=3 matched_edges=3 => MATCHED
-[CountResult DEBUG] Sherd 3 gt_edges=2 matched_edges=2 => MATCHED
-[CountResult DEBUG] Sherd 4 gt_edges=2 matched_edges=2 => MATCHED
-Sherd accuracy : 4 / 4 (100.0000%)
-Edge accuracy : 5 / 5 (100.0000%)
+[CountResult DEBUG] Edge 1-2 GT=1.0000 Pred=1.0000 rad_err=0.0219 trans_err=7.0312 => PASS
+[CountResult DEBUG] Edge 1-3 GT=1.0000 Pred=1.0000 rad_err=1.0859 trans_err=124.1666 => FAIL
+[CountResult DEBUG] Edge 1-4 GT=1.0000 Pred=0.0000 rad_err=2.6321 trans_err=296.2556 => FAIL
+[CountResult DEBUG] Edge 1-5 GT=1.0000 Pred=1.0000 rad_err=0.0704 trans_err=12.5115 => PASS
+[CountResult DEBUG] Edge 1-6 GT=1.0000 Pred=1.0000 rad_err=0.2394 trans_err=56.9853 => FAIL
+[CountResult DEBUG] Edge 1-7 GT=1.0000 Pred=1.0000 rad_err=0.0503 trans_err=16.6256 => PASS
+[CountResult DEBUG] Edge 2-4 GT=1.0000 Pred=1.0000 rad_err=2.6309 trans_err=274.6870 => FAIL
+[CountResult DEBUG] Edge 2-5 GT=1.0000 Pred=1.0000 rad_err=0.0598 trans_err=10.1070 => PASS
+[CountResult DEBUG] Edge 2-8 GT=1.0000 Pred=1.0000 rad_err=2.2437 trans_err=268.9853 => FAIL
+[CountResult DEBUG] Edge 3-5 GT=1.0000 Pred=1.0000 rad_err=1.1408 trans_err=386.3035 => FAIL
+[CountResult DEBUG] Edge 3-6 GT=1.0000 Pred=1.0000 rad_err=0.8989 trans_err=310.1262 => FAIL
+[CountResult DEBUG] Edge 4-6 GT=1.0000 Pred=1.0000 rad_err=2.8363 trans_err=283.8509 => FAIL
+[CountResult DEBUG] Edge 4-7 GT=1.0000 Pred=1.0000 rad_err=2.6461 trans_err=285.2564 => FAIL
+[CountResult DEBUG] Edge 4-8 GT=1.0000 Pred=1.0000 rad_err=1.4102 trans_err=211.6945 => FAIL
+[CountResult DEBUG] Edge 6-7 GT=1.0000 Pred=1.0000 rad_err=0.2550 trans_err=72.3765 => FAIL
+[CountResult DEBUG] Sherd 1 gt_edges=6 matched_edges=3 => MATCHED
+[CountResult DEBUG] Sherd 2 gt_edges=4 matched_edges=2 => MATCHED
+[CountResult DEBUG] Sherd 3 gt_edges=3 matched_edges=0 => MISSED
+[CountResult DEBUG] Sherd 4 gt_edges=5 matched_edges=0 => MISSED
+[CountResult DEBUG] Sherd 5 gt_edges=3 matched_edges=2 => MATCHED
+[CountResult DEBUG] Sherd 6 gt_edges=4 matched_edges=0 => MISSED
+[CountResult DEBUG] Sherd 7 gt_edges=3 matched_edges=1 => MATCHED
+[CountResult DEBUG] Sherd 8 gt_edges=2 matched_edges=0 => MISSED
+Sherd accuracy : 4 / 8 (50.0000%)
+Edge accuracy : 4 / 15 (26.6667%)
 ########## Post-ICP Incremental Results ##########
-Sherd Accuracy : 4 / 4
-Edge Accuracy  : 5 / 5
+Sherd Accuracy : 4 / 8
+Edge Accuracy  : 4 / 15
 ########################################
 ########## Final Refined Results ##########
 Selected Stage      : Pre-ICP GA (selected in compare)
-Final Sherd Accuracy : 4 / 4
-Final Edge Accuracy  : 5 / 5
-Total Runtime        : 999872.5440 sec
+Final Sherd Accuracy : 8 / 8
+Final Edge Accuracy  : 15 / 15
+Total Runtime        : 3638622.9180 sec
 ###########################################
 Showing Refined assembly. Press 'G' to toggle Ground Truth comparison! Press 'Q' to quit.
