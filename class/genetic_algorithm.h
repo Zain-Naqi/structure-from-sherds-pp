@@ -239,7 +239,7 @@ public:
                 if (mutated_gene1 >= 0) {
                     // GuidedRepair(child1, static_cast<size_t>(mutated_gene1));
                 }
-                EnsureSherdCoverage(child1);
+                // EnsureSherdCoverage(child1);
                 RepairPositionCollisions(child1);
                 next_population.push_back(child1);
 
@@ -250,7 +250,7 @@ public:
                         // GuidedRepair(child2, static_cast<size_t>(mutated_gene2));
                     }
 
-                    EnsureSherdCoverage(child2);
+                    // EnsureSherdCoverage(child2);
                     RepairPositionCollisions(child2);
 
                     next_population.push_back(child2);
@@ -451,7 +451,7 @@ private:
                 chromosome.genes[gene_idx] = SampleGroupChoice(gene_idx);
             }
 
-            EnsureSherdCoverage(chromosome);
+            // EnsureSherdCoverage(chromosome);
             RepairPositionCollisions(chromosome);
             population_.push_back(chromosome);
         }
@@ -2709,7 +2709,7 @@ private:
             // GuidedRepair(replacement, repair_idx);
         }
 
-        EnsureSherdCoverage(replacement);
+        // EnsureSherdCoverage(replacement);
 
         replacement.fitness = EvaluateFitness(replacement);
         return replacement;
@@ -3039,12 +3039,12 @@ private:
     static constexpr double kMaxActivePairRatio = 0.90;
     static constexpr double kActivePairRangePenaltyWeight = 8.0;
     static constexpr double kExcessActivePairPenaltyScale = 0.5;
-    static constexpr double kEdgeResidualThreshold = 30.0;
+    static constexpr double kEdgeResidualThreshold = 2.0;
     static constexpr double kEdgeResidualPenalty = 2.0;
     static constexpr double kEdgeRotResidualThreshold = 0.2;
     static constexpr double kEdgeRotResidualPenalty = 5.0;
     static constexpr double kConnectivityReward = 10.0;
-    static constexpr double kConnectivityComponentPenalty = 100;
+    static constexpr double kConnectivityComponentPenalty = 0;
     static constexpr int kPoseRelaxIterations = 0;
     static constexpr double kPoseRelaxAlpha = 0.5;
     
