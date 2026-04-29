@@ -240,7 +240,7 @@ public:
                     // GuidedRepair(child1, static_cast<size_t>(mutated_gene1));
                 }
                 // EnsureSherdCoverage(child1);
-                RepairPositionCollisions(child1);
+                // RepairPositionCollisions(child1);
                 next_population.push_back(child1);
 
                 if (static_cast<int>(next_population.size()) < kPopulationSize) {
@@ -251,7 +251,7 @@ public:
                     }
 
                     // EnsureSherdCoverage(child2);
-                    RepairPositionCollisions(child2);
+                    // RepairPositionCollisions(child2);
 
                     next_population.push_back(child2);
                 }
@@ -266,7 +266,7 @@ public:
 
             if (generation % 10 == 0 && !population_.empty()) {
                 // Diagnostic pass with logging for the current best
-                RepairPositionCollisions(population_.front(), true);
+                // RepairPositionCollisions(population_.front(), true);
                 LogBestChromosomeBreakdown(generation, population_.front());
             }
 
@@ -452,7 +452,7 @@ private:
             }
 
             // EnsureSherdCoverage(chromosome);
-            RepairPositionCollisions(chromosome);
+            // RepairPositionCollisions(chromosome);
             population_.push_back(chromosome);
         }
     }
@@ -3039,7 +3039,7 @@ private:
     static constexpr double kMaxActivePairRatio = 0.90;
     static constexpr double kActivePairRangePenaltyWeight = 8.0;
     static constexpr double kExcessActivePairPenaltyScale = 0.5;
-    static constexpr double kEdgeResidualThreshold = 2.0;
+    static constexpr double kEdgeResidualThreshold = 5.0;
     static constexpr double kEdgeResidualPenalty = 2.0;
     static constexpr double kEdgeRotResidualThreshold = 0.2;
     static constexpr double kEdgeRotResidualPenalty = 5.0;

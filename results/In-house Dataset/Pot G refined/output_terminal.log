@@ -1,0 +1,301 @@
+[ICP MODE] compare (flags: --icp-mode=global|incremental|compare)
+#################### Pottery Data load ####################
+Attempting to read file: /Dataset/SfS_pp/Axes/Pot_G_Piece_01_Axis.xyz
+File opened successfully
+Successfully read 1 points
+Attempting to read PCD file: /Dataset/SfS_pp/Breaklines/Pot_G_Piece_01_Breakline_0.pcd
+File opened successfully
+Found 3 segments, 127 total points
+Processing 127 points
+Found 127 unique points
+Successfully processed PCD file
+Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_G_Piece_01_Surface_0.xyz
+Found 6117 total points, reading 6117 points
+Successfully read 6117 points
+Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_G_Piece_01_Surface_1.xyz
+Found 6334 total points, reading 6334 points
+Successfully read 6334 points
+Attempting to read PCD file: /Dataset/SfS_pp/Surfaces/Pot_G_Piece_01_Surface_F.pcd
+Attempting to read file: /Dataset/SfS_pp/Axes/Pot_G_Piece_02_Axis.xyz
+File opened successfully
+Successfully read 1 points
+Attempting to read PCD file: /Dataset/SfS_pp/Breaklines/Pot_G_Piece_02_Breakline_0.pcd
+File opened successfully
+Found 3 segments, 112 total points
+Processing 112 points
+Found 112 unique points
+Successfully processed PCD file
+Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_G_Piece_02_Surface_0.xyz
+Found 5623 total points, reading 5623 points
+Successfully read 5623 points
+Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_G_Piece_02_Surface_1.xyz
+Found 6093 total points, reading 6093 points
+Successfully read 6093 points
+Attempting to read PCD file: /Dataset/SfS_pp/Surfaces/Pot_G_Piece_02_Surface_F.pcd
+Attempting to read file: /Dataset/SfS_pp/Axes/Pot_G_Piece_03_Axis.xyz
+File opened successfully
+Successfully read 1 points
+Attempting to read PCD file: /Dataset/SfS_pp/Breaklines/Pot_G_Piece_03_Breakline_0.pcd
+File opened successfully
+Found 2 segments, 95 total points
+Processing 95 points
+Found 95 unique points
+Successfully processed PCD file
+Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_G_Piece_03_Surface_0.xyz
+Found 3672 total points, reading 3672 points
+Successfully read 3672 points
+Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_G_Piece_03_Surface_1.xyz
+Found 4151 total points, reading 4151 points
+Successfully read 4151 points
+Attempting to read PCD file: /Dataset/SfS_pp/Surfaces/Pot_G_Piece_03_Surface_F.pcd
+Attempting to read file: /Dataset/SfS_pp/Axes/Pot_G_Piece_04_Axis.xyz
+File opened successfully
+Successfully read 1 points
+Attempting to read PCD file: /Dataset/SfS_pp/Breaklines/Pot_G_Piece_04_Breakline_0.pcd
+File opened successfully
+Found 3 segments, 96 total points
+Processing 96 points
+Found 96 unique points
+Successfully processed PCD file
+Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_G_Piece_04_Surface_0.xyz
+Found 3601 total points, reading 3601 points
+Successfully read 3601 points
+Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_G_Piece_04_Surface_1.xyz
+Found 4150 total points, reading 4150 points
+Successfully read 4150 points
+Attempting to read PCD file: /Dataset/SfS_pp/Surfaces/Pot_G_Piece_04_Surface_F.pcd
+Attempting to read file: /Dataset/SfS_pp/Axes/Pot_G_Piece_05_Axis.xyz
+File opened successfully
+Successfully read 1 points
+Attempting to read PCD file: /Dataset/SfS_pp/Breaklines/Pot_G_Piece_05_Breakline_0.pcd
+File opened successfully
+Found 4 segments, 94 total points
+Processing 94 points
+Found 94 unique points
+Successfully processed PCD file
+Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_G_Piece_05_Surface_0.xyz
+Found 3939 total points, reading 3939 points
+Successfully read 3939 points
+Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_G_Piece_05_Surface_1.xyz
+Found 4090 total points, reading 4090 points
+Successfully read 4090 points
+Attempting to read PCD file: /Dataset/SfS_pp/Surfaces/Pot_G_Piece_05_Surface_F.pcd
+Attempting to read file: /Dataset/SfS_pp/Axes/Pot_G_Piece_06_Axis.xyz
+File opened successfully
+Successfully read 1 points
+Attempting to read PCD file: /Dataset/SfS_pp/Breaklines/Pot_G_Piece_06_Breakline_0.pcd
+File opened successfully
+Found 3 segments, 81 total points
+Processing 81 points
+Found 81 unique points
+Successfully processed PCD file
+Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_G_Piece_06_Surface_0.xyz
+Found 3093 total points, reading 3093 points
+Successfully read 3093 points
+Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_G_Piece_06_Surface_1.xyz
+Found 3266 total points, reading 3266 points
+Successfully read 3266 points
+Attempting to read PCD file: /Dataset/SfS_pp/Surfaces/Pot_G_Piece_06_Surface_F.pcd
+Attempting to read file: /Dataset/SfS_pp/Axes/Pot_G_Piece_07_Axis.xyz
+File opened successfully
+Successfully read 1 points
+Attempting to read PCD file: /Dataset/SfS_pp/Breaklines/Pot_G_Piece_07_Breakline_0.pcd
+File opened successfully
+Found 2 segments, 64 total points
+Processing 64 points
+Found 64 unique points
+Successfully processed PCD file
+Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_G_Piece_07_Surface_0.xyz
+Found 1629 total points, reading 1629 points
+Successfully read 1629 points
+Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_G_Piece_07_Surface_1.xyz
+Found 1390 total points, reading 1390 points
+Successfully read 1390 points
+Attempting to read PCD file: /Dataset/SfS_pp/Surfaces/Pot_G_Piece_07_Surface_F.pcd
+#################### Ground Truth data load ####################
+0 0 1 1 0 0 1
+0 0 1 0 1 1 0
+1 1 0 0 0 1 0
+1 0 0 0 1 0 1
+0 1 0 1 0 0 1
+0 1 1 0 0 0 0
+1 0 0 1 1 0 0
+#################### Save initial state ####################
+#################### Change Axis symmetrix to z axis ####################
+#################### Feature matching ####################
+Total Number : 51
+#################### Pairwise pruning ####################
+Pruned match count: 31
+#################### Genetic Algorithm search ####################
+=== GA Iteration 1 / 1 ===
+#################### GROUND TRUTH CANDIDATE AUDIT ####################
+[GT AUDIT] Edge 1-3 (GT=1) Candidates: 2
+  Choice 1: inliner= 38 score=0.662 density=22.862 [Wrapped] rad=2.9507 trans=17.5109
+  Choice 2: inliner= 71 score=0.259 density=56.399 [Wrapped] rad=1.6913 trans=6.3536
+  -> Best Match for GT: Choice 2 (rad_err=1.6913)
+[GT AUDIT] Edge 1-4 (GT=1) Candidates: 1
+  Choice 1: inliner= 49 score=0.400 density=34.996 [Wrapped] rad=3.0332 trans=11.4637
+  -> Best Match for GT: Choice 1 (rad_err=3.0332)
+[GT AUDIT] Edge 1-7 (GT=1) Candidates: 2
+  Choice 1: inliner= 20 score=0.517 density=13.183 [Wrapped] rad=1.2105 trans=27.5492
+  Choice 2: inliner= 30 score=0.468 density=20.437 [Wrapped] rad=3.1035 trans=30.8029
+  -> Best Match for GT: Choice 1 (rad_err=1.2105)
+[GT AUDIT] Edge 2-5 (GT=1) Candidates: 1
+  Choice 1: inliner= 60 score=0.359 density=44.151 [Wrapped] rad=0.1309 trans=5.6735 [VALID GT MATCH]
+  -> Best Match for GT: Choice 1 (rad_err=0.1309)
+[GT AUDIT] Edge 2-6 (GT=1) Candidates: 2
+  Choice 1: inliner= 18 score=0.898 density=9.484 [Wrapped] rad=0.4604 trans=13.9222
+  Choice 2: inliner= 30 score=0.714 density=17.508 [Wrapped] rad=2.2824 trans=7.8157
+  -> Best Match for GT: Choice 1 (rad_err=0.4604)
+[GT AUDIT] Edge 3-6 (GT=1) Candidates: 2
+  Choice 1: inliner= 26 score=0.498 density=17.359 [Wrapped] rad=1.1366 trans=24.2914
+  Choice 2: inliner= 34 score=0.544 density=22.023 [Wrapped] rad=0.1877 trans=7.3640 [VALID GT MATCH]
+  -> Best Match for GT: Choice 2 (rad_err=0.1877)
+[GT AUDIT] Edge 4-5 (GT=1) Candidates: 1
+  Choice 1: inliner= 32 score=0.644 density=19.463 [Wrapped] rad=2.3444 trans=8.1859
+  -> Best Match for GT: Choice 1 (rad_err=2.3444)
+[GT AUDIT] Edge 4-7 (GT=1) Candidates: 1
+  Choice 1: inliner= 20 score=0.580 density=12.657 [Wrapped] rad=2.1975 trans=43.2206
+  -> Best Match for GT: Choice 1 (rad_err=2.1975)
+[GT AUDIT] Edge 5-7 (GT=1) Candidates: 2
+  Choice 1: inliner= 22 score=0.492 density=14.741 [Wrapped] rad=1.6855 trans=14.9002
+  Choice 2: inliner= 28 score=0.496 density=18.716 [Wrapped] rad=0.2849 trans=8.2651 [VALID GT MATCH]
+  -> Best Match for GT: Choice 2 (rad_err=0.2849)
+######################################################################
+[GA] Generation 0 best fitness: -5326.6965
+[GA] Generation 1 best fitness: -5326.6965
+[GA] Generation 2 best fitness: -4344.1558
+[GA] Generation 3 best fitness: -4337.6681
+[GA] Generation 4 best fitness: -4337.6681
+[GA] Generation 5 best fitness: -4337.6681
+[GA] Generation 6 best fitness: -4096.1697
+[GA] Generation 7 best fitness: -3921.6588
+[GA] Generation 8 best fitness: -3420.1915
+[GA] Generation 9 best fitness: -2593.0199
+[GA] Generation 10 best fitness: -2263.5355
+[GA] Generation 11 best fitness: -2263.5355
+[GA] Generation 12 best fitness: -2263.5355
+[GA] Generation 13 best fitness: -2231.3776
+[GA] Generation 14 best fitness: -2231.3776
+[GA] Generation 15 best fitness: -2114.0892
+[GA] Generation 16 best fitness: -2025.5938
+[GA] Generation 17 best fitness: -1630.6098
+[GA] Generation 18 best fitness: -1490.1443
+[GA] Generation 19 best fitness: -1490.1443
+[GA] Generation 20 best fitness: -1490.1443
+[GA] Generation 21 best fitness: -680.0673
+[GA] Generation 22 best fitness: -680.0673
+[GA] Generation 23 best fitness: -536.4214
+[GA] Generation 24 best fitness: -536.4214
+[GA] Generation 25 best fitness: -121.1883
+[GA] Generation 26 best fitness: -121.1883
+[GA] Generation 27 best fitness: -121.1883
+[GA] Generation 28 best fitness: -121.1883
+[GA] Generation 29 best fitness: -4.2613
+[GA] Generation 30 best fitness: -4.2613
+[GA] Generation 31 best fitness: -4.2613
+[GA] Generation 32 best fitness: -4.2613
+[GA] Generation 33 best fitness: -4.2613
+[GA] Generation 34 best fitness: 84.9491
+[GA] Generation 35 best fitness: 84.9491
+[GA] Generation 36 best fitness: 84.9491
+[GA] Generation 37 best fitness: 84.9491
+[GA] Generation 38 best fitness: 84.9491
+[GA] Generation 39 best fitness: 84.9491
+[GA] Generation 40 best fitness: 84.9491
+[GA] Generation 41 best fitness: 84.9491
+[GA] Generation 42 best fitness: 174.6779
+[GA] Generation 43 best fitness: 174.6779
+[GA] Generation 44 best fitness: 174.6779
+[GA] Generation 45 best fitness: 174.6779
+[GA] Generation 46 best fitness: 174.6779
+[GA] Generation 47 best fitness: 174.6779
+[GA] Generation 48 best fitness: 174.6779
+[GA] Generation 49 best fitness: 174.6779
+[GA Iter 1] Best fitness: 174.6779 (improvement: 1000000174.6779)
+GA converged after 1 iteration(s).
+[CountResult DEBUG] Thresholds: rad=0.3500, trans=50.0000
+[CountResult DEBUG] Edge 1-3 GT=1.0000 Pred=1.0000 rad_err=0.0489 trans_err=20.4215 => PASS
+[CountResult DEBUG] Edge 1-4 GT=1.0000 Pred=0.0000 rad_err=2.3338 trans_err=766.9269 => FAIL
+[CountResult DEBUG] Edge 1-7 GT=1.0000 Pred=0.0000 rad_err=2.6885 trans_err=831.7968 => FAIL
+[CountResult DEBUG] Edge 2-3 GT=1.0000 Pred=0.0000 rad_err=1.0923 trans_err=136.5929 => FAIL
+[CountResult DEBUG] Edge 2-5 GT=1.0000 Pred=1.0000 rad_err=0.0829 trans_err=25.5268 => PASS
+[CountResult DEBUG] Edge 2-6 GT=1.0000 Pred=0.0000 rad_err=1.1651 trans_err=214.4346 => FAIL
+[CountResult DEBUG] Edge 3-6 GT=1.0000 Pred=1.0000 rad_err=0.1907 trans_err=57.7246 => FAIL
+[CountResult DEBUG] Edge 4-5 GT=1.0000 Pred=0.0000 rad_err=2.9826 trans_err=757.6212 => FAIL
+[CountResult DEBUG] Edge 4-7 GT=1.0000 Pred=0.0000 rad_err=1.3107 trans_err=465.1746 => FAIL
+[CountResult DEBUG] Edge 5-7 GT=1.0000 Pred=0.0000 rad_err=1.6983 trans_err=573.1683 => FAIL
+[CountResult DEBUG] Sherd 1 gt_edges=3 matched_edges=1 => MATCHED
+[CountResult DEBUG] Sherd 2 gt_edges=3 matched_edges=1 => MATCHED
+[CountResult DEBUG] Sherd 3 gt_edges=3 matched_edges=1 => MATCHED
+[CountResult DEBUG] Sherd 4 gt_edges=3 matched_edges=0 => MISSED
+[CountResult DEBUG] Sherd 5 gt_edges=3 matched_edges=1 => MATCHED
+[CountResult DEBUG] Sherd 6 gt_edges=2 matched_edges=0 => MISSED
+[CountResult DEBUG] Sherd 7 gt_edges=3 matched_edges=0 => MISSED
+Sherd accuracy : 4 / 7 (57.1429%)
+Edge accuracy : 2 / 10 (20.0000%)
+########## Pre-ICP GA Results ##########
+Sherd Accuracy : 4 / 7
+Edge Accuracy  : 2 / 10
+########################################
+#################### Post-GA Global ICP Refinement ####################
+#################### Fine reconstruction is converge ####################
+[CountResult DEBUG] Thresholds: rad=0.3500, trans=50.0000
+[CountResult DEBUG] Edge 1-3 GT=1.0000 Pred=1.0000 rad_err=0.5650 trans_err=186.9898 => FAIL
+[CountResult DEBUG] Edge 1-4 GT=1.0000 Pred=1.0000 rad_err=2.9951 trans_err=816.0793 => FAIL
+[CountResult DEBUG] Edge 1-7 GT=1.0000 Pred=1.0000 rad_err=3.0807 trans_err=795.5905 => FAIL
+[CountResult DEBUG] Edge 2-3 GT=1.0000 Pred=1.0000 rad_err=0.3190 trans_err=139.7207 => FAIL
+[CountResult DEBUG] Edge 2-5 GT=1.0000 Pred=1.0000 rad_err=0.0417 trans_err=18.5013 => PASS
+[CountResult DEBUG] Edge 2-6 GT=1.0000 Pred=1.0000 rad_err=1.0202 trans_err=158.4960 => FAIL
+[CountResult DEBUG] Edge 3-6 GT=1.0000 Pred=1.0000 rad_err=0.9518 trans_err=133.4924 => FAIL
+[CountResult DEBUG] Edge 4-5 GT=1.0000 Pred=0.0000 rad_err=3.1325 trans_err=766.1808 => FAIL
+[CountResult DEBUG] Edge 4-7 GT=1.0000 Pred=1.0000 rad_err=0.3304 trans_err=112.9459 => FAIL
+[CountResult DEBUG] Edge 5-7 GT=1.0000 Pred=1.0000 rad_err=2.9886 trans_err=739.1440 => FAIL
+[CountResult DEBUG] Sherd 1 gt_edges=3 matched_edges=0 => MISSED
+[CountResult DEBUG] Sherd 2 gt_edges=3 matched_edges=1 => MATCHED
+[CountResult DEBUG] Sherd 3 gt_edges=3 matched_edges=0 => MISSED
+[CountResult DEBUG] Sherd 4 gt_edges=3 matched_edges=0 => MISSED
+[CountResult DEBUG] Sherd 5 gt_edges=3 matched_edges=1 => MATCHED
+[CountResult DEBUG] Sherd 6 gt_edges=2 matched_edges=0 => MISSED
+[CountResult DEBUG] Sherd 7 gt_edges=3 matched_edges=0 => MISSED
+Sherd accuracy : 2 / 7 (28.5714%)
+Edge accuracy : 1 / 10 (10.0000%)
+########## Post-ICP Global Results ##########
+Sherd Accuracy : 2 / 7
+Edge Accuracy  : 1 / 10
+########################################
+#################### Post-GA Incremental ICP Refinement ####################
+[CountResult DEBUG] Thresholds: rad=0.3500, trans=50.0000
+[CountResult DEBUG] Edge 1-3 GT=1.0000 Pred=1.0000 rad_err=0.0329 trans_err=14.2693 => PASS
+[CountResult DEBUG] Edge 1-4 GT=1.0000 Pred=0.0000 rad_err=0.0205 trans_err=7.8570 => PASS
+[CountResult DEBUG] Edge 1-7 GT=1.0000 Pred=0.0000 rad_err=2.6885 trans_err=831.7968 => FAIL
+[CountResult DEBUG] Edge 2-3 GT=1.0000 Pred=0.0000 rad_err=2.3726 trans_err=415.1599 => FAIL
+[CountResult DEBUG] Edge 2-5 GT=1.0000 Pred=1.0000 rad_err=1.3902 trans_err=345.9634 => FAIL
+[CountResult DEBUG] Edge 2-6 GT=1.0000 Pred=0.0000 rad_err=1.0888 trans_err=187.0985 => FAIL
+[CountResult DEBUG] Edge 3-6 GT=1.0000 Pred=1.0000 rad_err=2.8375 trans_err=181.5096 => FAIL
+[CountResult DEBUG] Edge 4-5 GT=1.0000 Pred=0.0000 rad_err=0.9856 trans_err=360.9398 => FAIL
+[CountResult DEBUG] Edge 4-7 GT=1.0000 Pred=0.0000 rad_err=2.6705 trans_err=741.0791 => FAIL
+[CountResult DEBUG] Edge 5-7 GT=1.0000 Pred=0.0000 rad_err=1.6920 trans_err=582.2113 => FAIL
+[CountResult DEBUG] Sherd 1 gt_edges=3 matched_edges=2 => MATCHED
+[CountResult DEBUG] Sherd 2 gt_edges=3 matched_edges=0 => MISSED
+[CountResult DEBUG] Sherd 3 gt_edges=3 matched_edges=1 => MATCHED
+[CountResult DEBUG] Sherd 4 gt_edges=3 matched_edges=1 => MATCHED
+[CountResult DEBUG] Sherd 5 gt_edges=3 matched_edges=0 => MISSED
+[CountResult DEBUG] Sherd 6 gt_edges=2 matched_edges=0 => MISSED
+[CountResult DEBUG] Sherd 7 gt_edges=3 matched_edges=0 => MISSED
+Sherd accuracy : 3 / 7 (42.8571%)
+Edge accuracy : 2 / 10 (20.0000%)
+########## Post-ICP Incremental Results ##########
+Sherd Accuracy : 3 / 7
+Edge Accuracy  : 2 / 10
+########################################
+########## Final Refined Results ##########
+Selected Stage      : Pre-ICP GA (selected in compare)
+Final Sherd Accuracy : 4 / 7
+Final Edge Accuracy  : 2 / 10
+Total Runtime        : 468119.7910 sec
+###########################################
+Showing Refined assembly. Press 'G' to toggle Ground Truth comparison! Press 'Q' to quit.
+[0;mScreenshot (screenshot-1777439545.png) and camera information (screenshot-1777439545.cam) successfully captured.
+[0;mScreenshot (screenshot-1777439547.png) and camera information (screenshot-1777439547.cam) successfully captured.
+[0;mScreenshot (screenshot-1777439556.png) and camera information (screenshot-1777439556.cam) successfully captured.

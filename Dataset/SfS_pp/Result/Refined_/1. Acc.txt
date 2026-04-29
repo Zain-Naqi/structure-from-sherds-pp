@@ -1,3 +1,3 @@
-Time : 5.57822e+06 Sec
-Sherd accuracy : 4 / 6 (66.6667 %)
-Sherd accuracy : 5 / 9 (55.5556 %)
+Time : 468120 Sec
+Sherd accuracy : 4 / 7 (57.1429 %)
+Sherd accuracy : 2 / 10 (20 %)

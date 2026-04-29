@@ -317,7 +317,7 @@ int main(int argc, char** argv)
 	cout << "#################### Genetic Algorithm search ####################" << endl;
 
 	// Iterative GA Parameters
-	const int kMaxGAIterations = 2;
+	const int kMaxGAIterations = 1;
 	const double kConvergenceThreshold = 5.0;	// minimum fitness improvement to continue
 	const int kMaxPatience = 5;
 
