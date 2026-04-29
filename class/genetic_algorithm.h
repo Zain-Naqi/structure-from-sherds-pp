@@ -20,6 +20,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <limits>
+#include <unordered_set>
 
 // Check # 02: #include "data_structure.h" should also work
 #include "../class/data_structure.h"
@@ -1048,8 +1049,18 @@ private:
             }
         }
 
+        double old_fitness = EvaluateFitness(chromosome);
         chromosome.genes[gene_idx] = new_choice;
-        return gene_idx;
+        double new_fitness = EvaluateFitness(chromosome);
+
+        if (new_fitness > old_fitness) {
+            chromosome.fitness = new_fitness;
+            return gene_idx;
+        } else {
+            chromosome.genes[gene_idx] = old_choice;
+            chromosome.fitness = old_fitness;
+            return -1;
+        }
     }
 
     //-----------------------------------------------------------------------------------------------------------------//
@@ -2662,35 +2673,27 @@ private:
         replacement.genes.resize(survivor.genes.size(), 0);
         replacement.fitness = 0.0;
 
-        struct ActiveGene {
-            size_t gene_idx;
-            int choice;
-            int inliners;
-        };
-        vector<ActiveGene> active_genes;
+        int keep_sherd_count = max(1, static_cast<int>(valid_shard_count_ * kBiasInheritRatio));
+        
+        vector<int> sherds = valid_shard_indices_;
+        shuffle(sherds.begin(), sherds.end(), rng_);
+        
+        std::unordered_set<int> selected_sherds(sherds.begin(), sherds.begin() + keep_sherd_count);
+        vector<bool> inherited(survivor.genes.size(), false);
+        int keep_count = 0;
 
         for (size_t i = 0; i < survivor.genes.size(); ++i) {
-            int choice = survivor.genes[i];
-            if (choice > 0) {
-                const vector<size_t>& group = pair_groups_[i];
-                int local_idx = choice - 1;
-                if (local_idx >= 0 && local_idx < static_cast<int>(group.size())) {
-                    int inl = matches_[group[local_idx]].inliner_;
-                    active_genes.push_back({i, choice, inl});
-                }
+            if (pair_groups_[i].empty()) continue;
+            
+            const LCSIndex& match = matches_[pair_groups_[i][0]];
+            int u = match.shard_x_;
+            int v = match.shard_y_;
+            
+            if (selected_sherds.count(u) || selected_sherds.count(v)) {
+                replacement.genes[i] = survivor.genes[i];
+                inherited[i] = true;
+                keep_count++;
             }
-        }
-
-        sort(active_genes.begin(), active_genes.end(), [](const ActiveGene& a, const ActiveGene& b) {
-            return a.inliners > b.inliners;
-        });
-
-        int keep_count = static_cast<int>(active_genes.size() * kBiasInheritRatio);
-        vector<bool> inherited(survivor.genes.size(), false);
-
-        for (int i = 0; i < keep_count; ++i) {
-            replacement.genes[active_genes[i].gene_idx] = active_genes[i].choice;
-            inherited[active_genes[i].gene_idx] = true;
         }
 
         vector<size_t> random_genes;
@@ -3024,10 +3027,10 @@ private:
     // }
     
 
-    static constexpr int kPopulationSize = 100;
-    static constexpr int kMaxGenerations = 50;
+    static constexpr int kPopulationSize = 200;
+    static constexpr int kMaxGenerations = 150;
     static constexpr int kElitismCount = 6;
-    static constexpr double kMutationRate = 0.10; // Increased from 0.05 for better symmetry exploration
+    static constexpr double kMutationRate = 0.50; // Increased from 0.05 for better symmetry exploration
     static constexpr double kSymmetryFlipRate = 0.15;
     static constexpr double kBiasInheritRatio = 0.4;
     static constexpr int kGuidedRepairTrials = 3;
@@ -3042,7 +3045,7 @@ private:
     static constexpr double kEdgeResidualThreshold = 5.0;
     static constexpr double kEdgeResidualPenalty = 2.0;
     static constexpr double kEdgeRotResidualThreshold = 0.2;
-    static constexpr double kEdgeRotResidualPenalty = 5.0;
+    static constexpr double kEdgeRotResidualPenalty = 50.0;
     static constexpr double kConnectivityReward = 10.0;
     static constexpr double kConnectivityComponentPenalty = 0;
     static constexpr int kPoseRelaxIterations = 0;
@@ -3055,7 +3058,7 @@ private:
     static constexpr double kOverlapDepthConfidenceCount = 12.0;
     static constexpr double kOverlapDepthPrior = 0.15;
     static constexpr double kOverlapDepthGamma = 1.3;
-    static constexpr double kOverlapMinHitRatio = 0.05;
+    static constexpr double kOverlapMinHitRatio = 0.10;
     static constexpr double kCollisionPointEpsilon = 2.5;   // mm
     static constexpr double kCollisionEdgeExclusion = 2.0;  // mm
     static constexpr double kCollisionVoxelSize = 5.0;      // mm
