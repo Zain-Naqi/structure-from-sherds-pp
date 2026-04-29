@@ -210,65 +210,90 @@ public:
         InitializePopulation();
         AuditGroundTruthCandidates(GT_graph, GT_trans, T_axis);
 
-        for (int generation = 0; generation < kMaxGenerations; ++generation) {
+        Chromosome overall_best;
+        overall_best.fitness = -1e18;
+        int best_seed_idx = -1;
+
+        for (int seed_idx = 0; seed_idx < kNumSeeds; ++seed_idx) {
+            std::mt19937::result_type seed = static_cast<std::mt19937::result_type>(42 + seed_idx * 7);
+            rng_.seed(seed);
+            cout << "[GA] === Seed " << seed_idx + 1 << " / " << kNumSeeds << " (seed=" << seed << ") ===" << endl;
+
+            InitializePopulation();
+
+            for (int generation = 0; generation < kMaxGenerations; ++generation) {
+                EvaluatePopulation();
+                sort(population_.begin(), population_.end(), [](const Chromosome& a, const Chromosome& b) {
+                    return a.fitness > b.fitness;
+                });
+
+                cout << "[GA] Generation " << generation << " best fitness: " << population_.front().fitness << endl;
+
+                vector<Chromosome> next_population;
+                next_population.reserve(kPopulationSize);
+
+                int elitism = min(kElitismCount, static_cast<int>(population_.size()));
+                for (int i = 0; i < elitism; ++i) {
+                    next_population.push_back(population_[i]);
+                }
+
+                while (static_cast<int>(next_population.size()) < kPopulationSize) {
+                    const Chromosome& parent1 = TournamentSelect();
+                    const Chromosome& parent2 = TournamentSelect();
+
+                    Chromosome child1 = Crossover(parent1, parent2);
+                    int mutated_gene1 = Mutate(child1);
+
+                    next_population.push_back(child1);
+
+                    if (static_cast<int>(next_population.size()) < kPopulationSize) {
+                        Chromosome child2 = Crossover(parent2, parent1);
+                        int mutated_gene2 = Mutate(child2);
+                        next_population.push_back(child2);
+                    }
+                }
+
+                population_ = next_population;
+
+                EvaluatePopulation();
+                sort(population_.begin(), population_.end(), [](const Chromosome& a, const Chromosome& b) {
+                    return a.fitness > b.fitness;
+                });
+
+                if (generation % 10 == 0 && !population_.empty()) {
+                    LogBestChromosomeBreakdown(generation, population_.front());
+                }
+
+                EnforceDiversity();
+
+                sort(population_.begin(), population_.end(), [](const Chromosome& a, const Chromosome& b) {
+                    return a.fitness > b.fitness;
+                });
+            }
+
             EvaluatePopulation();
             sort(population_.begin(), population_.end(), [](const Chromosome& a, const Chromosome& b) {
                 return a.fitness > b.fitness;
             });
 
-            cout << "[GA] Generation " << generation << " best fitness: " << population_.front().fitness << endl;
-
-            vector<Chromosome> next_population;
-            next_population.reserve(kPopulationSize);
-
-            int elitism = min(kElitismCount, static_cast<int>(population_.size()));
-            for (int i = 0; i < elitism; ++i) {
-                next_population.push_back(population_[i]);
-            }
-
-            while (static_cast<int>(next_population.size()) < kPopulationSize) {
-                const Chromosome& parent1 = TournamentSelect();
-                const Chromosome& parent2 = TournamentSelect();
-
-                Chromosome child1 = Crossover(parent1, parent2);
-                int mutated_gene1 = Mutate(child1);
-
-                next_population.push_back(child1);
-
-                if (static_cast<int>(next_population.size()) < kPopulationSize) {
-                    Chromosome child2 = Crossover(parent2, parent1);
-                    int mutated_gene2 = Mutate(child2);
-                    next_population.push_back(child2);
+            if (!population_.empty()) {
+                double seed_best = population_.front().fitness;
+                cout << "[GA] Seed " << seed_idx + 1 << " final best fitness: " << seed_best << endl;
+                if (seed_best > overall_best.fitness) {
+                    overall_best = population_.front();
+                    best_seed_idx = seed_idx;
                 }
             }
-
-            population_ = next_population;
-
-            EvaluatePopulation();
-            sort(population_.begin(), population_.end(), [](const Chromosome& a, const Chromosome& b) {
-                return a.fitness > b.fitness;
-            });
-
-            if (generation % 10 == 0 && !population_.empty()) {
-                LogBestChromosomeBreakdown(generation, population_.front());
-            }
-
-            EnforceDiversity();
-
-            sort(population_.begin(), population_.end(), [](const Chromosome& a, const Chromosome& b) {
-                return a.fitness > b.fitness;
-            });
         }
 
-        EvaluatePopulation();
-        sort(population_.begin(), population_.end(), [](const Chromosome& a, const Chromosome& b) {
-            return a.fitness > b.fitness;
-        });
+        cout << "[GA] Best seed: " << best_seed_idx + 1 << " / " << kNumSeeds
+             << " (fitness=" << overall_best.fitness << ")" << endl;
 
-        if (!population_.empty()) {
-            LogBestChromosomeBreakdown(kMaxGenerations, population_.front());
-            AuditChromosomeCollisions(population_.front(), "FINAL BEST");
-        }
+        population_.clear();
+        population_.push_back(overall_best);
+
+        LogBestChromosomeBreakdown(kMaxGenerations, overall_best);
+        AuditChromosomeCollisions(overall_best, "FINAL BEST");
 
         const Chromosome& best = population_.front();
         const bool run_pair_diagnostics = enable_debug_logging || enable_swap_diagnostics;
@@ -2619,9 +2644,10 @@ private:
     // }
     
 
-    static constexpr int kPopulationSize = 150;
-    static constexpr int kMaxGenerations = 150;
-    static constexpr int kElitismCount = 10;
+    static constexpr int kPopulationSize = 100;
+    static constexpr int kMaxGenerations = 50;
+    static constexpr int kElitismCount = 6;
+    static constexpr int kNumSeeds = 1;
     static constexpr double kMutationRate = 0.10; // Increased from 0.05 for better symmetry exploration
     static constexpr double kBiasInheritRatio = 0.4;
     static constexpr double kInitialPairInactiveRate = 0.05;
