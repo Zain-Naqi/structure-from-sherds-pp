@@ -378,9 +378,9 @@ Edge Accuracy  : 5 / 15
 Selected Stage      : Post-ICP Global (selected in compare)
 Final Sherd Accuracy : 8 / 8
 Final Edge Accuracy  : 15 / 15
-Total Runtime        : 315.9040 sec
-GA Runtime           : 313.0578 sec
+Total Runtime        : 166.7432 sec
+GA Runtime           : 164.9955 sec
 ###########################################
 Showing Refined assembly. Press 'G' to toggle Ground Truth comparison! Press 'Q' to quit.
-[0;mScreenshot (screenshot-1777637480.png) and camera information (screenshot-1777637480.cam) successfully captured.
-[0;mScreenshot (screenshot-1777637482.png) and camera information (screenshot-1777637482.cam) successfully captured.
+[0;mScreenshot (screenshot-1777639748.png) and camera information (screenshot-1777639748.cam) successfully captured.
+[0;mScreenshot (screenshot-1777639753.png) and camera information (screenshot-1777639753.cam) successfully captured.
