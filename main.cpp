@@ -1,6 +1,6 @@
 #include <iostream>
 #include "glog/logging.h"
-#include <time.h>
+#include <chrono>
 #include <vector>
 #include <fstream>
 #include <algorithm>
@@ -61,9 +61,9 @@ int main(int argc, char** argv)
 {
 
 	//-------------------------------------------------------------------------------------------------------------------//
-
+	//#################### PCL viewer setting ####################//
 	double calculation_time(0);
-	int s_time(0), e_time(0);
+	double time_ga(0);
 
 	viewer->setBackgroundColor(0, 0, 0);
 	viewer->addCoordinateSystem(1.0);
@@ -245,7 +245,7 @@ int main(int argc, char** argv)
 
 	//------------------------------------------------------------------------------------------------------------------//
 
-	s_time = clock();
+	auto start_time_total = std::chrono::high_resolution_clock::now();
 
 	//------------------------------------------------------------------------------------------------------------------//
 
@@ -390,6 +390,8 @@ int main(int argc, char** argv)
 		}
 	};
 
+	auto start_time_ga = std::chrono::high_resolution_clock::now();
+
 	for (ga_iteration = 0; ga_iteration < kMaxGAIterations; ++ga_iteration) {
 
 		cout << "=== GA Iteration " << ga_iteration + 1 << " / " << kMaxGAIterations << " ===" << endl;
@@ -525,6 +527,9 @@ int main(int argc, char** argv)
 
 		cout << "[GA Iter " << ga_iteration + 1 << "] Pruned match count: " << LCS_out.size() << endl;
 	}
+
+	auto end_time_ga = std::chrono::high_resolution_clock::now();
+	time_ga = std::chrono::duration<double>(end_time_ga - start_time_ga).count();
 
 	cout << "GA converged after " << ga_iteration + 1 << " iteration(s)." << endl;
 
@@ -831,13 +836,15 @@ int main(int argc, char** argv)
 	// Final result summary for refined assembly
 	sherd_acc = { k_sherd_final, t_sherd_final };
 	edge_acc = { k_edge_final, t_edge_final };
-	double time_total = (clock() - s_time) / 1000.0;
+	auto end_time_total = std::chrono::high_resolution_clock::now();
+	double time_total = std::chrono::duration<double>(end_time_total - start_time_total).count();
 
 	cout << "########## Final Refined Results ##########" << endl;
 	cout << "Selected Stage      : " << final_stage_label << endl;
 	cout << "Final Sherd Accuracy : " << k_sherd_final << " / " << t_sherd_final << endl;
 	cout << "Final Edge Accuracy  : " << k_edge_final << " / " << t_edge_final << endl;
 	cout << "Total Runtime        : " << time_total << " sec" << endl;
+	cout << "GA Runtime           : " << time_ga << " sec" << endl;
 	cout << "###########################################" << endl;
 
 	string path_result_refined = path + "Result/Refined_";

@@ -6,6 +6,12 @@
 
 #include <iostream>
 #include <fstream>
+#include <sys/stat.h>
+#include <sys/types.h>
+#ifdef _WIN32
+#include <direct.h>
+#define mkdir(path, mode) _mkdir(path)
+#endif
 #include <vector>
 #include <string>
 #include <sstream>
@@ -269,6 +275,22 @@ public:
                 sort(population_.begin(), population_.end(), [](const Chromosome& a, const Chromosome& b) {
                     return a.fitness > b.fitness;
                 });
+
+                if (seed_idx == 0 && generation == 0) {
+                    mkdir(kResultFolder.c_str(), 0777);
+                    if (kEnableConvergenceLog) {
+                        string filename = kResultFolder + "/ga_convergence.csv";
+                        remove(filename.c_str()); // Start fresh
+                    }
+                }
+
+                if (kEnableConvergenceLog) {
+                    LogConvergenceCSV(generation);
+                }
+
+                if (kEnableSnapshots && (generation % kSnapshotInterval == 0 || generation == kMaxGenerations - 1)) {
+                    SaveAssemblySnapshot(generation, population_.front());
+                }
             }
 
             EvaluatePopulation();
@@ -2669,6 +2691,94 @@ private:
     static constexpr double kCollisionPointEpsilon = 2.5;   // mm
     static constexpr double kCollisionEdgeExclusion = 2.0;  // mm
     static constexpr double kCollisionVoxelSize = 5.0;      // mm
+    static constexpr int kSnapshotInterval = 10;
+    static constexpr bool kEnableSnapshots = true;
+    static constexpr bool kEnableConvergenceLog = true;
+    const string kResultFolder = "result_paper";
+
+    void LogConvergenceCSV(int generation)
+    {
+        string filename = kResultFolder + "/ga_convergence.csv";
+        bool exists = false;
+        { ifstream f(filename); exists = f.good(); }
+
+        ofstream out(filename, ios::app);
+        if (!out) return;
+
+        if (!exists) {
+            out << "generation,best_fitness,avg_fitness,worst_fitness,"
+                << "inlier_reward,cycle_penalty,edge_residual_penalty,rot_residual_penalty,"
+                << "overlap_penalty,connectivity_reward,active_pairs,largest_component,num_components" << endl;
+        }
+
+        double sum_fitness = 0;
+        for (const auto& c : population_) sum_fitness += c.fitness;
+        double avg_fitness = sum_fitness / population_.size();
+
+        const Chromosome& best = population_.front();
+        const Chromosome& worst = population_.back();
+
+        FitnessBreakdown bd;
+        EvaluateFitness(best, &bd);
+
+        out << generation << "," << best.fitness << "," << avg_fitness << "," << worst.fitness << ","
+            << bd.inlier_reward << "," << bd.cycle_penalty << "," << bd.edge_residual_penalty << "," << bd.edge_rot_residual_penalty << ","
+            << bd.overlap_penalty << "," << bd.connectivity_reward << "," << bd.active_pair_count << "," 
+            << bd.largest_component << "," << bd.num_components << endl;
+        out.close();
+    }
+
+    void SaveAssemblySnapshot(int generation, const Chromosome& best)
+    {
+        string filename = kResultFolder + "/ga_snapshot_gen_" + to_string(generation) + ".ply";
+        ofstream out(filename);
+        if (!out) return;
+
+        BuildOutputsFromSelection(best.genes);
+
+        int total_points = 0;
+        for (int i = 0; i < num_shards_; ++i) {
+            total_points += shard_[i].edge_line_.point_.cols();
+            total_points += shard_[i].sur_in_.point_.cols();
+            total_points += shard_[i].sur_out_.point_.cols();
+        }
+
+        out << "ply" << endl;
+        out << "format ascii 1.0" << endl;
+        out << "element vertex " << total_points << endl;
+        out << "property float x" << endl;
+        out << "property float y" << endl;
+        out << "property float z" << endl;
+        out << "property float nx" << endl;
+        out << "property float ny" << endl;
+        out << "property float nz" << endl;
+        out << "property int shard_id" << endl;
+        out << "end_header" << endl;
+
+        for (int i = 0; i < num_shards_; ++i) {
+            Matrix4d T;
+            transforms_[i].Output(T);
+            Matrix3d R = T.block<3, 3>(0, 0);
+
+            auto write_points = [&](const MatrixXd& pts, const MatrixXd& nms) {
+                if (pts.cols() == 0) return;
+                for (int j = 0; j < pts.cols(); ++j) {
+                    Vector4d p;
+                    p << pts.col(j), 1.0;
+                    Vector3d p_w = (T * p).head<3>();
+                    Vector3d n_w = (R * nms.col(j)).normalized();
+                    out << p_w.x() << " " << p_w.y() << " " << p_w.z() << " " 
+                        << n_w.x() << " " << n_w.y() << " " << n_w.z() << " " << i << endl;
+                }
+            };
+
+            write_points(shard_[i].edge_line_.point_, shard_[i].edge_line_.normal_);
+            write_points(shard_[i].sur_in_.point_, shard_[i].sur_in_.normal_);
+            write_points(shard_[i].sur_out_.point_, shard_[i].sur_out_.normal_);
+        }
+        out.close();
+    }
+
     static constexpr int kCollisionCloudMaxPoints = 300;
 
     vector<Geom> shard_;
