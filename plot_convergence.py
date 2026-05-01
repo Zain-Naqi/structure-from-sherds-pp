@@ -1,31 +1,48 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import os
+import argparse
 
-if not os.path.exists('result_paper'):
-    os.makedirs('result_paper')
+parser = argparse.ArgumentParser(description='Plot GA Convergence from CSV.')
+parser.add_argument('--csv', type=str, default='result_paper/ga_convergence.csv', help='Path to the input CSV file')
+parser.add_argument('--outdir', type=str, default='result_paper', help='Directory to save output plots')
+args = parser.parse_args()
 
-csv_path = 'result_paper/ga_convergence.csv'
+outdir = args.outdir
+if not os.path.exists(outdir):
+    os.makedirs(outdir)
+
+csv_path = args.csv
 if not os.path.exists(csv_path):
-    print(f"Error: {csv_path} not found. Run the C++ program first.")
+    print(f"Error: {csv_path} not found.")
     exit(1)
 
 df = pd.read_csv(csv_path)
 
 # ── 1. Overall Convergence ──────────────────────────────────────────
-plt.figure(figsize=(10, 6))
-plt.plot(df['generation'], df['best_fitness'], label='Best Fitness', linewidth=2, color='#1565C0')
-plt.plot(df['generation'], df['avg_fitness'], label='Average Fitness', linewidth=2, color='#43A047', linestyle='--')
-plt.plot(df['generation'], df['worst_fitness'], label='Worst Fitness', linewidth=1.5, color='#E53935', linestyle=':', alpha=0.7)
-plt.title('Genetic Algorithm Convergence', fontsize=14, fontweight='bold')
-plt.xlabel('Generation', fontsize=12)
-plt.ylabel('Fitness Score', fontsize=12)
-plt.grid(True, which='both', linestyle='--', alpha=0.4)
-plt.legend(fontsize=11)
+fig, axes = plt.subplots(3, 1, figsize=(10, 10), sharex=True)
+fig.suptitle('Genetic Algorithm Convergence', fontsize=16, fontweight='bold')
+
+axes[0].plot(df['generation'], df['best_fitness'], label='Best Fitness', linewidth=2, color='#1565C0')
+axes[0].set_ylabel('Score', fontsize=12)
+axes[0].grid(True, linestyle='--', alpha=0.4)
+axes[0].legend(loc='lower right', fontsize=11)
+
+axes[1].plot(df['generation'], df['avg_fitness'], label='Average Fitness', linewidth=2, color='#43A047', linestyle='--')
+axes[1].set_ylabel('Score', fontsize=12)
+axes[1].grid(True, linestyle='--', alpha=0.4)
+axes[1].legend(loc='lower right', fontsize=11)
+
+axes[2].plot(df['generation'], df['worst_fitness'], label='Worst Fitness', linewidth=2, color='#E53935', linestyle=':')
+axes[2].set_xlabel('Generation', fontsize=12)
+axes[2].set_ylabel('Score', fontsize=12)
+axes[2].grid(True, linestyle='--', alpha=0.4)
+axes[2].legend(loc='lower right', fontsize=11)
+
 plt.tight_layout()
-plt.savefig('result_paper/convergence_summary.png', dpi=300, bbox_inches='tight')
+plt.savefig(os.path.join(outdir, 'fitness_curves.png'), dpi=300, bbox_inches='tight')
 plt.close()
-print("  Saved convergence_summary.png")
+print("  Saved fitness_curves.png")
 
 # ── 2. Individual Component Subplots ────────────────────────────────
 components = [
@@ -59,7 +76,7 @@ axes[-1, 0].set_xlabel('Generation', fontsize=11)
 axes[-1, 1].set_xlabel('Generation', fontsize=11)
 
 plt.tight_layout(rect=[0, 0, 1, 0.96])
-plt.savefig('result_paper/fitness_breakdown.png', dpi=300, bbox_inches='tight')
+plt.savefig(os.path.join(outdir, 'fitness_breakdown.png'), dpi=300, bbox_inches='tight')
 plt.close()
 print("  Saved fitness_breakdown.png")
 
@@ -86,8 +103,8 @@ axes[2].set_ylabel('Count')
 axes[2].grid(True, linestyle='--', alpha=0.4)
 
 plt.tight_layout()
-plt.savefig('result_paper/structural_metrics.png', dpi=300, bbox_inches='tight')
+plt.savefig(os.path.join(outdir, 'structural_metrics.png'), dpi=300, bbox_inches='tight')
 plt.close()
 print("  Saved structural_metrics.png")
 
-print("\nAll plots saved to result_paper/")
+print(f"\nAll plots saved to {outdir}/")
