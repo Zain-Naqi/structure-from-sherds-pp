@@ -37,11 +37,11 @@ extern bool shard_on_off[];
 class GeneticAssembler {
 public:
     bool use_inlier_score        = true;
-    bool use_connectivity_reward = true;
-    bool use_cycle_penalty       = true;
-    bool use_edge_residual       = true;
-    bool use_rot_residual        = true;
-    bool use_overlap_penalty     = true;
+    bool use_connectivity_reward = false;
+    bool use_cycle_penalty       = false;
+    bool use_edge_residual       = false;
+    bool use_rot_residual        = false;
+    bool use_overlap_penalty     = false;
 
     // Diagnostic controls: keep expensive logging/tests off by default.
     bool enable_debug_logging = false;

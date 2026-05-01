@@ -1,0 +1,465 @@
+
+--- COLLISION CLOUD SUMMARY ---
+  Params: voxel=5 edge_exclusion=2 epsilon=2.5 max_points=300
+  Sherd 1: in=19463 out=17145 filtered=1717 candidate=34891 voxel=885 final=885 radius=70.944
+  Sherd 2: in=12178 out=13455 filtered=1288 candidate=24345 voxel=559 final=559 radius=62.580
+  Sherd 3: in=11577 out=12798 filtered=1397 candidate=22978 voxel=498 final=498 radius=53.271
+  Sherd 4: in=9399 out=10462 filtered=1246 candidate=18615 voxel=410 final=410 radius=53.112
+  Sherd 5: in=9309 out=9798 filtered=1420 candidate=17687 voxel=432 final=432 radius=56.575
+  Sherd 6: in=6574 out=7317 filtered=1285 candidate=12606 voxel=320 final=320 radius=63.231
+  Sherd 7: in=1745 out=1796 filtered=610 candidate=2931 voxel=85 final=85 radius=24.700
+  Sherd 8: in=1576 out=1761 filtered=561 candidate=2776 voxel=78 final=78 radius=21.125
+  Valid sherds=8 empty_clouds=0
+
+
+--- GENERATION 0 BEST BREAKDOWN ---
+  Total Fitness: -111613.40
+  Inlier Reward: 574.43
+  Cycle Penalty: 924.04
+  Overlap Penalty: 217.44
+  Edge Residual Penalty: 110794.01
+  Edge Rot Residual Penalty: 252.34
+  Connectivity Reward: 0.00
+  Component Penalty: 0.00
+  Largest Component: 8
+  Num Components: 1
+  Active Pairs: 23
+  OverlapDiag Sum (indexed): 298.1220 (delta_vs_fitness=80.6783)
+  OverlapDiag Pairs: total=28 same_comp=28 broad_reject=0 narrow_checked=28 active=13
+  OverlapDiag Top Active Pairs:
+    Pair (1,6) pen=107.1464 hits=33/85 hit_ratio=0.3882 avg_depth=0.3556 min_nn=0.1736
+    Pair (3,5) pen=60.9353 hits=67/320 hit_ratio=0.2094 avg_depth=0.2482 min_nn=0.6625
+    Pair (0,6) pen=25.7047 hits=8/85 hit_ratio=0.0941 avg_depth=0.4823 min_nn=0.6716
+    Pair (0,2) pen=20.3017 hits=15/498 hit_ratio=0.0301 avg_depth=0.3398 min_nn=0.6060
+    Pair (4,5) pen=19.2378 hits=16/432 hit_ratio=0.0406 avg_depth=0.2795 min_nn=0.5611
+
+  --- ACTIVE GENE MAP ---
+    Gene  0 (Pair  2- 1): choice=1 (inl=78)
+    Gene  1 (Pair  3- 1): choice=1 (inl=61)
+    Gene  2 (Pair  4- 1): choice=6 (inl=57)
+    Gene  3 (Pair  5- 1): choice=3 (inl=59)
+    Gene  4 (Pair  6- 1): choice=1 (inl=34)
+    Gene  5 (Pair  7- 1): choice=5 (inl=34)
+    Gene  6 (Pair  3- 2): choice=1 (inl=42)
+    Gene  7 (Pair  4- 2): choice=2 (inl=18)
+    Gene  8 (Pair  5- 2): choice=1 (inl=42)
+    Gene  9 (Pair  6- 2): choice=1 (inl=18)
+    Gene 10 (Pair  7- 2): choice=2 (inl=26)
+    Gene 11 (Pair  8- 2): choice=2 (inl=34)
+    Gene 12 (Pair  4- 3): choice=2 (inl=0)
+    Gene 13 (Pair  5- 3): choice=1 (inl=58)
+    Gene 14 (Pair  6- 3): choice=1 (inl=22)
+    Gene 15 (Pair  7- 3): choice=1 (inl=20)
+    Gene 16 (Pair  8- 3): choice=1 (inl=34)
+    Gene 18 (Pair  6- 4): choice=2 (inl=28)
+    Gene 20 (Pair  8- 4): choice=1 (inl=30)
+    Gene 21 (Pair  6- 5): choice=2 (inl=46)
+    Gene 22 (Pair  7- 5): choice=1 (inl=36)
+    Gene 23 (Pair  8- 5): choice=2 (inl=30)
+    Gene 25 (Pair  8- 7): choice=1 (inl=18)
+
+  --- SHARD 4 CANDIDATE ANALYSIS ---
+    Pair (4-1): Selected=6 / 7 choices
+      Choice 1: inliners=87
+      Choice 2: inliners=52
+      Choice 3: inliners=24
+      Choice 4: inliners=24
+      Choice 5: inliners=65
+      Choice 6: inliners=57 [SELECTED]
+      Choice 7: inliners=30
+    Pair (4-2): Selected=2 / 2 choices
+      Choice 1: inliners=8
+      Choice 2: inliners=18 [SELECTED]
+    Pair (4-3): Selected=2 / 2 choices
+      Choice 1: inliners=32
+      Choice 2: inliners=0 [SELECTED]
+    Pair (5-4): Selected=0 / 3 choices
+      Choice 1: inliners=20
+      Choice 2: inliners=46
+      Choice 3: inliners=18
+    Pair (6-4): Selected=2 / 2 choices
+      Choice 1: inliners=18
+      Choice 2: inliners=28 [SELECTED]
+    Pair (7-4): Selected=0 / 3 choices
+      Choice 1: inliners=6
+      Choice 2: inliners=30
+      Choice 3: inliners=24
+    Pair (8-4): Selected=1 / 3 choices
+      Choice 1: inliners=30 [SELECTED]
+      Choice 2: inliners=12
+      Choice 3: inliners=32
+
+
+--- GENERATION 10 BEST BREAKDOWN ---
+  Total Fitness: -30434.84
+  Inlier Reward: 420.34
+  Cycle Penalty: 168.41
+  Overlap Penalty: 728.43
+  Edge Residual Penalty: 29766.47
+  Edge Rot Residual Penalty: 191.87
+  Connectivity Reward: 0.00
+  Component Penalty: 0.00
+  Largest Component: 8
+  Num Components: 1
+  Active Pairs: 19
+  OverlapDiag Sum (indexed): 808.2476 (delta_vs_fitness=79.8204)
+  OverlapDiag Pairs: total=28 same_comp=28 broad_reject=0 narrow_checked=28 active=15
+  OverlapDiag Top Active Pairs:
+    Pair (3,6) pen=205.0843 hits=57/85 hit_ratio=0.6706 avg_depth=0.3899 min_nn=0.2948
+    Pair (2,3) pen=153.3121 hits=234/410 hit_ratio=0.5707 avg_depth=0.2916 min_nn=0.2430
+    Pair (2,6) pen=139.0910 hits=59/85 hit_ratio=0.6941 avg_depth=0.2735 min_nn=0.4838
+    Pair (5,7) pen=63.2035 hits=27/320 hit_ratio=0.3462 avg_depth=0.2496 min_nn=0.5709
+    Pair (3,5) pen=60.9353 hits=67/320 hit_ratio=0.2094 avg_depth=0.2482 min_nn=0.6625
+
+  --- ACTIVE GENE MAP ---
+    Gene  0 (Pair  2- 1): choice=2 (inl=46)
+    Gene  1 (Pair  3- 1): choice=4 (inl=44)
+    Gene  2 (Pair  4- 1): choice=6 (inl=57)
+    Gene  3 (Pair  5- 1): choice=3 (inl=59)
+    Gene  4 (Pair  6- 1): choice=1 (inl=34)
+    Gene  5 (Pair  7- 1): choice=2 (inl=28)
+    Gene  6 (Pair  3- 2): choice=1 (inl=42)
+    Gene  7 (Pair  4- 2): choice=1 (inl=8)
+    Gene  9 (Pair  6- 2): choice=1 (inl=18)
+    Gene 10 (Pair  7- 2): choice=2 (inl=26)
+    Gene 12 (Pair  4- 3): choice=2 (inl=0)
+    Gene 13 (Pair  5- 3): choice=2 (inl=52)
+    Gene 14 (Pair  6- 3): choice=1 (inl=22)
+    Gene 16 (Pair  8- 3): choice=1 (inl=34)
+    Gene 19 (Pair  7- 4): choice=2 (inl=30)
+    Gene 20 (Pair  8- 4): choice=2 (inl=12)
+    Gene 21 (Pair  6- 5): choice=1 (inl=42)
+    Gene 22 (Pair  7- 5): choice=3 (inl=28)
+    Gene 24 (Pair  7- 6): choice=2 (inl=49)
+
+  --- SHARD 4 CANDIDATE ANALYSIS ---
+    Pair (4-1): Selected=6 / 7 choices
+      Choice 1: inliners=87
+      Choice 2: inliners=52
+      Choice 3: inliners=24
+      Choice 4: inliners=24
+      Choice 5: inliners=65
+      Choice 6: inliners=57 [SELECTED]
+      Choice 7: inliners=30
+    Pair (4-2): Selected=1 / 2 choices
+      Choice 1: inliners=8 [SELECTED]
+      Choice 2: inliners=18
+    Pair (4-3): Selected=2 / 2 choices
+      Choice 1: inliners=32
+      Choice 2: inliners=0 [SELECTED]
+    Pair (5-4): Selected=0 / 3 choices
+      Choice 1: inliners=20
+      Choice 2: inliners=46
+      Choice 3: inliners=18
+    Pair (6-4): Selected=0 / 2 choices
+      Choice 1: inliners=18
+      Choice 2: inliners=28
+    Pair (7-4): Selected=2 / 3 choices
+      Choice 1: inliners=6
+      Choice 2: inliners=30 [SELECTED]
+      Choice 3: inliners=24
+    Pair (8-4): Selected=2 / 3 choices
+      Choice 1: inliners=30
+      Choice 2: inliners=12 [SELECTED]
+      Choice 3: inliners=32
+
+
+--- GENERATION 20 BEST BREAKDOWN ---
+  Total Fitness: -1550.28
+  Inlier Reward: 378.83
+  Cycle Penalty: 0.00
+  Overlap Penalty: 470.98
+  Edge Residual Penalty: 1355.90
+  Edge Rot Residual Penalty: 102.22
+  Connectivity Reward: 0.00
+  Component Penalty: 0.00
+  Largest Component: 8
+  Num Components: 1
+  Active Pairs: 14
+  OverlapDiag Sum (indexed): 535.3021 (delta_vs_fitness=64.3205)
+  OverlapDiag Pairs: total=28 same_comp=28 broad_reject=0 narrow_checked=28 active=14
+  OverlapDiag Top Active Pairs:
+    Pair (2,4) pen=222.7808 hits=326/498 hit_ratio=0.7500 avg_depth=0.3331 min_nn=0.1510
+    Pair (3,5) pen=60.9353 hits=67/320 hit_ratio=0.2094 avg_depth=0.2482 min_nn=0.6625
+    Pair (4,7) pen=51.6223 hits=24/432 hit_ratio=0.2821 avg_depth=0.2434 min_nn=0.4766
+    Pair (2,7) pen=49.2250 hits=23/78 hit_ratio=0.2949 avg_depth=0.2284 min_nn=0.5892
+    Pair (0,6) pen=40.0132 hits=18/885 hit_ratio=0.1882 avg_depth=0.2758 min_nn=1.1145
+
+  --- ACTIVE GENE MAP ---
+    Gene  0 (Pair  2- 1): choice=1 (inl=78)
+    Gene  1 (Pair  3- 1): choice=1 (inl=61)
+    Gene  2 (Pair  4- 1): choice=6 (inl=57)
+    Gene  3 (Pair  5- 1): choice=1 (inl=65)
+    Gene  4 (Pair  6- 1): choice=1 (inl=34)
+    Gene  6 (Pair  3- 2): choice=1 (inl=42)
+    Gene  7 (Pair  4- 2): choice=2 (inl=18)
+    Gene  9 (Pair  6- 2): choice=1 (inl=18)
+    Gene 11 (Pair  8- 2): choice=1 (inl=12)
+    Gene 12 (Pair  4- 3): choice=2 (inl=0)
+    Gene 13 (Pair  5- 3): choice=1 (inl=58)
+    Gene 18 (Pair  6- 4): choice=2 (inl=28)
+    Gene 19 (Pair  7- 4): choice=2 (inl=30)
+    Gene 20 (Pair  8- 4): choice=1 (inl=30)
+
+  --- SHARD 4 CANDIDATE ANALYSIS ---
+    Pair (4-1): Selected=6 / 7 choices
+      Choice 1: inliners=87
+      Choice 2: inliners=52
+      Choice 3: inliners=24
+      Choice 4: inliners=24
+      Choice 5: inliners=65
+      Choice 6: inliners=57 [SELECTED]
+      Choice 7: inliners=30
+    Pair (4-2): Selected=2 / 2 choices
+      Choice 1: inliners=8
+      Choice 2: inliners=18 [SELECTED]
+    Pair (4-3): Selected=2 / 2 choices
+      Choice 1: inliners=32
+      Choice 2: inliners=0 [SELECTED]
+    Pair (5-4): Selected=0 / 3 choices
+      Choice 1: inliners=20
+      Choice 2: inliners=46
+      Choice 3: inliners=18
+    Pair (6-4): Selected=2 / 2 choices
+      Choice 1: inliners=18
+      Choice 2: inliners=28 [SELECTED]
+    Pair (7-4): Selected=2 / 3 choices
+      Choice 1: inliners=6
+      Choice 2: inliners=30 [SELECTED]
+      Choice 3: inliners=24
+    Pair (8-4): Selected=1 / 3 choices
+      Choice 1: inliners=30 [SELECTED]
+      Choice 2: inliners=12
+      Choice 3: inliners=32
+
+
+--- GENERATION 30 BEST BREAKDOWN ---
+  Total Fitness: -597.73
+  Inlier Reward: 344.16
+  Cycle Penalty: 0.00
+  Overlap Penalty: 144.49
+  Edge Residual Penalty: 714.45
+  Edge Rot Residual Penalty: 82.95
+  Connectivity Reward: 0.00
+  Component Penalty: 0.00
+  Largest Component: 8
+  Num Components: 1
+  Active Pairs: 12
+  OverlapDiag Sum (indexed): 225.1647 (delta_vs_fitness=80.6783)
+  OverlapDiag Pairs: total=28 same_comp=28 broad_reject=0 narrow_checked=28 active=13
+  OverlapDiag Top Active Pairs:
+    Pair (3,5) pen=60.9353 hits=67/320 hit_ratio=0.2094 avg_depth=0.2482 min_nn=0.6625
+    Pair (0,6) pen=40.0132 hits=18/885 hit_ratio=0.1882 avg_depth=0.2758 min_nn=1.1145
+    Pair (5,6) pen=22.2482 hits=11/85 hit_ratio=0.1294 avg_depth=0.2462 min_nn=1.2349
+    Pair (0,2) pen=20.3017 hits=15/498 hit_ratio=0.0301 avg_depth=0.3398 min_nn=0.6060
+    Pair (4,5) pen=19.2378 hits=16/432 hit_ratio=0.0406 avg_depth=0.2795 min_nn=0.5611
+
+  --- ACTIVE GENE MAP ---
+    Gene  0 (Pair  2- 1): choice=1 (inl=78)
+    Gene  1 (Pair  3- 1): choice=1 (inl=61)
+    Gene  2 (Pair  4- 1): choice=6 (inl=57)
+    Gene  3 (Pair  5- 1): choice=3 (inl=59)
+    Gene  4 (Pair  6- 1): choice=1 (inl=34)
+    Gene  6 (Pair  3- 2): choice=1 (inl=42)
+    Gene  7 (Pair  4- 2): choice=2 (inl=18)
+    Gene  9 (Pair  6- 2): choice=1 (inl=18)
+    Gene 13 (Pair  5- 3): choice=2 (inl=52)
+    Gene 14 (Pair  6- 3): choice=1 (inl=22)
+    Gene 19 (Pair  7- 4): choice=2 (inl=30)
+    Gene 20 (Pair  8- 4): choice=1 (inl=30)
+
+  --- SHARD 4 CANDIDATE ANALYSIS ---
+    Pair (4-1): Selected=6 / 7 choices
+      Choice 1: inliners=87
+      Choice 2: inliners=52
+      Choice 3: inliners=24
+      Choice 4: inliners=24
+      Choice 5: inliners=65
+      Choice 6: inliners=57 [SELECTED]
+      Choice 7: inliners=30
+    Pair (4-2): Selected=2 / 2 choices
+      Choice 1: inliners=8
+      Choice 2: inliners=18 [SELECTED]
+    Pair (4-3): Selected=0 / 2 choices
+      Choice 1: inliners=32
+      Choice 2: inliners=0
+    Pair (5-4): Selected=0 / 3 choices
+      Choice 1: inliners=20
+      Choice 2: inliners=46
+      Choice 3: inliners=18
+    Pair (6-4): Selected=0 / 2 choices
+      Choice 1: inliners=18
+      Choice 2: inliners=28
+    Pair (7-4): Selected=2 / 3 choices
+      Choice 1: inliners=6
+      Choice 2: inliners=30 [SELECTED]
+      Choice 3: inliners=24
+    Pair (8-4): Selected=1 / 3 choices
+      Choice 1: inliners=30 [SELECTED]
+      Choice 2: inliners=12
+      Choice 3: inliners=32
+
+
+--- GENERATION 40 BEST BREAKDOWN ---
+  Total Fitness: -147.01
+  Inlier Reward: 293.66
+  Cycle Penalty: 0.00
+  Overlap Penalty: 233.33
+  Edge Residual Penalty: 178.35
+  Edge Rot Residual Penalty: 28.98
+  Connectivity Reward: 0.00
+  Component Penalty: 0.00
+  Largest Component: 8
+  Num Components: 1
+  Active Pairs: 10
+  OverlapDiag Sum (indexed): 289.7942 (delta_vs_fitness=56.4617)
+  OverlapDiag Pairs: total=28 same_comp=28 broad_reject=0 narrow_checked=28 active=12
+  OverlapDiag Top Active Pairs:
+    Pair (1,4) pen=88.8461 hits=169/559 hit_ratio=0.3889 avg_depth=0.2322 min_nn=0.5480
+    Pair (3,5) pen=60.9353 hits=67/320 hit_ratio=0.2094 avg_depth=0.2482 min_nn=0.6625
+    Pair (0,6) pen=40.0132 hits=18/885 hit_ratio=0.1882 avg_depth=0.2758 min_nn=1.1145
+    Pair (5,6) pen=22.2482 hits=11/85 hit_ratio=0.1294 avg_depth=0.2462 min_nn=1.2349
+    Pair (0,2) pen=20.3017 hits=15/498 hit_ratio=0.0301 avg_depth=0.3398 min_nn=0.6060
+
+  --- ACTIVE GENE MAP ---
+    Gene  0 (Pair  2- 1): choice=1 (inl=78)
+    Gene  1 (Pair  3- 1): choice=1 (inl=61)
+    Gene  2 (Pair  4- 1): choice=6 (inl=57)
+    Gene  4 (Pair  6- 1): choice=1 (inl=34)
+    Gene  6 (Pair  3- 2): choice=1 (inl=42)
+    Gene  7 (Pair  4- 2): choice=2 (inl=18)
+    Gene  9 (Pair  6- 2): choice=1 (inl=18)
+    Gene 13 (Pair  5- 3): choice=2 (inl=52)
+    Gene 19 (Pair  7- 4): choice=2 (inl=30)
+    Gene 20 (Pair  8- 4): choice=1 (inl=30)
+
+  --- SHARD 4 CANDIDATE ANALYSIS ---
+    Pair (4-1): Selected=6 / 7 choices
+      Choice 1: inliners=87
+      Choice 2: inliners=52
+      Choice 3: inliners=24
+      Choice 4: inliners=24
+      Choice 5: inliners=65
+      Choice 6: inliners=57 [SELECTED]
+      Choice 7: inliners=30
+    Pair (4-2): Selected=2 / 2 choices
+      Choice 1: inliners=8
+      Choice 2: inliners=18 [SELECTED]
+    Pair (4-3): Selected=0 / 2 choices
+      Choice 1: inliners=32
+      Choice 2: inliners=0
+    Pair (5-4): Selected=0 / 3 choices
+      Choice 1: inliners=20
+      Choice 2: inliners=46
+      Choice 3: inliners=18
+    Pair (6-4): Selected=0 / 2 choices
+      Choice 1: inliners=18
+      Choice 2: inliners=28
+    Pair (7-4): Selected=2 / 3 choices
+      Choice 1: inliners=6
+      Choice 2: inliners=30 [SELECTED]
+      Choice 3: inliners=24
+    Pair (8-4): Selected=1 / 3 choices
+      Choice 1: inliners=30 [SELECTED]
+      Choice 2: inliners=12
+      Choice 3: inliners=32
+
+
+--- GENERATION 50 BEST BREAKDOWN ---
+  Total Fitness: -45.34
+  Inlier Reward: 325.29
+  Cycle Penalty: 0.00
+  Overlap Penalty: 144.49
+  Edge Residual Penalty: 178.17
+  Edge Rot Residual Penalty: 47.97
+  Connectivity Reward: 0.00
+  Component Penalty: 0.00
+  Largest Component: 8
+  Num Components: 1
+  Active Pairs: 10
+  OverlapDiag Sum (indexed): 209.5986 (delta_vs_fitness=65.1122)
+  OverlapDiag Pairs: total=28 same_comp=28 broad_reject=0 narrow_checked=28 active=11
+  OverlapDiag Top Active Pairs:
+    Pair (3,5) pen=60.9353 hits=67/320 hit_ratio=0.2094 avg_depth=0.2482 min_nn=0.6625
+    Pair (0,6) pen=40.0132 hits=18/885 hit_ratio=0.1882 avg_depth=0.2758 min_nn=1.1145
+    Pair (0,2) pen=25.2388 hits=24/885 hit_ratio=0.0482 avg_depth=0.2607 min_nn=0.9367
+    Pair (5,6) pen=22.2482 hits=11/85 hit_ratio=0.1294 avg_depth=0.2462 min_nn=1.2349
+    Pair (0,3) pen=13.5236 hits=10/410 hit_ratio=0.0244 avg_depth=0.3602 min_nn=0.5883
+
+  --- ACTIVE GENE MAP ---
+    Gene  0 (Pair  2- 1): choice=1 (inl=78)
+    Gene  1 (Pair  3- 1): choice=3 (inl=100)
+    Gene  2 (Pair  4- 1): choice=6 (inl=57)
+    Gene  4 (Pair  6- 1): choice=1 (inl=34)
+    Gene  6 (Pair  3- 2): choice=1 (inl=42)
+    Gene  7 (Pair  4- 2): choice=2 (inl=18)
+    Gene  9 (Pair  6- 2): choice=1 (inl=18)
+    Gene 13 (Pair  5- 3): choice=2 (inl=52)
+    Gene 19 (Pair  7- 4): choice=2 (inl=30)
+    Gene 20 (Pair  8- 4): choice=1 (inl=30)
+
+  --- SHARD 4 CANDIDATE ANALYSIS ---
+    Pair (4-1): Selected=6 / 7 choices
+      Choice 1: inliners=87
+      Choice 2: inliners=52
+      Choice 3: inliners=24
+      Choice 4: inliners=24
+      Choice 5: inliners=65
+      Choice 6: inliners=57 [SELECTED]
+      Choice 7: inliners=30
+    Pair (4-2): Selected=2 / 2 choices
+      Choice 1: inliners=8
+      Choice 2: inliners=18 [SELECTED]
+    Pair (4-3): Selected=0 / 2 choices
+      Choice 1: inliners=32
+      Choice 2: inliners=0
+    Pair (5-4): Selected=0 / 3 choices
+      Choice 1: inliners=20
+      Choice 2: inliners=46
+      Choice 3: inliners=18
+    Pair (6-4): Selected=0 / 2 choices
+      Choice 1: inliners=18
+      Choice 2: inliners=28
+    Pair (7-4): Selected=2 / 3 choices
+      Choice 1: inliners=6
+      Choice 2: inliners=30 [SELECTED]
+      Choice 3: inliners=24
+    Pair (8-4): Selected=1 / 3 choices
+      Choice 1: inliners=30 [SELECTED]
+      Choice 2: inliners=12
+      Choice 3: inliners=32
+
+
+--- COLLISION AUDIT [FINAL BEST] ---
+  Fitness overlap penalty: 144.4864
+  Recomputed indexed overlap sum: 209.5986 (delta=65.1122)
+  Pair counts: total=28 same_comp=28 broad_reject=0 narrow_checked=28 active=11
+  Pair (0,1): center_dist=0.000 broad_radius=0.000 min_nn=0.914 hits=10/885 hit_ratio=0.011 avg_depth=0.304 pair_pen=10.083 [!!!] ACTIVE COLLISION UNRESOLVED
+  Pair (0,2): center_dist=0.000 broad_radius=0.000 min_nn=0.937 hits=24/885 hit_ratio=0.048 avg_depth=0.261 pair_pen=25.239 [!!!] ACTIVE COLLISION UNRESOLVED
+  Pair (0,3): center_dist=0.000 broad_radius=0.000 min_nn=0.588 hits=10/410 hit_ratio=0.024 avg_depth=0.360 pair_pen=13.524 [!!!] ACTIVE COLLISION UNRESOLVED
+  Pair (0,4): center_dist=0.000 broad_radius=0.000 min_nn=6.098 hits=0/885 hit_ratio=0.000 avg_depth=0.000 pair_pen=0.000 [OK] NARROW-PHASE CLEAR
+  Pair (0,5): center_dist=0.000 broad_radius=0.000 min_nn=1.459 hits=7/320 hit_ratio=0.022 avg_depth=0.211 pair_pen=6.152 [!!!] ACTIVE COLLISION UNRESOLVED
+  Pair (0,6): center_dist=0.000 broad_radius=0.000 min_nn=1.115 hits=18/885 hit_ratio=0.188 avg_depth=0.276 pair_pen=40.013 [!!!] ACTIVE COLLISION UNRESOLVED
+  Pair (0,7): center_dist=0.000 broad_radius=0.000 min_nn=18.597 hits=0/885 hit_ratio=0.000 avg_depth=0.000 pair_pen=0.000 [OK] NARROW-PHASE CLEAR
+  Pair (1,2): center_dist=0.000 broad_radius=0.000 min_nn=62.156 hits=0/559 hit_ratio=0.000 avg_depth=0.000 pair_pen=0.000 [OK] NARROW-PHASE CLEAR
+  Pair (1,3): center_dist=0.000 broad_radius=0.000 min_nn=20.461 hits=0/559 hit_ratio=0.000 avg_depth=0.000 pair_pen=0.000 [OK] NARROW-PHASE CLEAR
+  Pair (1,4): center_dist=0.000 broad_radius=0.000 min_nn=12.081 hits=0/559 hit_ratio=0.000 avg_depth=0.000 pair_pen=0.000 [OK] NARROW-PHASE CLEAR
+  Pair (1,5): center_dist=0.000 broad_radius=0.000 min_nn=95.347 hits=0/559 hit_ratio=0.000 avg_depth=0.000 pair_pen=0.000 [OK] NARROW-PHASE CLEAR
+  Pair (1,6): center_dist=0.000 broad_radius=0.000 min_nn=85.351 hits=0/559 hit_ratio=0.000 avg_depth=0.000 pair_pen=0.000 [OK] NARROW-PHASE CLEAR
+  Pair (1,7): center_dist=0.000 broad_radius=0.000 min_nn=18.339 hits=0/559 hit_ratio=0.000 avg_depth=0.000 pair_pen=0.000 [OK] NARROW-PHASE CLEAR
+  Pair (2,3): center_dist=0.000 broad_radius=0.000 min_nn=51.345 hits=0/498 hit_ratio=0.000 avg_depth=0.000 pair_pen=0.000 [OK] NARROW-PHASE CLEAR
+  Pair (2,4): center_dist=0.000 broad_radius=0.000 min_nn=0.992 hits=7/432 hit_ratio=0.016 avg_depth=0.238 pair_pen=6.060 [!!!] ACTIVE COLLISION UNRESOLVED
+  Pair (2,5): center_dist=0.000 broad_radius=0.000 min_nn=1.289 hits=5/320 hit_ratio=0.016 avg_depth=0.224 pair_pen=4.055 [!!!] ACTIVE COLLISION UNRESOLVED
+  Pair (2,6): center_dist=0.000 broad_radius=0.000 min_nn=15.711 hits=0/498 hit_ratio=0.000 avg_depth=0.000 pair_pen=0.000 [OK] NARROW-PHASE CLEAR
+  Pair (2,7): center_dist=0.000 broad_radius=0.000 min_nn=110.866 hits=0/498 hit_ratio=0.000 avg_depth=0.000 pair_pen=0.000 [OK] NARROW-PHASE CLEAR
+  Pair (3,4): center_dist=0.000 broad_radius=0.000 min_nn=95.762 hits=0/410 hit_ratio=0.000 avg_depth=0.000 pair_pen=0.000 [OK] NARROW-PHASE CLEAR
+  Pair (3,5): center_dist=0.000 broad_radius=0.000 min_nn=0.663 hits=67/320 hit_ratio=0.209 avg_depth=0.248 pair_pen=60.935 [!!!] ACTIVE COLLISION UNRESOLVED
+  Pair (3,6): center_dist=0.000 broad_radius=0.000 min_nn=1.251 hits=5/85 hit_ratio=0.059 avg_depth=0.229 pair_pen=8.075 [!!!] ACTIVE COLLISION UNRESOLVED
+  Pair (3,7): center_dist=0.000 broad_radius=0.000 min_nn=1.406 hits=7/410 hit_ratio=0.090 avg_depth=0.235 pair_pen=13.215 [!!!] ACTIVE COLLISION UNRESOLVED
+  Pair (4,5): center_dist=0.000 broad_radius=0.000 min_nn=91.826 hits=0/432 hit_ratio=0.000 avg_depth=0.000 pair_pen=0.000 [OK] NARROW-PHASE CLEAR
+  Pair (4,6): center_dist=0.000 broad_radius=0.000 min_nn=90.344 hits=0/432 hit_ratio=0.000 avg_depth=0.000 pair_pen=0.000 [OK] NARROW-PHASE CLEAR
+  Pair (4,7): center_dist=0.000 broad_radius=0.000 min_nn=112.198 hits=0/432 hit_ratio=0.000 avg_depth=0.000 pair_pen=0.000 [OK] NARROW-PHASE CLEAR
+  Pair (5,6): center_dist=0.000 broad_radius=0.000 min_nn=1.235 hits=11/85 hit_ratio=0.129 avg_depth=0.246 pair_pen=22.248 [!!!] ACTIVE COLLISION UNRESOLVED
+  Pair (5,7): center_dist=0.000 broad_radius=0.000 min_nn=54.929 hits=0/320 hit_ratio=0.000 avg_depth=0.000 pair_pen=0.000 [OK] NARROW-PHASE CLEAR
+  Pair (6,7): center_dist=0.000 broad_radius=0.000 min_nn=66.511 hits=0/85 hit_ratio=0.000 avg_depth=0.000 pair_pen=0.000 [OK] NARROW-PHASE CLEAR
+
