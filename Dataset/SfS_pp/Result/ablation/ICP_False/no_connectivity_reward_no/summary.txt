@@ -1,4 +1,0 @@
-Experiment: no_connectivity_reward_no
-Avg sherd accuracy: 62.5%
-Avg edge accuracy: 40%
-

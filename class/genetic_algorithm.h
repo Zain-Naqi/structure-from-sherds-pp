@@ -1,8 +1,8 @@
 #pragma once
 
 // Check # 01: Having both pragma once and this is redundant so the below two lines can be removed apparently
-#ifndef _GENETIC_ALGORITHM_H_   
-#define _GENETIC_ALGORITHM_H_   
+#ifndef _GENETIC_ALGORITHM_H_
+#define _GENETIC_ALGORITHM_H_
 
 #include <iostream>
 #include <fstream>
@@ -37,11 +37,11 @@ extern bool shard_on_off[];
 class GeneticAssembler {
 public:
     bool use_inlier_score        = true;
-    bool use_connectivity_reward = false;
-    bool use_cycle_penalty       = false;
-    bool use_edge_residual       = false;
-    bool use_rot_residual        = false;
-    bool use_overlap_penalty     = false;
+    bool use_connectivity_reward = true;
+    bool use_cycle_penalty       = false;  // Always 0 after BFS repair (no cycles in a tree)
+    bool use_edge_residual       = false;  // Always 0 after BFS repair (no cycles in a tree)
+    bool use_rot_residual        = false;  // Always 0 after BFS repair (no cycles in a tree)
+    bool use_overlap_penalty     = true;
 
     // Diagnostic controls: keep expensive logging/tests off by default.
     bool enable_debug_logging = false;
@@ -52,6 +52,7 @@ public:
     struct Chromosome {
         vector<int> genes;
         double fitness;
+        int root_shard = -1;  // BFS root for repair; valid shard index
     };
 
     struct FitnessBreakdown {
@@ -102,9 +103,9 @@ public:
 
     //-----------------------------------------------------------------------------------------------------------------//
 
-    GeneticAssembler(const vector<Geom>& shard, list<LCSIndex>& LCS_out, int num_shards) 
-        : shard_(shard), num_shards_(num_shards) 
-    {   
+    GeneticAssembler(const vector<Geom>& shard, list<LCSIndex>& LCS_out, int num_shards)
+        : shard_(shard), num_shards_(num_shards)
+    {
 
         for (list<LCSIndex>::const_iterator it = LCS_out.begin(); it != LCS_out.end(); ++it) {
             matches_.push_back(*it);
@@ -123,7 +124,7 @@ public:
         transforms_.resize(num_shards_);
         Matrix3d I = Matrix3d::Identity();
         Vector3d zero = Vector3d::Zero();
-        
+
         for (int i = 0; i < num_shards_; ++i) {
             transforms_[i].Set(I, zero, i + 1, 1);
         }
@@ -205,7 +206,7 @@ public:
         }
 
         if (enable_debug_logging && !matches_.empty()) {
-            cout << "[GA DEBUG] First Match: shard_x_ = " << matches_[0].shard_x_ 
+            cout << "[GA DEBUG] First Match: shard_x_ = " << matches_[0].shard_x_
             << " shard_y_ = " << matches_[0].shard_y_ << endl;
         }
 
@@ -226,12 +227,12 @@ public:
             cout << "[GA] === Seed " << seed_idx + 1 << " / " << kNumSeeds << " (seed=" << seed << ") ===" << endl;
 
             InitializePopulation();
+            EvaluatePopulation();
+            sort(population_.begin(), population_.end(), [](const Chromosome& a, const Chromosome& b) {
+                return a.fitness > b.fitness;
+            });
 
             for (int generation = 0; generation < kMaxGenerations; ++generation) {
-                EvaluatePopulation();
-                sort(population_.begin(), population_.end(), [](const Chromosome& a, const Chromosome& b) {
-                    return a.fitness > b.fitness;
-                });
 
                 cout << "[GA] Generation " << generation << " best fitness: " << population_.front().fitness << endl;
 
@@ -270,11 +271,6 @@ public:
                     LogBestChromosomeBreakdown(generation, population_.front());
                 }
 
-                EnforceDiversity();
-
-                sort(population_.begin(), population_.end(), [](const Chromosome& a, const Chromosome& b) {
-                    return a.fitness > b.fitness;
-                });
 
                 if (seed_idx == 0 && generation == 0) {
                     mkdir(kResultFolder.c_str(), 0777);
@@ -293,10 +289,8 @@ public:
                 }
             }
 
-            EvaluatePopulation();
-            sort(population_.begin(), population_.end(), [](const Chromosome& a, const Chromosome& b) {
-                return a.fitness > b.fitness;
-            });
+            // Population is already evaluated and sorted from the last generation's
+            // EvaluatePopulation + sort.
 
             if (!population_.empty()) {
                 double seed_best = population_.front().fitness;
@@ -429,8 +423,8 @@ public:
             }
         }
 
-        BuildOutputsFromSelection(population_.front().genes);
-        
+        BuildOutputsFromSelection(population_.front().genes, population_.front().root_shard);
+
     }
 
     //-----------------------------------------------------------------------------------------------------------------//
@@ -472,10 +466,12 @@ private:
         population_.clear();
         population_.reserve(kPopulationSize);
 
+        std::uniform_int_distribution<int> root_dist(0, static_cast<int>(valid_shard_indices_.size()) - 1);
         for (int i = 0; i < kPopulationSize; ++i) {
             Chromosome chromosome;
             chromosome.genes.resize(pair_groups_.size(), 0);
             chromosome.fitness = 0.0;
+            chromosome.root_shard = valid_shard_indices_[root_dist(rng_)];
 
             for (size_t gene_idx = 0; gene_idx < chromosome.genes.size(); ++gene_idx) {
                 chromosome.genes[gene_idx] = SampleGroupChoice(gene_idx);
@@ -493,6 +489,7 @@ private:
 #pragma omp parallel for schedule(static)
 #endif
         for (int i = 0; i < pop_size; ++i) {
+            RepairChromosome(population_[i]);
             population_[i].fitness = EvaluateFitness(population_[i]);
         }
     }
@@ -518,6 +515,82 @@ private:
              << " largest_comp=" << breakdown.largest_component
              << " num_comp=" << breakdown.num_components
              << endl;
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------//
+
+    // BFS Repair Operator (Lamarckian): Prune active edges that are not part of the BFS
+    // spanning tree. Non-tree edges don't contribute to shard positioning but can
+    // accumulate collision/residual penalties. This makes the genotype honest about
+    // what the phenotype (assembly) actually uses.
+    void RepairChromosome(Chromosome& chromosome) const
+    {
+        // Step 1: Decode active pairs and build adjacency with group tracking
+        struct RepairAdj {
+            int neighbor;
+            int group_idx;
+        };
+        vector<vector<RepairAdj>> adj(num_shards_);
+        vector<bool> group_active(pair_groups_.size(), false);
+
+        for (size_t group_idx = 0; group_idx < chromosome.genes.size(); ++group_idx) {
+            int choice = chromosome.genes[group_idx];
+            if (choice <= 0) continue;
+
+            const vector<size_t>& group = pair_groups_[group_idx];
+            int local_idx = choice - 1;
+            if (local_idx < 0 || local_idx >= static_cast<int>(group.size())) continue;
+
+            const LCSIndex& lcs = matches_[group[local_idx]];
+            int x = lcs.shard_x_ - 1;
+            int y = lcs.shard_y_ - 1;
+            if (!IsShardValidAndOn(x) || !IsShardValidAndOn(y)) continue;
+
+            group_active[group_idx] = true;
+            adj[x].push_back({y, static_cast<int>(group_idx)});
+            adj[y].push_back({x, static_cast<int>(group_idx)});
+        }
+
+        // Step 2: BFS to find spanning tree(s). Start from chromosome's designated
+        //         root to determine the main tree shape, then handle remaining components.
+        vector<bool> visited(num_shards_, false);
+        vector<bool> is_tree_edge(pair_groups_.size(), false);
+
+        auto bfs_from = [&](int start_node) {
+            if (visited[start_node]) return;
+
+            queue<int> q;
+            q.push(start_node);
+            visited[start_node] = true;
+
+            while (!q.empty()) {
+                int curr = q.front();
+                q.pop();
+
+                for (const auto& edge : adj[curr]) {
+                    if (visited[edge.neighbor]) continue;
+
+                    visited[edge.neighbor] = true;
+                    is_tree_edge[edge.group_idx] = true;
+                    q.push(edge.neighbor);
+                }
+            }
+        };
+
+        // Primary root — determines the main spanning tree shape
+        bfs_from(chromosome.root_shard);
+
+        // Remaining components (disconnected sherds)
+        for (int start_node : valid_shard_indices_) {
+            bfs_from(start_node);
+        }
+
+        // Step 3: Prune non-tree active edges (Lamarckian — permanently modifies chromosome)
+        for (size_t group_idx = 0; group_idx < chromosome.genes.size(); ++group_idx) {
+            if (group_active[group_idx] && !is_tree_edge[group_idx]) {
+                chromosome.genes[group_idx] = 0;
+            }
+        }
     }
 
     //-----------------------------------------------------------------------------------------------------------------//
@@ -779,9 +852,9 @@ private:
             vector<bool> vis_global(num_shards_, false);
             double overlap_penalty_sum = 0.0;
 
-            for (int start_node : valid_shard_indices_) {
+            auto overlap_bfs = [&](int start_node) {
                 if (vis_global[start_node]) {
-                    continue;
+                    return;
                 }
 
                 vector<Matrix4d> T_comp(num_shards_, Matrix4d::Identity());
@@ -824,6 +897,12 @@ private:
                             T_comp[idx2]);
                     }
                 }
+            };
+
+            // Start from this chromosome's BFS root for consistency with RepairChromosome
+            overlap_bfs(chromosome.root_shard);
+            for (int start_node : valid_shard_indices_) {
+                overlap_bfs(start_node);
             }
 
             fitness -= overlap_penalty_sum;
@@ -897,7 +976,7 @@ private:
                     q.push(next);
                 }
             }
-            
+
             if (component_size > largest_component) {
                 largest_component = component_size;
             }
@@ -912,7 +991,7 @@ private:
 
             num_components++;
             visited[node] = true;
-            
+
             if (largest_component < 1) {
                 largest_component = 1;
             }
@@ -950,6 +1029,10 @@ private:
         child.fitness = 0.0;
         child.genes.resize(parent1.genes.size(), 0);
 
+        // Inherit root from one parent at random
+        std::uniform_int_distribution<int> coin_root(0, 1);
+        child.root_shard = (coin_root(rng_) == 0) ? parent1.root_shard : parent2.root_shard;
+
         if (child.genes.empty()) return child;
 
         // Shard-Partition Crossover: Divide shards between parents to preserve local consensus
@@ -980,6 +1063,13 @@ private:
     int Mutate(Chromosome& chromosome) const
     {
         std::uniform_real_distribution<double> real_dist(0.0, 1.0);
+
+        // Root mutation: occasionally change the BFS root (macro-mutation)
+        if (real_dist(rng_) < kRootMutationRate) {
+            std::uniform_int_distribution<int> root_dist(0, static_cast<int>(valid_shard_indices_.size()) - 1);
+            chromosome.root_shard = valid_shard_indices_[root_dist(rng_)];
+        }
+
         if (real_dist(rng_) >= kMutationRate) {
             return -1;
         }
@@ -1018,32 +1108,18 @@ private:
 
     //-----------------------------------------------------------------------------------------------------------------//
 
-    void BuildOutputsFromSelection(const vector<int>& genes)
+    void BuildOutputsFromSelection(const vector<int>& genes, int root_shard = -1)
     {
         graph_ = MatrixXd::Zero(num_shards_, num_shards_);
-        
+
         struct AdjEdge {
             int to;
             Matrix4d T_to_current;
-            double weight; 
-        };
-
-        struct FrontierEdge {
             double weight;
-            int from;
-            int to;
-            Matrix4d T_to_from;
-        };
-
-        struct FrontierEdgeCompare {
-            bool operator()(const FrontierEdge& lhs, const FrontierEdge& rhs) const
-            {
-                return lhs.weight < rhs.weight;
-            }
         };
 
         vector<vector<AdjEdge>> adjacency(num_shards_);
-        
+
         for (size_t group_idx = 0; group_idx < genes.size(); ++group_idx) {
             int choice = genes[group_idx];
             if (choice <= 0) {
@@ -1079,41 +1155,40 @@ private:
         vector<bool> is_component_root(num_shards_, false);
         vector<Matrix4d> T_to_root(num_shards_, Matrix4d::Identity());
 
-        // Build an initial pose per connected component using highest-confidence frontier expansion.
-        for (int root = 0; root < num_shards_; ++root) {
-            if (!IsShardValidAndOn(root) || visited[root]) {
-                continue;
-            }
+        // Build an initial pose per connected component using simple FIFO BFS.
+        // Start from the chromosome's designated root for consistency with
+        // RepairChromosome and EvaluateFitness.
+        auto build_bfs = [&](int root) {
+            if (!IsShardValidAndOn(root) || visited[root]) return;
 
             visited[root] = true;
             is_component_root[root] = true;
 
-            priority_queue<FrontierEdge, vector<FrontierEdge>, FrontierEdgeCompare> frontier;
-            for (size_t i = 0; i < adjacency[root].size(); ++i) {
-                const AdjEdge& edge = adjacency[root][i];
-                if (!visited[edge.to]) {
-                    frontier.push({ edge.weight, root, edge.to, edge.T_to_current });
-                }
-            }
+            queue<int> bfs_q;
+            bfs_q.push(root);
 
-            while (!frontier.empty()) {
-                FrontierEdge top = frontier.top();
-                frontier.pop();
+            while (!bfs_q.empty()) {
+                int curr = bfs_q.front();
+                bfs_q.pop();
 
-                if (visited[top.to]) {
-                    continue;
-                }
-
-                visited[top.to] = true;
-                T_to_root[top.to] = T_to_root[top.from] * top.T_to_from;
-
-                for (size_t i = 0; i < adjacency[top.to].size(); ++i) {
-                    const AdjEdge& edge = adjacency[top.to][i];
-                    if (!visited[edge.to]) {
-                        frontier.push({ edge.weight, top.to, edge.to, edge.T_to_current });
+                for (size_t i = 0; i < adjacency[curr].size(); ++i) {
+                    const AdjEdge& edge = adjacency[curr][i];
+                    if (visited[edge.to]) {
+                        continue;
                     }
+
+                    visited[edge.to] = true;
+                    T_to_root[edge.to] = T_to_root[curr] * edge.T_to_current;
+                    bfs_q.push(edge.to);
                 }
             }
+        };
+
+        if (root_shard >= 0 && root_shard < num_shards_) {
+            build_bfs(root_shard);
+        }
+        for (int root = 0; root < num_shards_; ++root) {
+            build_bfs(root);
         }
 
         if (enable_pose_debug_logging) {
@@ -1128,8 +1203,8 @@ private:
 
             for (int i = 0; i < num_shards_; i++) {
                 if (!IsShardValidAndOn(i)) continue;
-                cout << "[GA DEBUG] T_to_root[" << i << "] translations: " 
-                << T_to_root[i](0, 3) << " " 
+                cout << "[GA DEBUG] T_to_root[" << i << "] translations: "
+                << T_to_root[i](0, 3) << " "
                 << T_to_root[i](1, 3) << " "
                 << T_to_root[i](2, 3) << endl;
             }
@@ -1143,7 +1218,7 @@ private:
                 continue;
             }
             transforms_[i].Set(T_to_root[i], i + 1, 1);
-        }   
+        }
     }
 
     //-----------------------------------------------------------------------------------------------------------------//
@@ -2195,7 +2270,7 @@ private:
     {
         FitnessBreakdown breakdown;
         EvaluateFitness(best, &breakdown);
-        
+
         stringstream ss;
         ss << "\n--- GENERATION " << generation << " BEST BREAKDOWN ---" << endl;
         ss << "  Total Fitness: " << fixed << setprecision(2) << best.fitness << endl;
@@ -2273,16 +2348,16 @@ private:
         }
 
         // Specific Debug for Shard 4 (index 3)
-        int target_sherd = 3; 
+        int target_sherd = 3;
         ss << "\n  --- SHARD " << (target_sherd + 1) << " CANDIDATE ANALYSIS ---" << endl;
         for (size_t i = 0; i < pair_groups_.size(); ++i) {
             const vector<size_t>& group = pair_groups_[i];
             if (group.empty()) continue;
-            
+
             const LCSIndex& rep = matches_[group[0]];
             int x = rep.shard_x_ - 1;
             int y = rep.shard_y_ - 1;
-            
+
             if (x == target_sherd || y == target_sherd) {
                 int selected_choice = best.genes[i];
                 ss << "    Pair (" << (x + 1) << "-" << (y + 1) << "): Selected=" << selected_choice << " / " << group.size() << " choices" << endl;
@@ -2353,6 +2428,7 @@ private:
 
         // EnsureSherdCoverage(replacement);
 
+        // RepairChromosome(replacement);
         replacement.fitness = EvaluateFitness(replacement);
         return replacement;
     }
@@ -2446,10 +2522,23 @@ private:
 
         return ranked_candidates.front().second + 1;
     }
-    
+
     void AuditGroundTruthCandidates(const MatrixXd& GT_graph, const vector<Trans>& GT_trans, const vector<Trans>& T_axis)
     {
         cout << "#################### GROUND TRUTH CANDIDATE AUDIT ####################" << endl;
+
+        // Summary tracking for final table
+        struct GTEdgeSummary {
+            int shard_a, shard_b;
+            int num_candidates;
+            int best_choice;
+            double best_rad_err;
+            double best_trans_err;
+            bool used_inverse;
+            string classification;
+        };
+        vector<GTEdgeSummary> summaries;
+
         for (size_t group_idx = 0; group_idx < pair_groups_.size(); ++group_idx) {
             const vector<size_t>& group = pair_groups_[group_idx];
             if (group.empty()) continue;
@@ -2468,12 +2557,14 @@ private:
             int best_choice = -1;
             double min_rad_err = 1e9;
             double min_trans_err = 1e9;
+            bool best_used_inverse = false;
 
             for (size_t i = 0; i < group.size(); ++i) {
                 const LCSIndex& lcs = matches_[group[i]];
                 int x = lcs.shard_x_ - 1;
                 int y = lcs.shard_y_ - 1;
 
+                // Build GT relative transform in axis-aligned space (y_aligned -> x_aligned)
                 Matrix4d T_ax, T_ay_inv, T_gx_inv, T_gy;
                 T_axis[x].Output(T_ax);
                 T_axis[y].InvOut(T_ay_inv);
@@ -2481,7 +2572,6 @@ private:
                 GT_trans[y].Output(T_gy);
 
                 Matrix4d T_gt_wrapped = T_ax * T_gx_inv * T_gy * T_ay_inv;
-                Matrix4d T_gt_raw = T_gx_inv * T_gy;
 
                 Matrix4d T_candidate = Matrix4d::Identity();
                 lcs.trans_.Output(T_candidate);
@@ -2499,30 +2589,80 @@ private:
                     t_err = t_diff.norm();
                 };
 
-                double r_wrapped, t_wrapped, r_raw, t_raw;
-                calc_err(T_gt_wrapped, T_candidate, r_wrapped, t_wrapped);
-                calc_err(T_gt_raw, T_candidate, r_raw, t_raw);
+                // Try BOTH forward and inverse to handle direction convention mismatches.
+                // The LCS transform direction may not match the GT wrapped direction.
+                double r_fwd, t_fwd, r_inv, t_inv;
+                calc_err(T_gt_wrapped, T_candidate, r_fwd, t_fwd);
+                calc_err(T_gt_wrapped, T_candidate.inverse(), r_inv, t_inv);
+
+                // Pick whichever direction gives lower rotation error
+                double r_best, t_best;
+                bool used_inverse;
+                if (r_fwd <= r_inv) {
+                    r_best = r_fwd; t_best = t_fwd; used_inverse = false;
+                } else {
+                    r_best = r_inv; t_best = t_inv; used_inverse = true;
+                }
 
                 double density = static_cast<double>(lcs.inliner_) / (1.0 + lcs.score_);
 
-                cout << "  Choice " << (i + 1) << ": inliner=" << setw(3) << lcs.inliner_ 
-                     << " score=" << fixed << setprecision(3) << lcs.score_ 
+                cout << "  Choice " << (i + 1) << ": inliner=" << setw(3) << lcs.inliner_
+                     << " score=" << fixed << setprecision(3) << lcs.score_
                      << " density=" << fixed << setprecision(3) << density
-                     << " [Wrapped] rad=" << fixed << setprecision(4) << r_wrapped << " trans=" << t_wrapped;
-                
-                if (r_wrapped < 0.35 && t_wrapped < 50.0) {
+                     << " rad=" << fixed << setprecision(4) << r_best
+                     << " trans=" << fixed << setprecision(2) << t_best;
+                if (used_inverse) cout << " [INV]";
+
+                // Check if candidate matches original threshold (rad < 0.35 && trans < 50.0)
+                if (r_best < 0.35 && t_best < 50.0) {
                     cout << " [VALID GT MATCH]";
                 }
                 cout << endl;
 
-                if (r_wrapped < min_rad_err) {
-                    min_rad_err = r_wrapped;
-                    min_trans_err = t_wrapped;
+                if (r_best < min_rad_err) {
+                    min_rad_err = r_best;
+                    min_trans_err = t_best;
                     best_choice = static_cast<int>(i + 1);
+                    best_used_inverse = used_inverse;
                 }
             }
-            cout << "  -> Best Match for GT: Choice " << best_choice << " (rad_err=" << min_rad_err << ")" << endl;
+
+            // Classify the best match for this GT edge
+            string classification = (min_rad_err < 0.35 && min_trans_err < 50.0) ? "VALID" : "INVALID";
+
+            cout << "  -> Best GT Match: Choice " << best_choice
+                 << " (rad=" << fixed << setprecision(4) << min_rad_err
+                 << " trans=" << fixed << setprecision(2) << min_trans_err
+                 << " " << classification << ")"
+                 << (best_used_inverse ? " [INV]" : "") << endl;
+
+            summaries.push_back({mi + 1, ma + 1, static_cast<int>(group.size()),
+                                 best_choice, min_rad_err, min_trans_err,
+                                 best_used_inverse, classification});
         }
+
+        // Print compact summary table
+        cout << "\n--- GT CANDIDATE SUMMARY ---" << endl;
+        cout << setw(8) << "Edge" << setw(7) << "Cands" << setw(7) << "Best"
+             << setw(10) << "Rad" << setw(10) << "Trans" << setw(6) << "Inv?"
+             << setw(12) << "Status" << endl;
+        int valid_matches = 0;
+        for (size_t s = 0; s < summaries.size(); ++s) {
+            const GTEdgeSummary& sm = summaries[s];
+            cout << setw(4) << sm.shard_a << "-" << sm.shard_b
+                 << setw(7) << sm.num_candidates
+                 << setw(7) << sm.best_choice
+                 << setw(10) << fixed << setprecision(4) << sm.best_rad_err
+                 << setw(10) << fixed << setprecision(2) << sm.best_trans_err
+                 << setw(6) << (sm.used_inverse ? "Y" : "N")
+                 << setw(12) << sm.classification << endl;
+            if (sm.classification == "VALID") {
+                valid_matches++;
+            }
+        }
+        cout << "Total GT edges: " << summaries.size()
+             << " | Valid GT Matches: " << valid_matches
+             << " | Missing/Invalid: " << (summaries.size() - valid_matches) << endl;
         cout << "######################################################################" << endl;
     }
 
@@ -2664,22 +2804,23 @@ private:
     //     seed_seq.generate(seed_data.begin(), seed_data.end());
     //     return seed_data[0];
     // }
-    
 
-    static constexpr int kPopulationSize = 100;
-    static constexpr int kMaxGenerations = 50;
-    static constexpr int kElitismCount = 6;
-    static constexpr int kNumSeeds = 1;
-    static constexpr double kMutationRate = 0.10; // Increased from 0.05 for better symmetry exploration
+
+    static constexpr int kPopulationSize = 200;
+    static constexpr int kMaxGenerations = 150;
+    static constexpr int kElitismCount = 0;
+    static constexpr int kNumSeeds = 5;
+    static constexpr double kMutationRate = 0.20; // Increased from 0.05 for better symmetry exploration
     static constexpr double kBiasInheritRatio = 0.4;
+    static constexpr double kRootMutationRate = 0.15;
     static constexpr double kInitialPairInactiveRate = 0.05;
     static constexpr double kEdgeResidualThreshold = 5.0;
     static constexpr double kEdgeResidualPenalty = 2.0;
     static constexpr double kEdgeRotResidualThreshold = 0.2;
     static constexpr double kEdgeRotResidualPenalty = 5.0;
     static constexpr double kConnectivityReward = 10.0;
-    static constexpr double kConnectivityComponentPenalty = 0;
-    
+    static constexpr double kConnectivityComponentPenalty = 100;
+
     // Overlap constants
     static constexpr double kOverlapPenalty = 1200.0;
     static constexpr double kOverlapFractionMix = 0.75;
@@ -2691,7 +2832,7 @@ private:
     static constexpr double kCollisionPointEpsilon = 2.5;   // mm
     static constexpr double kCollisionEdgeExclusion = 2.0;  // mm
     static constexpr double kCollisionVoxelSize = 5.0;      // mm
-    static constexpr int kSnapshotInterval = 10;
+    static constexpr int kSnapshotInterval = 25;
     static constexpr bool kEnableSnapshots = true;
     static constexpr bool kEnableConvergenceLog = true;
     const string kResultFolder = "result_paper";
@@ -2723,7 +2864,7 @@ private:
 
         out << generation << "," << best.fitness << "," << avg_fitness << "," << worst.fitness << ","
             << bd.inlier_reward << "," << bd.cycle_penalty << "," << bd.edge_residual_penalty << "," << bd.edge_rot_residual_penalty << ","
-            << bd.overlap_penalty << "," << bd.connectivity_reward << "," << bd.active_pair_count << "," 
+            << bd.overlap_penalty << "," << bd.connectivity_reward << "," << bd.active_pair_count << ","
             << bd.largest_component << "," << bd.num_components << endl;
         out.close();
     }
@@ -2734,7 +2875,7 @@ private:
         ofstream out(filename);
         if (!out) return;
 
-        BuildOutputsFromSelection(best.genes);
+        BuildOutputsFromSelection(best.genes, best.root_shard);
 
         int total_points = 0;
         for (int i = 0; i < num_shards_; ++i) {
@@ -2767,7 +2908,7 @@ private:
                     p << pts.col(j), 1.0;
                     Vector3d p_w = (T * p).head<3>();
                     Vector3d n_w = (R * nms.col(j)).normalized();
-                    out << p_w.x() << " " << p_w.y() << " " << p_w.z() << " " 
+                    out << p_w.x() << " " << p_w.y() << " " << p_w.z() << " "
                         << n_w.x() << " " << n_w.y() << " " << n_w.z() << " " << i << endl;
                 }
             };

@@ -1,4 +1,0 @@
-Experiment: inlier_score_only_icp
-Avg sherd accuracy: 0%
-Avg edge accuracy: 0%
-

@@ -7,3 +7,5 @@ Dataset/
 build_local/
 .codex/
 .codex
+results/
+*.log

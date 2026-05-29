@@ -1,4 +1,0 @@
-Experiment: no_cycle_penalty_icp
-Avg sherd accuracy: 0%
-Avg edge accuracy: 0%
-

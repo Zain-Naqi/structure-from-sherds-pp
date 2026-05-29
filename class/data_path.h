@@ -6,8 +6,8 @@
 #ifndef _DATA_PATH_H_
 #define _DATA_PATH_H_
 
-#define POT_A	
-// #define POT_B
+// #define POT_A
+#define POT_B
 // #define POT_C
 // #define POT_D	// Skip
 // #define POT_E	// Skip
@@ -163,16 +163,16 @@ string gt_graph_path[1] = {
 };
 
 bool shard_on_off[SHARD_NUMBER] = {
-	true,	// 1 
-	true,   // 2 
-	true,	// 3 
-	true,   // 4 
-	true,   // 5 
-	true,   // 6 
-	true,   // 7 
-	true,   // 8 
-	true,   // 9 
-	true,   // 10 
+	true,	// 1
+	true,   // 2
+	true,	// 3
+	true,   // 4
+	true,   // 5
+	true,   // 6
+	true,   // 7
+	true,   // 8
+	true,   // 9
+	true,   // 10
 	true,   // 11
 	true   // 12
 	// true,   // 13
@@ -291,16 +291,16 @@ string gt_graph_path[1] = {
 };
 
 bool shard_on_off[SHARD_NUMBER] = {
-	true,	// 1 
-	true,   // 2 
-	true,	// 3 
-	true,   // 4 
-	true,   // 5 
-	true,   // 6 
-	true,   // 7 
-	true,   // 8 
-	true,   // 9 
-	true,   // 10 
+	true,	// 1
+	true,   // 2
+	true,	// 3
+	true,   // 4
+	true,   // 5
+	true,   // 6
+	true,   // 7
+	true,   // 8
+	true,   // 9
+	true,   // 10
 	true    // 11
 };
 #endif
@@ -389,13 +389,13 @@ string gt_graph_path[1] = {
 };
 
 bool shard_on_off[SHARD_NUMBER] = {
-	true,	// 1 
-	true,   // 2 
-	true,	// 3 
-	true,   // 4 
-	true,   // 5 
-	true,   // 6 
-	true   // 7 
+	true,	// 1
+	true,   // 2
+	true,	// 3
+	true,   // 4
+	true,   // 5
+	true,   // 6
+	true   // 7
 };
 #endif
 
@@ -504,15 +504,15 @@ string gt_graph_path[1] = {
 
 bool shard_on_off[SHARD_NUMBER] = {
 	true,	// 1  Base
-	true,   // 2 
-	true,	// 3 
-	true,   // 4 
+	true,   // 2
+	true,	// 3
+	true,   // 4
 	true,   // 5  Base
-	true,   // 6 
-	true,   // 7 
-	true,   // 8 
-	true,   // 9 
-	true  // 10 
+	true,   // 6
+	true,   // 7
+	true,   // 8
+	true,   // 9
+	true  // 10
 
 };
 #endif
@@ -626,15 +626,15 @@ string gt_graph_path[1] = {
 };
 
 bool shard_on_off[SHARD_NUMBER] = {
-	true,	// 1 
-	true,   // 2 
-	true,	// 3 
-	true,   // 4 
-	true,   // 5 
-	true,   // 6 
-	true,   // 7 
-	true,   // 8 
-	true,   // 9 
+	true,	// 1
+	true,   // 2
+	true,	// 3
+	true,   // 4
+	true,   // 5
+	true,   // 6
+	true,   // 7
+	true,   // 8
+	true,   // 9
 	true,   // 10
 	true    // 11
 };
@@ -713,11 +713,11 @@ string gt_graph_path[1] = {
 };
 
 bool shard_on_off[SHARD_NUMBER] = {
-	true,	// 1 
-	true,   // 2 
-	true,	// 3 
-	true,   // 4 
-	true,   // 5 
+	true,	// 1
+	true,   // 2
+	true,	// 3
+	true,   // 4
+	true,   // 5
 	true    // 6
 };
 #endif
@@ -1354,22 +1354,22 @@ string gt_graph_path[2] = {
 };
 
 bool shard_on_off[SHARD_NUMBER] = {
-	true,	// 1 
-	true,   // 2 
-	true,	// 3 
-	true,   // 4 
-	true,   // 5 
-	true,   // 6 
-	true,   // 7 
-	true,   // 8 
-	true,   // 9 
+	true,	// 1
+	true,   // 2
+	true,	// 3
+	true,   // 4
+	true,   // 5
+	true,   // 6
+	true,   // 7
+	true,   // 8
+	true,   // 9
 	true,   // 10
 	true,    // 11
-	true,	// 1 
-	true,   // 2 
-	true,	// 3 
-	true,   // 4 
-	true,   // 5 
+	true,	// 1
+	true,   // 2
+	true,	// 3
+	true,   // 4
+	true,   // 5
 	true,   // 6
 };
 #endif
@@ -1463,14 +1463,14 @@ string gt_graph_path[1] = {
 
 
 bool shard_on_off[SHARD_NUMBER] = {
-	true,	// 1 
-	true,   // 2 
-	true,	// 3 
-	true,   // 4 
-	true,   // 5 
-	true,   // 6 
-	true,   // 7 
-	true,   // 8 
+	true,	// 1
+	true,   // 2
+	true,	// 3
+	true,   // 4
+	true,   // 5
+	true,   // 6
+	true,   // 7
+	true,   // 8
 };
 #endif
 
@@ -1639,10 +1639,10 @@ string gt_graph_path[1] = {
 };
 
 bool shard_on_off[SHARD_NUMBER] = {
-	true,	// 1	
-	true,   // 2	
-	true,	// 3		
-	true	// 4		
+	true,	// 1
+	true,   // 2
+	true,	// 3
+	true	// 4
 };
 #endif
 
@@ -1881,20 +1881,20 @@ string gt_graph_path[1] = {
 };
 
 bool shard_on_off[SHARD_NUMBER] = {
-	true,	// 1 
-	true,   // 2 
-	true,	// 3 
-	true,   // 4 
-	true,   // 5 
-	true,   // 6 
-	true,   // 7 
-	true,   // 8 
-	true,   // 9 
+	true,	// 1
+	true,   // 2
+	true,	// 3
+	true,   // 4
+	true,   // 5
+	true,   // 6
+	true,   // 7
+	true,   // 8
+	true,   // 9
 	true,   // 10
 	true,   // 11
-	true,	// 12 
+	true,	// 12
 	true,   // 13
-	true,	// 14 
+	true,	// 14
 	true,   // 15
 	true,   // 16
 	true,   // 17
@@ -2161,37 +2161,37 @@ string gt_graph_path[1] = {
 };
 
 bool shard_on_off[SHARD_NUMBER] = {
-	true,	// 1	Pot E		
-	true,   // 2						
-	true,	// 3				
-	true,   // 4				
-	true,   // 5				
-	true,   // 6					
-	true,   // 7				
-	true,   // 8				
-	true,   // 9				
-	true,   // 10				
-	true,   // 11				
-	true,	// 12				
-	true,   // 13				
-	true,	// 14				
-	true,   // 15				
-	true,   // 16				
-	true,   // 17				
-	true,   // 18				
-	true,   // 19				
-	true,   // 20				
-	true,   // 21				
-	true,   // 22				
-	true,   // 23				
-	true,   // 24				
-	true,   // 25				
-	true,   // 26				
-	true,   // 27				
-	true,	// 28				
+	true,	// 1	Pot E
+	true,   // 2
+	true,	// 3
+	true,   // 4
+	true,   // 5
+	true,   // 6
+	true,   // 7
+	true,   // 8
+	true,   // 9
+	true,   // 10
+	true,   // 11
+	true,	// 12
+	true,   // 13
+	true,	// 14
+	true,   // 15
+	true,   // 16
+	true,   // 17
+	true,   // 18
+	true,   // 19
+	true,   // 20
+	true,   // 21
+	true,   // 22
+	true,   // 23
+	true,   // 24
+	true,   // 25
+	true,   // 26
+	true,   // 27
+	true,	// 28
 	true,	// 29
-	true,	// 30				
-	true	// 31				
+	true,	// 30
+	true	// 31
 };
 
 #endif
@@ -2277,13 +2277,13 @@ string gt_graph_path[1] = {
 };
 
 bool shard_on_off[SHARD_NUMBER] = {
-	true,	// 1 
-	true,   // 2 
+	true,	// 1
+	true,   // 2
 	true,	// 3 -
-	true,   // 4 
-	true,   // 5 
-	true,   // 6 
-	true    // 7 
+	true,   // 4
+	true,   // 5
+	true,   // 6
+	true    // 7
 };
 #endif
 
@@ -2368,13 +2368,13 @@ string gt_graph_path[1] = {
 };
 
 bool shard_on_off[SHARD_NUMBER] = {
-	true,	// 1 
-	true,   // 2 
+	true,	// 1
+	true,   // 2
 	true,	// 3 -
-	true,   // 4 
-	true,   // 5 
-	true,   // 6 
-	true    // 7 
+	true,   // 4
+	true,   // 5
+	true,   // 6
+	true    // 7
 };
 #endif
 
@@ -2486,16 +2486,16 @@ string gt_graph_path[1] = {
 };
 
 bool shard_on_off[SHARD_NUMBER] = {
-	true,	// 1 
-	true,   // 2 
-	true,	// 3 
-	true,   // 4 
-	true,   // 5 
-	true,   // 6 
-	true,   // 7 
+	true,	// 1
+	true,   // 2
+	true,	// 3
+	true,   // 4
+	true,   // 5
+	true,   // 6
+	true,   // 7
 	true,   // 8
-	true,	// 9 
-	true,   // 10 
+	true,	// 9
+	true,   // 10
 	true	// 11
 };
 #endif
@@ -2597,7 +2597,7 @@ string axis_path[SHARD_NUMBER] = {
 	path + "Axes/Pot_I_Piece_23_Axis.xyz",
 	path + "Axes/Pot_I_Piece_24_Axis.xyz",
 	path + "Axes/Pot_I_Piece_25_Axis.xyz",
-	path + "Axes/Pot_I_Piece_26_Axis.xyz", 
+	path + "Axes/Pot_I_Piece_26_Axis.xyz",
 	path + "Axes/Pot_I_Piece_27_Axis.xyz",
 	path + "Axes/Pot_I_Piece_28_Axis.xyz",
 	path + "Axes/Pot_I_Piece_29_Axis.xyz",
@@ -2741,20 +2741,20 @@ string gt_graph_path[1] = {
 };
 
 bool shard_on_off[SHARD_NUMBER] = {
-	true,	// 1 
-	true,   // 2 
+	true,	// 1
+	true,   // 2
 	true,	// 3 -
-	true,   // 4 
-	true,   // 5 
-	true,   // 6 
-	true,   // 7 
+	true,   // 4
+	true,   // 5
+	true,   // 6
+	true,   // 7
 	true,   // 8
 	true,	// 9 -
-	true,   // 10 
+	true,   // 10
 	true,   // 11
 	true,   // 12
 	true,   // 13
-	true,	// 14 
+	true,	// 14
 	true,   // 15
 	true,	// 16-
 	true,   // 17
@@ -2763,12 +2763,12 @@ bool shard_on_off[SHARD_NUMBER] = {
 	true,   // 20
 	true,   // 21
 	true,	// 22
-	true,   // 23 
+	true,   // 23
 	true,   // 24
 	true,   // 25
 	true,   // 26
 	true,	// 27
-	true,   // 28 
+	true,   // 28
 	true,   // 29
 	true    // 30
 };
@@ -2890,16 +2890,16 @@ string gt_graph_path[1] = {
 };
 
 bool shard_on_off[SHARD_NUMBER] = {
-	true,	// 1 
-	true,   // 2 
+	true,	// 1
+	true,   // 2
 	true,	// 3 -
-	true,   // 4 
-	true,   // 5 
-	true,   // 6 
-	true,   // 7 
+	true,   // 4
+	true,   // 5
+	true,   // 6
+	true,   // 7
 	true,   // 8
 	false,	// 9 -
-	true,   // 10 
+	true,   // 10
 	true,   // 11
 	true    // 12
 };
@@ -2942,7 +2942,7 @@ string file_path[SHARD_NUMBER] = {
 	path + "Breaklines/Pot_G_Piece_04_Breakline_0.pcd",
 	path + "Breaklines/Pot_G_Piece_05_Breakline_0.pcd",
 	path + "Breaklines/Pot_G_Piece_06_Breakline_0.pcd",
-	path + "Breaklines/Pot_G_Piece_07_Breakline_0.pcd",	
+	path + "Breaklines/Pot_G_Piece_07_Breakline_0.pcd",
 	path + "Breaklines/Pot_H_Piece_01_Breakline_0.pcd",
 	path + "Breaklines/Pot_H_Piece_02_Breakline_0.pcd",
 	path + "Breaklines/Pot_H_Piece_03_Breakline_0.pcd",
@@ -3236,13 +3236,13 @@ string gt_graph_path[5] = {
 
 bool shard_on_off[SHARD_NUMBER] = {
 	true,	// 1  Pot A
-	true,   // 2 
-	true,	// 3 
-	true,   // 4 
-	true,   // 5 
-	true,   // 6 
-	true,   // 7 
-	true,   // 8 
+	true,   // 2
+	true,	// 3
+	true,   // 4
+	true,   // 5
+	true,   // 6
+	true,   // 7
+	true,   // 8
 	true,	// 1  Pot B
 	true,	// 2
 	true,	// 3
@@ -3253,29 +3253,29 @@ bool shard_on_off[SHARD_NUMBER] = {
 	true,	// 8
 	true,	// 9
 	true,	// 1  Pot F
-	true,   // 2 
+	true,   // 2
 	true,	// 3 -
-	true,   // 4 
-	true,   // 5 
-	true,   // 6 
-	true,   // 7 
+	true,   // 4
+	true,   // 5
+	true,   // 6
+	true,   // 7
 	true,	// 1  Pot G
-	true,   // 2 
+	true,   // 2
 	true,	// 3 -
-	true,   // 4 
-	true,   // 5 
-	true,   // 6 
+	true,   // 4
+	true,   // 5
+	true,   // 6
 	true,   // 7  Pot H
-	true,	// 1 
-	true,   // 2 
-	true,	// 3 
-	true,   // 4 
-	true,   // 5 
-	true,   // 6 
-	true,   // 7 
+	true,	// 1
+	true,   // 2
+	true,	// 3
+	true,   // 4
+	true,   // 5
+	true,   // 6
+	true,   // 7
 	true,   // 8
-	true,	// 9 
-	true,   // 10 
+	true,	// 9
+	true,   // 10
 	true	// 11
 };
 #endif
@@ -3734,65 +3734,65 @@ string gt_graph_path[2] = {
 
 bool shard_on_off[SHARD_NUMBER] = {
 	true,	// 1 Pot D
-	true,   // 2 
-	true,	// 3 			
-	true,   // 4	
-	true,   // 5 
-	true,   // 6 
-	true,   // 7 	
-	true,   // 8 
-	true,   // 9	
-	true,   // 10 
-	true,   // 11 	
-	true,	// 12 	
-	true,   // 13 
-	true,	// 14 		
+	true,   // 2
+	true,	// 3
+	true,   // 4
+	true,   // 5
+	true,   // 6
+	true,   // 7
+	true,   // 8
+	true,   // 9
+	true,   // 10
+	true,   // 11
+	true,	// 12
+	true,   // 13
+	true,	// 14
 	true,   // 15
 	true,   // 16
-	true,   // 17	
-	true,   // 18 	
-	true,   // 19 
-	true,   // 20 		
-	true,   // 21 		
-	true,   // 22 		
-	true,   // 23 
+	true,   // 17
+	true,   // 18
+	true,   // 19
+	true,   // 20
+	true,   // 21
+	true,   // 22
+	true,   // 23
 	true,   // 24
-	true,   // 25 
-	true,   // 26 
+	true,   // 25
+	true,   // 26
 	true,   // 27
-	true,   // 28 	
-	true,   // 29				
-	true,	// 1	Pot E	30	
-	true,   // 2			31	
-	true,	// 3			32	
-	true,   // 4			33	
-	true,   // 5			34	
-	true,   // 6			35	
-	true,   // 7			36	
-	true,   // 8			37	
-	true,   // 9			38	
-	true,   // 10			39	
-	true,   // 11			40		
-	true,	// 12			41	
-	true,   // 13			42	
-	true,	// 14			43	
-	true,   // 15			44	
-	true,   // 16			45	
-	true,   // 17			46	
-	true,   // 18			47	
-	true,   // 19			48	
-	true,   // 20			49	
-	true,   // 21			50	
-	true,   // 22			51	
-	true,   // 23			52	
-	true,   // 24			53	
-	true,   // 25			54	
-	true,   // 26			55	
-	true,   // 27			56	
-	true,	// 28			57	
-	true,   // 29			58	
-	true,	// 30			59	
-	true   // 31			60		
+	true,   // 28
+	true,   // 29
+	true,	// 1	Pot E	30
+	true,   // 2			31
+	true,	// 3			32
+	true,   // 4			33
+	true,   // 5			34
+	true,   // 6			35
+	true,   // 7			36
+	true,   // 8			37
+	true,   // 9			38
+	true,   // 10			39
+	true,   // 11			40
+	true,	// 12			41
+	true,   // 13			42
+	true,	// 14			43
+	true,   // 15			44
+	true,   // 16			45
+	true,   // 17			46
+	true,   // 18			47
+	true,   // 19			48
+	true,   // 20			49
+	true,   // 21			50
+	true,   // 22			51
+	true,   // 23			52
+	true,   // 24			53
+	true,   // 25			54
+	true,   // 26			55
+	true,   // 27			56
+	true,	// 28			57
+	true,   // 29			58
+	true,	// 30			59
+	true   // 31			60
 };
 
 #endif
@@ -3978,13 +3978,13 @@ string gt_graph_path[3] = {
 
 bool shard_on_off[SHARD_NUMBER] = {
 	true,	// 1	PotA
-	true,   // 2 
-	true,	// 3 
-	true,   // 4 
-	true,   // 5 
-	true,   // 6 
-	true,   // 7	
-	true,   // 8	
+	true,   // 2
+	true,	// 3
+	true,   // 4
+	true,   // 5
+	true,   // 6
+	true,   // 7
+	true,   // 8
 	true,	// 1	PotB
 	true,	// 2
 	true,	// 3
@@ -3994,10 +3994,10 @@ bool shard_on_off[SHARD_NUMBER] = {
 	true,	// 7
 	true,	// 8
 	true,	// 9
-	true,	// 1	PotC		
-	true,   // 2					
-	true,	// 3					
-	true	// 4					
+	true,	// 1	PotC
+	true,   // 2
+	true,	// 3
+	true	// 4
 };
 #endif
 
@@ -4460,37 +4460,37 @@ string gt_graph_path[NUM_MIXED_SHERD] = {
 };
 
 bool shard_on_off[SHARD_NUMBER] = {
-	true,	// 1	Pot E		1	
-	true,   // 2				2	
-	true,	// 3				3	
-	true,   // 4				4	
-	true,   // 5				5	
-	true,   // 6				6	
-	true,   // 7				7	
-	true,   // 8				8	
-	true,   // 9				9	
-	true,   // 10				10	
-	true,   // 11				11		
-	true,	// 12				12	
-	true,   // 13				13	
-	true,	// 14				14	
-	true,   // 15				15	
-	true,   // 16				16	
-	true,   // 17				17	
-	true,   // 18				18	
-	true,   // 19				19	
-	true,   // 20				20	
-	true,   // 21				21	
-	true,   // 22				22	
-	true,   // 23				23	
-	true,   // 24				24	
-	true,   // 25				25	
-	true,   // 26				26	
-	true,   // 27				27	
-	true,	// 28				28	
-	true,   // 29				29	
-	true,	// 30				30	
-	true,   // 31				31	
+	true,	// 1	Pot E		1
+	true,   // 2				2
+	true,	// 3				3
+	true,   // 4				4
+	true,   // 5				5
+	true,   // 6				6
+	true,   // 7				7
+	true,   // 8				8
+	true,   // 9				9
+	true,   // 10				10
+	true,   // 11				11
+	true,	// 12				12
+	true,   // 13				13
+	true,	// 14				14
+	true,   // 15				15
+	true,   // 16				16
+	true,   // 17				17
+	true,   // 18				18
+	true,   // 19				19
+	true,   // 20				20
+	true,   // 21				21
+	true,   // 22				22
+	true,   // 23				23
+	true,   // 24				24
+	true,   // 25				25
+	true,   // 26				26
+	true,   // 27				27
+	true,	// 28				28
+	true,   // 29				29
+	true,	// 30				30
+	true,   // 31				31
 	true,	// 1	Pot I		32
 	true,   // 2				33
 	true,	// 3 -				34
@@ -4670,20 +4670,20 @@ string gt_graph_path[2] = {
 };
 
 bool shard_on_off[SHARD_NUMBER] = {
-	true,	// 1	
-	true,   // 2	
-	true,	// 3		
-	true,	// 4		
-	true,	// 1 
-	true,   // 2 
+	true,	// 1
+	true,   // 2
+	true,	// 3
+	true,	// 4
+	true,	// 1
+	true,   // 2
 	true,	// 3 -
-	true,   // 4 
-	true,   // 5 
-	true,   // 6 
-	true,   // 7 
+	true,   // 4
+	true,   // 5
+	true,   // 6
+	true,   // 7
 	true,   // 8
 	false,	// 9 -
-	true,   // 10 
+	true,   // 10
 	true,   // 11
 	true    // 12
 };
@@ -5304,7 +5304,7 @@ bool shard_on_off[SHARD_NUMBER] = {
 	true,	// 3				11
 	true,	// 4				12
 	true,	// 5				13
-	true,	// 6				14		
+	true,	// 6				14
 	true,	// 7				15
 	true,	// 8				16
 	true,	// 9				17
@@ -5327,7 +5327,7 @@ bool shard_on_off[SHARD_NUMBER] = {
 	true,   // 17 				34
 	true,   // 18				35
 	true,   // 19				36
-	true,   // 20				37	
+	true,   // 20				37
 	true,   // 21				38
 	true,   // 22				39
 	true,   // 23				40
@@ -5338,11 +5338,11 @@ bool shard_on_off[SHARD_NUMBER] = {
 	true,   // 28				45
 	true,   // 29				46
 	true,	// 1	PotE		47
-	true,   // 2				48		
+	true,   // 2				48
 	true,	// 3				49
 	true,   // 4				50
 	true,   // 5				51
-	true,   // 6				52	
+	true,   // 6				52
 	true,   // 7				53
 	true,   // 8				54
 	true,   // 9				55
@@ -5369,7 +5369,7 @@ bool shard_on_off[SHARD_NUMBER] = {
 	true,	// 30				76
 	true,   // 31				77
 	true,	// 1	PotC		78
-	true,   // 2				79	
+	true,   // 2				79
 	true,	// 3				80
 	true,   // 4				81
 };
@@ -6465,7 +6465,7 @@ bool shard_on_off[SHARD_NUMBER] = {
 	true,	// 3				11
 	true,	// 4				12
 	true,	// 5				13
-	true,	// 6				14		
+	true,	// 6				14
 	true,	// 7				15
 	true,	// 8				16
 	true,	// 9				17
@@ -6488,7 +6488,7 @@ bool shard_on_off[SHARD_NUMBER] = {
 	true,   // 17 				34
 	true,   // 18				35
 	true,   // 19				36
-	true,   // 20				37	
+	true,   // 20				37
 	true,   // 21				38
 	true,   // 22				39
 	true,   // 23				40
@@ -6499,11 +6499,11 @@ bool shard_on_off[SHARD_NUMBER] = {
 	true,   // 28				45
 	true,   // 29				46
 	true,	// 1	PotE		47
-	true,   // 2				48		
+	true,   // 2				48
 	true,	// 3				49
 	true,   // 4				50
 	true,   // 5				51
-	true,   // 6				52	
+	true,   // 6				52
 	true,   // 7				53
 	true,   // 8				54
 	true,   // 9				55
@@ -6530,7 +6530,7 @@ bool shard_on_off[SHARD_NUMBER] = {
 	true,	// 30				76
 	true,   // 31				77
 	true,	// 1	PotC		78
-	true,   // 2				79	
+	true,   // 2				79
 	true,	// 3				80
 	true,   // 4				81
 	true,	// 1    Pot F		82

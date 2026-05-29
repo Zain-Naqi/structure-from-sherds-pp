@@ -1,4 +1,0 @@
-Experiment: inlier_score_only_no_icp
-Avg sherd accuracy: 75%
-Avg edge accuracy: 40%
-

@@ -1,4 +1,0 @@
-Experiment: all_components_no_icp
-Avg sherd accuracy: 87.5%
-Avg edge accuracy: 46.6667%
-
