@@ -890,6 +890,18 @@ private:
                             continue;
                         }
 
+                        // Skip overlap check for active adjacent pairs in the reconstruction tree
+                        bool is_adjacent = false;
+                        for (const auto& edge : pose_adj[idx1]) {
+                            if (edge.first == idx2) {
+                                is_adjacent = true;
+                                break;
+                            }
+                        }
+                        if (is_adjacent) {
+                            continue;
+                        }
+
                         overlap_penalty_sum += ComputeCloudOverlapPenaltyIndexed(
                             idx1,
                             idx2,
@@ -1730,17 +1742,11 @@ private:
         diag.hit_ratio = max(ratio_ab, ratio_ba);
         diag.avg_depth = (ab.depth_sum + ba.depth_sum) / static_cast<double>(total_hits);
 
-        const double h = static_cast<double>(max(ab.hits, ba.hits));
-        const double hit_confidence = h / (h + kOverlapDepthConfidenceCount);
-        const double absolute_overlap = h / (h + kOverlapHitSaturationCount);
-        const double absolute_overlap_effective = hit_confidence * absolute_overlap;
-        const double mixed_overlap = (kOverlapFractionMix * diag.hit_ratio)
-                                   + ((1.0 - kOverlapFractionMix) * absolute_overlap_effective);
-        const double depth_effective = (hit_confidence * diag.avg_depth)
-                                     + ((1.0 - hit_confidence) * kOverlapDepthPrior);
-        const double depth_term = pow(max(0.0, min(1.0, depth_effective)), kOverlapDepthGamma);
-
-        diag.pair_penalty = kOverlapPenalty * mixed_overlap * depth_term;
+        if (diag.hit_ratio < kOverlapMinHitRatio) {
+            diag.pair_penalty = 0.0;
+        } else {
+            diag.pair_penalty = kOverlapPenalty * diag.hit_ratio;
+        }
         return diag;
     }
 
@@ -1899,17 +1905,11 @@ private:
         diag.hit_ratio = max(ratio_ab, ratio_ba);
         diag.avg_depth = (ab.depth_sum + ba.depth_sum) / static_cast<double>(total_hits);
 
-        const double h = static_cast<double>(max(ab.hits, ba.hits));
-        const double hit_confidence = h / (h + kOverlapDepthConfidenceCount);
-        const double absolute_overlap = h / (h + kOverlapHitSaturationCount);
-        const double absolute_overlap_effective = hit_confidence * absolute_overlap;
-        const double mixed_overlap = (kOverlapFractionMix * diag.hit_ratio)
-                                   + ((1.0 - kOverlapFractionMix) * absolute_overlap_effective);
-        const double depth_effective = (hit_confidence * diag.avg_depth)
-                                     + ((1.0 - hit_confidence) * kOverlapDepthPrior);
-        const double depth_term = pow(max(0.0, min(1.0, depth_effective)), kOverlapDepthGamma);
-
-        diag.pair_penalty = kOverlapPenalty * mixed_overlap * depth_term;
+        if (diag.hit_ratio < kOverlapMinHitRatio) {
+            diag.pair_penalty = 0.0;
+        } else {
+            diag.pair_penalty = kOverlapPenalty * diag.hit_ratio;
+        }
         return diag;
     }
 
@@ -2019,6 +2019,18 @@ private:
                 diag.same_component = (component_id[i] >= 0 && component_id[i] == component_id[j]);
                 if (!diag.same_component) {
                     pair_diags.push_back(diag);
+                    continue;
+                }
+
+                // Skip adjacent pairs in the active reconstruction graph to match EvaluateFitness
+                bool is_adjacent = false;
+                for (const auto& edge : adjacency[i]) {
+                    if (edge.to == j) {
+                        is_adjacent = true;
+                        break;
+                    }
+                }
+                if (is_adjacent) {
                     continue;
                 }
 
@@ -2766,12 +2778,6 @@ private:
         DirectionalStats ab = QueryDirection(cloud_a, T_a, T_b_inv, collision_kdtrees_[idx_b]);
         DirectionalStats ba = QueryDirection(cloud_b, T_b, T_a_inv, collision_kdtrees_[idx_a]);
 
-        DirectionalStats primary = (ba.hits > ab.hits) ? ba : ab;
-        if (primary.hits == 0) {
-            return 0.0;
-        }
-
-        const int total_hits = ab.hits + ba.hits;
         const double ratio_ab = static_cast<double>(ab.hits) / static_cast<double>(max(1, ab.query_size));
         const double ratio_ba = static_cast<double>(ba.hits) / static_cast<double>(max(1, ba.query_size));
         const double hit_ratio = max(ratio_ab, ratio_ba);
@@ -2780,18 +2786,7 @@ private:
             return 0.0;
         }
 
-        const double avg_depth = (ab.depth_sum + ba.depth_sum) / static_cast<double>(total_hits);
-        const double h = static_cast<double>(max(ab.hits, ba.hits));
-        const double hit_confidence = h / (h + kOverlapDepthConfidenceCount);
-        const double absolute_overlap = h / (h + kOverlapHitSaturationCount);
-        const double absolute_overlap_effective = hit_confidence * absolute_overlap;
-        const double mixed_overlap = (kOverlapFractionMix * hit_ratio)
-                                   + ((1.0 - kOverlapFractionMix) * absolute_overlap_effective);
-        const double depth_effective = (hit_confidence * avg_depth)
-                                     + ((1.0 - hit_confidence) * kOverlapDepthPrior);
-        const double depth_term = pow(max(0.0, min(1.0, depth_effective)), kOverlapDepthGamma);
-
-        return kOverlapPenalty * mixed_overlap * depth_term;
+        return kOverlapPenalty * hit_ratio;
     }
 
     // static std::mt19937::result_type CreateSeed()
@@ -2823,15 +2818,10 @@ private:
 
     // Overlap constants
     static constexpr double kOverlapPenalty = 1200.0;
-    static constexpr double kOverlapFractionMix = 0.75;
-    static constexpr double kOverlapHitSaturationCount = 12.0;
-    static constexpr double kOverlapDepthConfidenceCount = 12.0;
-    static constexpr double kOverlapDepthPrior = 0.15;
-    static constexpr double kOverlapDepthGamma = 1.3;
-    static constexpr double kOverlapMinHitRatio = 0.05;
+    static constexpr double kOverlapMinHitRatio = 0.01;
     static constexpr double kCollisionPointEpsilon = 2.5;   // mm
-    static constexpr double kCollisionEdgeExclusion = 2.0;  // mm
-    static constexpr double kCollisionVoxelSize = 5.0;      // mm
+    static constexpr double kCollisionEdgeExclusion = 0.0;  // mm
+    static constexpr double kCollisionVoxelSize = 3.0;      // mm
     static constexpr int kSnapshotInterval = 25;
     static constexpr bool kEnableSnapshots = true;
     static constexpr bool kEnableConvergenceLog = true;
