@@ -833,6 +833,8 @@ int main(int argc, char** argv)
 		}
 	}
 
+	T_final_vis = T_ga_vis; // FORCE PRE-ICP GA POSES FOR DEBUGGING
+
 	// Final result summary for refined assembly
 	sherd_acc = { k_sherd_final, t_sherd_final };
 	edge_acc = { k_edge_final, t_edge_final };
@@ -882,7 +884,7 @@ int main(int argc, char** argv)
 		pc_origin[i].UpdateData(viewer,
 			shard_original[i].edge_line_.point_,
 			shard_original[i].edge_line_.normal_);
-		pc_origin[i].MeshTransform(R_vis, t_vis, viewer);
+		pc_origin[i].Transform(R_vis, t_vis, viewer);
 		pc_origin[i].AddPointCloud(viewer);
 		pc_origin[i].AddMesh(viewer);
 	}

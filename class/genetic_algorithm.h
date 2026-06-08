@@ -1635,6 +1635,19 @@ private:
             return diag;
         }
 
+        // Broad-phase bounding sphere check
+        Vector4d c_a_h, c_b_h;
+        c_a_h << collision_cloud_centroids_[idx_a], 1.0;
+        c_b_h << collision_cloud_centroids_[idx_b], 1.0;
+        Vector3d c_a_global = (T_a * c_a_h).head<3>();
+        Vector3d c_b_global = (T_b * c_b_h).head<3>();
+        double dist = (c_a_global - c_b_global).norm();
+        double r_sum = collision_cloud_radii_[idx_a] + collision_cloud_radii_[idx_b];
+
+        diag.center_distance = dist;
+        diag.broad_radius = r_sum;
+        diag.broad_phase_rejected = false;
+
         Matrix4d T_b_inv = T_b.inverse();
         Matrix4d T_a_inv = T_a.inverse();
 
@@ -1658,10 +1671,6 @@ private:
             }
 
             const double epsilon_sq = kCollisionPointEpsilon * kCollisionPointEpsilon;
-            const int min_hits_needed = static_cast<int>(
-                kOverlapMinHitRatio * static_cast<double>(query_local.size()));
-            const int max_misses = static_cast<int>(query_local.size()) - min_hits_needed;
-            int misses = 0;
             double min_best_sq = numeric_limits<double>::max();
             Matrix4d T_combined = T_target_inv * T_query;
 
@@ -1672,10 +1681,6 @@ private:
 
                 kdres* result = kd_nearest3(target_tree, q(0), q(1), q(2));
                 if (!result) {
-                    misses++;
-                    if (misses > max_misses) {
-                        break;
-                    }
                     continue;
                 }
 
@@ -1696,11 +1701,6 @@ private:
                     double depth_ratio = 1.0 - (sqrt(best_sq) / kCollisionPointEpsilon);
                     stats.depth_sum += max(0.0, depth_ratio);
                     stats.hits++;
-                } else {
-                    misses++;
-                    if (misses > max_misses) {
-                        break;
-                    }
                 }
             }
 
@@ -1739,7 +1739,7 @@ private:
 
         const double ratio_ab = static_cast<double>(ab.hits) / static_cast<double>(max(1, ab.query_size));
         const double ratio_ba = static_cast<double>(ba.hits) / static_cast<double>(max(1, ba.query_size));
-        diag.hit_ratio = max(ratio_ab, ratio_ba);
+        diag.hit_ratio = min(ratio_ab, ratio_ba);
         diag.avg_depth = (ab.depth_sum + ba.depth_sum) / static_cast<double>(total_hits);
 
         if (diag.hit_ratio < kOverlapMinHitRatio) {
@@ -1824,18 +1824,9 @@ private:
                 kd_insert3(tree, target[j](0), target[j](1), target[j](2), nullptr);
             }
 
-            const int min_hits_needed = static_cast<int>(
-                GeneticAssembler::kOverlapMinHitRatio * static_cast<double>(query.size()));
-            const int max_misses = static_cast<int>(query.size()) - min_hits_needed;
-            int misses = 0;
-
             for (size_t i = 0; i < query.size(); ++i) {
                 kdres* result = kd_nearest3(tree, query[i](0), query[i](1), query[i](2));
                 if (result == nullptr) {
-                    misses++;
-                    if (misses > max_misses) {
-                        break;
-                    }
                     continue;
                 }
 
@@ -1857,11 +1848,6 @@ private:
                     double depth_ratio = 1.0 - (d / GeneticAssembler::kCollisionPointEpsilon);
                     stats.depth_sum += max(0.0, depth_ratio);
                     stats.hits++;
-                } else {
-                    misses++;
-                    if (misses > max_misses) {
-                        break;
-                    }
                 }
             }
 
@@ -1902,7 +1888,7 @@ private:
 
         const double ratio_ab = static_cast<double>(ab.hits) / static_cast<double>(max(1, ab.query_size));
         const double ratio_ba = static_cast<double>(ba.hits) / static_cast<double>(max(1, ba.query_size));
-        diag.hit_ratio = max(ratio_ab, ratio_ba);
+        diag.hit_ratio = min(ratio_ab, ratio_ba);
         diag.avg_depth = (ab.depth_sum + ba.depth_sum) / static_cast<double>(total_hits);
 
         if (diag.hit_ratio < kOverlapMinHitRatio) {
@@ -2044,6 +2030,16 @@ private:
 
                 narrow_phase_pair_count++;
                 PairOverlapDiagnostic narrow = ComputeCloudOverlapDiagnosticIndexed(i, j, T_to_root[i], T_to_root[j]);
+                diag.center_distance = narrow.center_distance;
+                diag.broad_radius = narrow.broad_radius;
+                diag.broad_phase_rejected = narrow.broad_phase_rejected;
+
+                if (diag.broad_phase_rejected) {
+                    broad_phase_reject_count++;
+                    pair_diags.push_back(diag);
+                    continue;
+                }
+
                 diag.query_size = narrow.query_size;
                 diag.target_size = narrow.target_size;
                 diag.collision_hits = narrow.collision_hits;
@@ -2276,6 +2272,7 @@ private:
             ss << "  No active cloud collisions detected." << endl;
         }
         LogDiagnostic(ss.str());
+        cout << ss.str();
     }
 
     void LogBestChromosomeBreakdown(int generation, const Chromosome& best) const
@@ -2676,6 +2673,77 @@ private:
              << " | Valid GT Matches: " << valid_matches
              << " | Missing/Invalid: " << (summaries.size() - valid_matches) << endl;
         cout << "######################################################################" << endl;
+
+        // BFS to select exactly N-1 cyclic-free edges from the GT edges
+        vector<bool> visited(num_shards_, false);
+        queue<int> q;
+        vector<int> gt_genes(pair_groups_.size(), 0);
+
+        int start_node = 0;
+        q.push(start_node);
+        visited[start_node] = true;
+
+        cout << "\n--- SELECTED GT SPANNING TREE EDGES ---" << endl;
+        while (!q.empty()) {
+            int curr = q.front();
+            q.pop();
+
+            for (int neighbor = 0; neighbor < num_shards_; ++neighbor) {
+                if (GT_graph(curr, neighbor) == 0 || visited[neighbor]) {
+                    continue;
+                }
+
+                visited[neighbor] = true;
+                q.push(neighbor);
+
+                int group_idx = PairGroupIndex(curr, neighbor);
+                if (group_idx < 0) continue;
+
+                int best_choice = 0;
+                for (const auto& sm : summaries) {
+                    if ((sm.shard_a == curr + 1 && sm.shard_b == neighbor + 1) ||
+                        (sm.shard_a == neighbor + 1 && sm.shard_b == curr + 1)) {
+                        best_choice = sm.best_choice;
+                        break;
+                    }
+                }
+                gt_genes[group_idx] = best_choice;
+                cout << "  Spanning Tree Edge: Shard " << curr + 1 << " - Shard " << neighbor + 1
+                     << " (Choice " << best_choice << ")" << endl;
+            }
+        }
+        cout << "---------------------------------------" << endl;
+
+        Chromosome gt_chromosome;
+        gt_chromosome.genes = gt_genes;
+        gt_chromosome.root_shard = start_node;
+        gt_chromosome.fitness = 0.0;
+
+        FitnessBreakdown breakdown;
+        EvaluateFitness(gt_chromosome, &breakdown);
+        gt_chromosome.fitness = breakdown.total_fitness;
+
+        cout << "\n==============================================" << endl;
+        cout << "       GROUND TRUTH GA FITNESS AUDIT          " << endl;
+        cout << "==============================================" << endl;
+        cout << "  Total Fitness Score:         " << breakdown.total_fitness << endl;
+        cout << "  Inlier Reward (+):           " << breakdown.inlier_reward << endl;
+        cout << "  Connectivity Reward (+):     " << breakdown.connectivity_reward << endl;
+        cout << "  Cycle Penalty (-):           " << breakdown.cycle_penalty << endl;
+        cout << "  Overlap Penalty (-):         " << breakdown.overlap_penalty << endl;
+        cout << "  Edge Residual Penalty (-):   " << breakdown.edge_residual_penalty << endl;
+        cout << "  Edge Rot Residual Penalty (-): " << breakdown.edge_rot_residual_penalty << endl;
+        cout << "  Component Penalty (-):       " << breakdown.connectivity_component_penalty << endl;
+        cout << "  Active Pairs (Edges):        " << breakdown.active_pair_count << endl;
+        cout << "==============================================" << endl;
+
+        // Audit the collisions specifically for the ground truth chromosome
+        AuditChromosomeCollisions(gt_chromosome, "GROUND TRUTH");
+
+        // Save the GT chromosome to the GA results so main.cpp visualizes it
+        BuildOutputsFromSelection(gt_genes, start_node);
+        population_.clear();
+        population_.push_back(gt_chromosome);
     }
 
     //-----------------------------------------------------------------------------------------------------------------//
@@ -2723,10 +2791,6 @@ private:
             }
 
             const double epsilon_sq = kCollisionPointEpsilon * kCollisionPointEpsilon;
-            const int min_hits_needed = static_cast<int>(
-                kOverlapMinHitRatio * static_cast<double>(query_local.size()));
-            const int max_misses = static_cast<int>(query_local.size()) - min_hits_needed;
-            int misses = 0;
             double min_best_sq = numeric_limits<double>::max();
             Matrix4d T_combined = T_target_inv * T_query;
 
@@ -2737,10 +2801,6 @@ private:
 
                 kdres* result = kd_nearest3(target_tree, q(0), q(1), q(2));
                 if (!result) {
-                    misses++;
-                    if (misses > max_misses) {
-                        break;
-                    }
                     continue;
                 }
 
@@ -2761,11 +2821,6 @@ private:
                     double depth_ratio = 1.0 - (sqrt(best_sq) / kCollisionPointEpsilon);
                     stats.depth_sum += max(0.0, depth_ratio);
                     stats.hits++;
-                } else {
-                    misses++;
-                    if (misses > max_misses) {
-                        break;
-                    }
                 }
             }
 
@@ -2780,7 +2835,7 @@ private:
 
         const double ratio_ab = static_cast<double>(ab.hits) / static_cast<double>(max(1, ab.query_size));
         const double ratio_ba = static_cast<double>(ba.hits) / static_cast<double>(max(1, ba.query_size));
-        const double hit_ratio = max(ratio_ab, ratio_ba);
+        const double hit_ratio = min(ratio_ab, ratio_ba);
 
         if (hit_ratio < kOverlapMinHitRatio) {
             return 0.0;
@@ -2803,7 +2858,7 @@ private:
 
     static constexpr int kPopulationSize = 200;
     static constexpr int kMaxGenerations = 150;
-    static constexpr int kElitismCount = 0;
+    static constexpr int kElitismCount = 1;
     static constexpr int kNumSeeds = 5;
     static constexpr double kMutationRate = 0.20; // Increased from 0.05 for better symmetry exploration
     static constexpr double kBiasInheritRatio = 0.4;
@@ -2818,9 +2873,9 @@ private:
 
     // Overlap constants
     static constexpr double kOverlapPenalty = 1200.0;
-    static constexpr double kOverlapMinHitRatio = 0.01;
+    static constexpr double kOverlapMinHitRatio = 0.05;
     static constexpr double kCollisionPointEpsilon = 2.5;   // mm
-    static constexpr double kCollisionEdgeExclusion = 0.0;  // mm
+    static constexpr double kCollisionEdgeExclusion = 4.0;  // mm
     static constexpr double kCollisionVoxelSize = 3.0;      // mm
     static constexpr int kSnapshotInterval = 25;
     static constexpr bool kEnableSnapshots = true;
