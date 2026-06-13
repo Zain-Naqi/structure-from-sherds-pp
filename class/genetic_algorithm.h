@@ -2856,7 +2856,7 @@ private:
     // }
 
 
-    static constexpr int kPopulationSize = 200;
+    static constexpr int kPopulationSize = 350;
     static constexpr int kMaxGenerations = 150;
     static constexpr int kElitismCount = 1;
     static constexpr int kNumSeeds = 5;
