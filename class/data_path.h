@@ -8,12 +8,12 @@
 
 // #define POT_A
 // #define POT_B
-#define POT_C
+// #define POT_C
 // #define POT_D	// Skip
 // #define POT_E	// Skip
 // #define POT_F
 // #define POT_G
-// #define POT_H	// Skip
+#define POT_H	// Skip
 // #define POT_I	// Skip
 // #define POT_J	// Skip
 //#define POT_A_B_C

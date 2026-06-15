@@ -2938,9 +2938,17 @@ private:
         // set_gt_gene(9, 7, 1);
 
         // for pot c
-        set_gt_gene(3, 1, 2);
-        set_gt_gene(3, 2, 11);
-        set_gt_gene(4, 2, 6);
+        // set_gt_gene(3, 1, 2);
+        // set_gt_gene(3, 2, 11);
+        // set_gt_gene(4, 2, 6);
+
+        // for pot g
+        set_gt_gene(1, 3, 2);
+        set_gt_gene(1, 4, 1);
+        set_gt_gene(4, 7, 1);
+        set_gt_gene(3, 6, 2);
+        set_gt_gene(5, 7, 2);
+        set_gt_gene(2, 5, 1);
         cout << "---------------------------------------" << endl;
 
         Chromosome gt_chromosome;

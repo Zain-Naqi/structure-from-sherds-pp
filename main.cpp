@@ -10,7 +10,7 @@
 #include <Eigen/Core>
 #include <boost/thread/thread.hpp>
 #include <pcl/common/common_headers.h>
-#include <pcl/features/normal_3d.h> 
+#include <pcl/features/normal_3d.h>
 #include <pcl/io/pcd_io.h>
 #include <pcl/io/obj_io.h>
 #include <pcl/io/vtk_lib_io.h>
@@ -25,7 +25,7 @@
 #include "class/data_structure.h"
 #include "class/visualize.h"
 #include "class/reconstruction.h"
-#include "class/feature_matching.h"			
+#include "class/feature_matching.h"
 #include "class/ranking_system.h"
 #include "class/genetic_algorithm.h"
 
@@ -43,7 +43,7 @@ MatrixXd GT_graph(SHARD_NUMBER, SHARD_NUMBER);
 
 pcl::visualization::PCLVisualizer::Ptr viewer(new pcl::visualization::PCLVisualizer("Pot reconstruction"));
 
-VisSwitchVariables vis; 
+VisSwitchVariables vis;
 
 //------------------------------------------------------------------------------------------------------------------------//
 
@@ -57,7 +57,7 @@ void keyboardEventOccurred(const pcl::visualization::KeyboardEvent& event, void*
 
 //------------------------------------------------------------------------------------------------------------------------//
 
-int main(int argc, char** argv) 
+int main(int argc, char** argv)
 {
 
 	//-------------------------------------------------------------------------------------------------------------------//
@@ -159,7 +159,7 @@ int main(int argc, char** argv)
 
 	//------------------------------------------------------------------------------------------------------------------//
 
-#ifdef NO_RIM_INFO 
+#ifdef NO_RIM_INFO
 	for (int i = 0; i < SHARD_NUMBER; i++) {
 		shard[i].edge_line_.is_seg_rim_ = false;
 	}
@@ -217,7 +217,7 @@ int main(int argc, char** argv)
 		start_index += num_raw;
 	}
 
-	//########## Remove excluded sherd information 
+	//########## Remove excluded sherd information
 	for (int i = 0; i < SHARD_NUMBER; i++) {
 		if (!shard_on_off[i]) {
 			for (int j = 0; j < SHARD_NUMBER; j++) {
@@ -232,7 +232,7 @@ int main(int argc, char** argv)
 
 	cout << "#################### Save initial state ####################" << endl;
 
-	vector<Visualize> pc_origin(SHARD_NUMBER); 
+	vector<Visualize> pc_origin(SHARD_NUMBER);
 
 	for (int i = 0; i < SHARD_NUMBER; i++) {
 		if (shard_on_off[i]) {
@@ -261,7 +261,7 @@ int main(int argc, char** argv)
 			T_axis[i].Set(R_d, t_d, i + 1, i + 1);
 
 			// Align symmetric axis to z-axis
-			AxisAlignment(shard[i].edge_line_, R_d, t_d);	
+			AxisAlignment(shard[i].edge_line_, R_d, t_d);
 			shard[i].SurMove(R_d, t_d, true);
 
 			pc_origin[i].UpdateData(viewer, shard[i].edge_line_.point_, shard[i].edge_line_.normal_);
@@ -395,7 +395,7 @@ int main(int argc, char** argv)
 	for (ga_iteration = 0; ga_iteration < kMaxGAIterations; ++ga_iteration) {
 
 		cout << "=== GA Iteration " << ga_iteration + 1 << " / " << kMaxGAIterations << " ===" << endl;
-		
+
 		// Run GA on current match list
 		GeneticAssembler ga_iter(shard, LCS_out, SHARD_NUMBER);
 		ga_iter.Run(GT_graph, GT_trans, T_axis);
@@ -405,7 +405,7 @@ int main(int argc, char** argv)
 		// Trans::Input essentially executes T_live_new = T_delta * T_live_old
 		for (int i = 0; i < SHARD_NUMBER; ++i) {
 			if (!shard_on_off[i]) continue;
-			
+
 			Matrix3d R_delta;
 			Vector3d t_delta;
 			T_ga[i].Output(R_delta, t_delta);
@@ -420,7 +420,7 @@ int main(int argc, char** argv)
 		// Only keep state if it strictly improves the global best fitness.
 		if (improved) {
             best_fitness_so_far = current_fitness;
-            
+
             graph_ga = ga_iter.GetGraph();
 			T_best = T_live; // Snapshot the best axis-aligned transform
 
@@ -432,7 +432,7 @@ int main(int argc, char** argv)
 				Matrix3d R_b;
 				Vector3d t_b;
 				T_best[i].Output(R_b, t_b);
-				
+
                 // T_ga_eval tracks Raw -> Axis -> Assembled
 				T_ga_eval[i] = T_axis[i];
 				T_ga_eval[i].Input(R_b, t_b);
@@ -474,7 +474,7 @@ int main(int argc, char** argv)
 		// if (viewer->wasStopped()) {
 		// 	return 0;
 		// }
-			
+
 		// Check convergence
 		if (ga_iteration > 0) {
 			if (improvement < kConvergenceThreshold) {
@@ -895,7 +895,7 @@ int main(int argc, char** argv)
 	// Interactive toggle loop — press 'G' to switch between GA and GT
 	bool last_ground = false; // Monitor toggle state
 	cout << "Showing Refined assembly. Press 'G' to toggle Ground Truth comparison! Press 'Q' to quit." << endl;
-	
+
     while (!viewer->wasStopped()) {
 		if (vis.ground_ != last_ground) {
 			for (int i = 0; i < SHARD_NUMBER; i++) {
