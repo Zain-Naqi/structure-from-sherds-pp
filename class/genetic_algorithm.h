@@ -520,20 +520,22 @@ private:
 
     //-----------------------------------------------------------------------------------------------------------------//
 
-    // BFS Repair Operator (Lamarckian): Prune active edges that are not part of the BFS
-    // spanning tree. Non-tree edges don't contribute to shard positioning but can
-    // accumulate collision/residual penalties. This makes the genotype honest about
-    // what the phenotype (assembly) actually uses.
+    // Maximum Spanning Forest (MST) Repair Operator (Lamarckian): Prune active edges 
+    // that form cycles, prioritizing keeping the highest-density matches (based on inliers and scores).
+    // This makes the genotype honest about what the phenotype (assembly) actually uses.
     void RepairChromosome(Chromosome& chromosome) const
     {
-        // Step 1: Decode active pairs and build adjacency with group tracking
-        struct RepairAdj {
-            int neighbor;
+        struct ActiveEdge {
+            int u;
+            int v;
             int group_idx;
+            double weight;
         };
-        vector<vector<RepairAdj>> adj(num_shards_);
-        vector<bool> group_active(pair_groups_.size(), false);
 
+        vector<ActiveEdge> active_edges;
+        active_edges.reserve(chromosome.genes.size());
+
+        // Step 1: Collect active edges and compute their density weights
         for (size_t group_idx = 0; group_idx < chromosome.genes.size(); ++group_idx) {
             int choice = chromosome.genes[group_idx];
             if (choice <= 0) continue;
@@ -547,48 +549,50 @@ private:
             int y = lcs.shard_y_ - 1;
             if (!IsShardValidAndOn(x) || !IsShardValidAndOn(y)) continue;
 
-            group_active[group_idx] = true;
-            adj[x].push_back({y, static_cast<int>(group_idx)});
-            adj[y].push_back({x, static_cast<int>(group_idx)});
+            double weight = static_cast<double>(lcs.inliner_) / (1.0 + lcs.score_);
+            active_edges.push_back({x, y, static_cast<int>(group_idx), weight});
         }
 
-        // Step 2: BFS to find spanning tree(s). Start from chromosome's designated
-        //         root to determine the main tree shape, then handle remaining components.
-        vector<bool> visited(num_shards_, false);
-        vector<bool> is_tree_edge(pair_groups_.size(), false);
+        // Step 2: Sort active edges in descending order of weight (Maximum Spanning Tree)
+        std::sort(active_edges.begin(), active_edges.end(), [](const ActiveEdge& a, const ActiveEdge& b) {
+            return a.weight > b.weight;
+        });
 
-        auto bfs_from = [&](int start_node) {
-            if (visited[start_node]) return;
-
-            queue<int> q;
-            q.push(start_node);
-            visited[start_node] = true;
-
-            while (!q.empty()) {
-                int curr = q.front();
-                q.pop();
-
-                for (const auto& edge : adj[curr]) {
-                    if (visited[edge.neighbor]) continue;
-
-                    visited[edge.neighbor] = true;
-                    is_tree_edge[edge.group_idx] = true;
-                    q.push(edge.neighbor);
+        // Step 3: Run Kruskal's algorithm using a Disjoint Set Union (DSU) helper
+        struct DSU {
+            vector<int> parent;
+            DSU(int n) {
+                parent.resize(n);
+                for (int i = 0; i < n; ++i) parent[i] = i;
+            }
+            int find(int i) {
+                if (parent[i] == i)
+                    return i;
+                return parent[i] = find(parent[i]); // Path compression
+            }
+            bool unite(int i, int j) {
+                int root_i = find(i);
+                int root_j = find(j);
+                if (root_i != root_j) {
+                    parent[root_i] = root_j;
+                    return true;
                 }
+                return false;
             }
         };
 
-        // Primary root — determines the main spanning tree shape
-        bfs_from(chromosome.root_shard);
+        DSU dsu(num_shards_);
+        vector<bool> is_tree_edge(pair_groups_.size(), false);
 
-        // Remaining components (disconnected sherds)
-        for (int start_node : valid_shard_indices_) {
-            bfs_from(start_node);
+        for (const auto& edge : active_edges) {
+            if (dsu.unite(edge.u, edge.v)) {
+                is_tree_edge[edge.group_idx] = true;
+            }
         }
 
-        // Step 3: Prune non-tree active edges (Lamarckian — permanently modifies chromosome)
+        // Step 4: Prune non-tree active edges (permanently modifies chromosome)
         for (size_t group_idx = 0; group_idx < chromosome.genes.size(); ++group_idx) {
-            if (group_active[group_idx] && !is_tree_edge[group_idx]) {
+            if (chromosome.genes[group_idx] > 0 && !is_tree_edge[group_idx]) {
                 chromosome.genes[group_idx] = 0;
             }
         }
@@ -810,15 +814,8 @@ private:
                     }
 
                     Matrix4d T_diff = T_pred_ab * edge.T_ab.inverse();
-                    Matrix3d R_diff;
-                    for (int r = 0; r < 3; ++r) {
-                        R_diff.row(r) << T_diff(r, 0), T_diff(r, 1), T_diff(r, 2);
-                    }
-
-                    Matrix3d log_R = R_diff.log();
-                    Vector3d w;
-                    w << -log_R(1, 2), log_R(0, 2), -log_R(0, 1);
-                    double rot_residual = w.norm();
+                    double trace = T_diff(0, 0) + T_diff(1, 1) + T_diff(2, 2);
+                    double rot_residual = acos(std::max(-1.0, std::min(1.0, (trace - 1.0) * 0.5)));
 
                     if (rot_residual > kEdgeRotResidualThreshold) {
                         double excess = rot_residual - kEdgeRotResidualThreshold;
@@ -936,17 +933,17 @@ private:
 
                                 // Measure error between landed transform and idx's current transform
                                 Matrix4d T_diff = T_landed * T_comp[idx].inverse();
-                                Matrix3d R_diff; Vector3d t_diff, w;
-                                for (int r = 0; r < 3; r++) {
-                                    R_diff.row(r) << T_diff(r, 0), T_diff(r, 1), T_diff(r, 2);
-                                    t_diff[r] = T_diff(r, 3);
-                                }
-                                Matrix3d log_R = R_diff.log();
-                                w << -log_R(1, 2), log_R(0, 2), -log_R(0, 1);
-                                double r_err = w.norm();
-                                double t_err = t_diff.norm();
 
-                                if (r_err < kConsensusRotThreshold && t_err < kConsensusTransThreshold) {
+                                // 1. Translation check first using squared norm (avoids sqrt)
+                                Vector3d t_diff(T_diff(0, 3), T_diff(1, 3), T_diff(2, 3));
+                                double t_err_sq = t_diff.squaredNorm();
+                                if (t_err_sq >= kConsensusTransThreshold * kConsensusTransThreshold) {
+                                    continue;
+                                }
+
+                                // 2. Rotation check using trace (avoids matrix log and acos)
+                                double trace = T_diff(0, 0) + T_diff(1, 1) + T_diff(2, 2);
+                                if (trace > 2.0 * kCosConsensusRotThreshold + 1.0) {
                                     consensus_reward += kConsensusWeight * static_cast<double>(lcs.inliner_);
                                     break; // Max one supporting candidate per alternative pair
                                 }
@@ -1727,6 +1724,11 @@ private:
 
         diag.center_distance = dist;
         diag.broad_radius = r_sum;
+        if (dist > r_sum + kCollisionPointEpsilon) {
+            diag.broad_phase_rejected = true;
+            diag.pair_penalty = 0.0;
+            return diag;
+        }
         diag.broad_phase_rejected = false;
 
         Matrix4d T_b_inv = T_b.inverse();
@@ -1754,11 +1756,11 @@ private:
             const double epsilon_sq = kCollisionPointEpsilon * kCollisionPointEpsilon;
             double min_best_sq = numeric_limits<double>::max();
             Matrix4d T_combined = T_target_inv * T_query;
+            Matrix3d R_combined = T_combined.block<3, 3>(0, 0);
+            Vector3d t_combined = T_combined.block<3, 1>(0, 3);
 
             for (size_t i = 0; i < query_local.size(); ++i) {
-                Vector4d h;
-                h << query_local[i], 1.0;
-                Vector3d q = (T_combined * h).head<3>();
+                Vector3d q = R_combined * query_local[i] + t_combined;
 
                 kdres* result = kd_nearest3(target_tree, q(0), q(1), q(2));
                 if (!result) {
@@ -3009,6 +3011,18 @@ private:
             return 0.0;
         }
 
+        // Broad-phase bounding sphere check
+        Vector4d c_a_h, c_b_h;
+        c_a_h << collision_cloud_centroids_[idx_a], 1.0;
+        c_b_h << collision_cloud_centroids_[idx_b], 1.0;
+        Vector3d c_a_global = (T_a * c_a_h).head<3>();
+        Vector3d c_b_global = (T_b * c_b_h).head<3>();
+        double dist = (c_a_global - c_b_global).norm();
+        double r_sum = collision_cloud_radii_[idx_a] + collision_cloud_radii_[idx_b];
+        if (dist > r_sum + kCollisionPointEpsilon) {
+            return 0.0;
+        }
+
         Matrix4d T_b_inv = T_b.inverse();
         Matrix4d T_a_inv = T_a.inverse();
 
@@ -3032,11 +3046,11 @@ private:
             const double epsilon_sq = kCollisionPointEpsilon * kCollisionPointEpsilon;
             double min_best_sq = numeric_limits<double>::max();
             Matrix4d T_combined = T_target_inv * T_query;
+            Matrix3d R_combined = T_combined.block<3, 3>(0, 0);
+            Vector3d t_combined = T_combined.block<3, 1>(0, 3);
 
             for (size_t i = 0; i < query_local.size(); ++i) {
-                Vector4d h;
-                h << query_local[i], 1.0;
-                Vector3d q = (T_combined * h).head<3>();
+                Vector3d q = R_combined * query_local[i] + t_combined;
 
                 kdres* result = kd_nearest3(target_tree, q(0), q(1), q(2));
                 if (!result) {
@@ -3243,6 +3257,8 @@ private:
     vector<int> pair_group_lookup_;
     int valid_shard_count_ = 0;
     int valid_group_count_ = 0;
+
+    const double kCosConsensusRotThreshold = cos(kConsensusRotThreshold);
 
     // std::mt19937::result_type rng_seed_ = CreateSeed();
     std::mt19937::result_type rng_seed_ = 42;
