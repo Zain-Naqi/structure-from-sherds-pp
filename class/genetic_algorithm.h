@@ -38,6 +38,7 @@ class GeneticAssembler {
 public:
     bool use_inlier_score        = true;
     bool use_connectivity_reward = true;
+    bool use_component_penalty   = false;
     bool use_cycle_penalty       = false;  // Always 0 after BFS repair (no cycles in a tree)
     bool use_edge_residual       = false;  // Always 0 after BFS repair (no cycles in a tree)
     bool use_rot_residual        = false;  // Always 0 after BFS repair (no cycles in a tree)
@@ -104,8 +105,8 @@ public:
 
     //-----------------------------------------------------------------------------------------------------------------//
 
-    GeneticAssembler(const vector<Geom>& shard, list<LCSIndex>& LCS_out, int num_shards)
-        : shard_(shard), num_shards_(num_shards)
+    GeneticAssembler(const vector<Geom>& shard, list<LCSIndex>& LCS_out, int num_shards, int max_edges = -1)
+        : shard_(shard), num_shards_(num_shards), max_edges_(max_edges)
     {
 
         for (list<LCSIndex>::const_iterator it = LCS_out.begin(); it != LCS_out.end(); ++it) {
@@ -583,10 +584,15 @@ private:
 
         DSU dsu(num_shards_);
         vector<bool> is_tree_edge(pair_groups_.size(), false);
+        int edge_count = 0;
 
         for (const auto& edge : active_edges) {
+            if (max_edges_ >= 0 && edge_count >= max_edges_) {
+                break;
+            }
             if (dsu.unite(edge.u, edge.v)) {
                 is_tree_edge[edge.group_idx] = true;
+                edge_count++;
             }
         }
 
@@ -1012,7 +1018,7 @@ private:
                 breakdown->connectivity_reward = reward;
             }
 
-            if (num_components > 1) {
+            if (use_component_penalty && num_components > 1) {
                 double penalty = kConnectivityComponentPenalty * static_cast<double>(num_components - 1);
                 fitness -= penalty;
                 if (breakdown != nullptr) {
@@ -3259,6 +3265,8 @@ private:
     int valid_group_count_ = 0;
 
     const double kCosConsensusRotThreshold = cos(kConsensusRotThreshold);
+
+    int max_edges_ = -1;
 
     // std::mt19937::result_type rng_seed_ = CreateSeed();
     std::mt19937::result_type rng_seed_ = 42;

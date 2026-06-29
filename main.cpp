@@ -317,7 +317,11 @@ int main(int argc, char** argv)
 	cout << "#################### Genetic Algorithm search ####################" << endl;
 
 	// Iterative GA Parameters
-	const int kMaxGAIterations = 1;
+	int active_shard_count = 0;
+	for (int i = 0; i < SHARD_NUMBER; ++i) {
+		if (shard_on_off[i]) active_shard_count++;
+	}
+	const int kMaxGAIterations = std::max(1, active_shard_count - 1);
 	const double kConvergenceThreshold = 5.0;	// minimum fitness improvement to continue
 	const int kMaxPatience = 5;
 
@@ -396,8 +400,9 @@ int main(int argc, char** argv)
 
 		cout << "=== GA Iteration " << ga_iteration + 1 << " / " << kMaxGAIterations << " ===" << endl;
 
-		// Run GA on current match list
-		GeneticAssembler ga_iter(shard, LCS_out, SHARD_NUMBER);
+		// Run GA on current match list, limiting the number of active edges to the current iteration index + 1
+		int target_edges = ga_iteration + 1;
+		GeneticAssembler ga_iter(shard, LCS_out, SHARD_NUMBER, target_edges);
 		ga_iter.Run(GT_graph, GT_trans, T_axis);
 		T_ga = ga_iter.GetTransforms();
 
@@ -512,6 +517,13 @@ int main(int argc, char** argv)
 			Vector3d t;
 			T_best[i].Output(R, t);
 			shard[i].Move(R, t, true);
+		}
+
+		// Recompute 1D curve descriptors on newly assembled positions
+		for (int i = 0; i < SHARD_NUMBER; ++i) {
+			if (shard_on_off[i]) {
+				CalculateFeatureAxisless(shard[i], 0);
+			}
 		}
 
 		// Recompute matches on newly assembled positions
