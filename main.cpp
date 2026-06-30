@@ -249,6 +249,9 @@ int main(int argc, char** argv)
 
 	//------------------------------------------------------------------------------------------------------------------//
 
+	// Keep a copy of original RAW shard positions
+	vector<Geom> shard_raw_backup = shard;
+
 	cout << "#################### Change Axis symmetrix to z axis ####################" << endl;
 
 	vector<Trans> T_axis(SHARD_NUMBER);
@@ -406,15 +409,14 @@ int main(int argc, char** argv)
 		ga_iter.Run(GT_graph, GT_trans, T_axis);
 		T_ga = ga_iter.GetTransforms();
 
-		// Accumulate live transformation by composing delta (T_ga) on top of current T_live
-		// Trans::Input essentially executes T_live_new = T_delta * T_live_old
+		// Update live transformation directly to the absolute pose T_ga
 		for (int i = 0; i < SHARD_NUMBER; ++i) {
 			if (!shard_on_off[i]) continue;
 
 			Matrix3d R_delta;
 			Vector3d t_delta;
 			T_ga[i].Output(R_delta, t_delta);
-			T_live[i].Input(R_delta, t_delta);
+			T_live[i].Set(R_delta, t_delta);
 		}
 
 		// Get best fitness from this run
@@ -502,29 +504,139 @@ int main(int argc, char** argv)
 
 		// Recompute matches from best-so-far pose to avoid drifting into
 		// weaker candidate sets after non-improving exploratory moves.
-		T_live = T_best;
-
-		// Apply best transforms to sherds to get assembled positions
-		// Reset to original positions first, then apply best transforms
+		// 1. Move active shards to their current best assembled poses
 		shard = shard_original;
-
-		for (int i = 0; i < SHARD_NUMBER; ++i) {
-			if (!shard_on_off[i]) {
-				continue;
-			}
-
-			Matrix3d R;
-			Vector3d t;
-			T_best[i].Output(R, t);
-			shard[i].Move(R, t, true);
-		}
-
-		// Recompute 1D curve descriptors on newly assembled positions
 		for (int i = 0; i < SHARD_NUMBER; ++i) {
 			if (shard_on_off[i]) {
-				CalculateFeatureAxisless(shard[i], 0);
+				Matrix3d R;
+				Vector3d t;
+				T_best[i].Output(R, t);
+				shard[i].Move(R, t, true);
 			}
 		}
+
+		// 2. Identify active shards in the largest connected component of graph_ga
+		vector<int> largest_component;
+		{
+			vector<vector<int>> components;
+			vector<bool> visited(SHARD_NUMBER, false);
+			for (int i = 0; i < SHARD_NUMBER; ++i) {
+				if (!shard_on_off[i] || visited[i]) continue;
+				vector<int> comp;
+				queue<int> q;
+				q.push(i);
+				visited[i] = true;
+				while (!q.empty()) {
+					int curr = q.front();
+					q.pop();
+					comp.push_back(curr);
+					for (int next = 0; next < SHARD_NUMBER; ++next) {
+						if (shard_on_off[next] && !visited[next] && (graph_ga(curr, next) > 0 || graph_ga(next, curr) > 0)) {
+							visited[next] = true;
+							q.push(next);
+						}
+					}
+				}
+				components.push_back(comp);
+			}
+			int max_size = 0;
+			for (const auto& comp : components) {
+				if (comp.size() > max_size) {
+					max_size = comp.size();
+					largest_component = comp;
+				}
+			}
+		}
+
+		vector<Geom*> active_geom_ptrs;
+		for (int idx : largest_component) {
+			active_geom_ptrs.push_back(&shard[idx]);
+		}
+		int root_idx = largest_component.empty() ? -1 : largest_component[0];
+
+		if (root_idx != -1 && active_geom_ptrs.size() > 1) {
+			cout << "[GA Iter " << ga_iteration + 1 << "] Running joint axis refinement on "
+				 << active_geom_ptrs.size() << " shards in the largest component..." << endl;
+
+			// Initialize joint cylinder axis direction and point to root shard's axis in Z-aligned assembly
+			Vector3d axis_point = { 0.0, 0.0, 0.0 };
+			Vector3d axis_normal = { 0.0, 0.0, 1.0 };
+
+			// Run the Ceres axis optimization solver
+			RefineAxis(active_geom_ptrs, axis_point, axis_normal, 100, NUMBER_OF_THREAD, 0.5, true);
+
+			// 3. Align this refined joint cylinder axis to the global Z-axis
+			shard[root_idx].edge_line_.axis_point_[0] = axis_point;
+			shard[root_idx].edge_line_.axis_norm_[0] = axis_normal;
+
+			Matrix3d R_a;
+			Vector3d t_a;
+			AxisAlignment(shard[root_idx].edge_line_, R_a, t_a, 0);
+			shard[root_idx].SurMove(R_a, t_a, true);
+
+			for (int idx : largest_component) {
+				if (idx != root_idx) {
+					shard[idx].Move(R_a, t_a, true);
+				}
+			}
+
+			// 4. Update axis-aligning transforms and recalculate local centered descriptors for component shards
+			for (int i : largest_component) {
+				// Accumulated transform from raw -> refined Z-aligned assembly
+				// T_assembly_i = T_align * T_best_i * T_axis_i
+				Matrix3d R_best_old;
+				Vector3d t_best_old;
+				T_best[i].Output(R_best_old, t_best_old);
+
+				Matrix3d R_axis_old;
+				Vector3d t_axis_old;
+				T_axis[i].Output(R_axis_old, t_axis_old);
+
+				Matrix3d R_combined = R_best_old * R_axis_old;
+				Vector3d t_combined = R_best_old * t_axis_old + t_best_old;
+
+				Matrix3d R_assembly = R_a * R_combined;
+				Vector3d t_assembly = R_a * t_combined + t_a;
+
+				// Extrapolate the Z-axis of the assembly back to raw coordinates to get the refined axis
+				Vector3d v_refined = R_assembly.transpose() * Vector3d(0, 0, 1);
+				Vector3d p_refined = R_assembly.transpose() * (-t_assembly);
+
+				// Prepare the raw shard to be aligned to this refined axis
+				shard_original[i] = shard_raw_backup[i];
+				shard_original[i].edge_line_.axis_norm_[0] = v_refined;
+				shard_original[i].edge_line_.axis_point_[0] = p_refined;
+
+				Matrix3d R_align;
+				Vector3d t_align;
+				AxisAlignment(shard_original[i].edge_line_, R_align, t_align, 0);
+				shard_original[i].SurMove(R_align, t_align, true);
+
+				// Update T_axis[i] with the new raw -> axis alignment transform
+				T_axis[i].Set(R_align, t_align, i + 1, i + 1);
+
+				// Recalculate 1D descriptors on the refined Z-aligned local pose
+				CalculateFeatureAxisless(shard_original[i], 0);
+
+				// Compute the new T_best[i] relative to the new axis-aligned pose:
+				// T_best_new_i = T_assembly_i * T_axis_new_i.inverse()
+				Matrix3d R_axis_new = R_align;
+				Vector3d t_axis_new = t_align;
+				Matrix3d R_axis_new_inv = R_axis_new.transpose();
+				Vector3d t_axis_new_inv = -R_axis_new_inv * t_axis_new;
+
+				Matrix3d R_best_new = R_assembly * R_axis_new_inv;
+				Vector3d t_best_new = R_assembly * t_axis_new_inv + t_assembly;
+
+				T_best[i].Set(R_best_new, t_best_new, i + 1, i + 1);
+			}
+
+			// Update T_live to reflect the new axis-aligned starting state for the next GA run
+			T_live = T_best;
+		}
+
+		// Reset shard to the updated axis-aligned positions
+		shard = shard_original;
 
 		// Recompute matches on newly assembled positions
 		cout << "[GA Iter " << ga_iteration + 1 << "] Recomputing matches on assembled positions..." << endl;

@@ -521,7 +521,7 @@ private:
 
     //-----------------------------------------------------------------------------------------------------------------//
 
-    // Maximum Spanning Forest (MST) Repair Operator (Lamarckian): Prune active edges 
+    // Maximum Spanning Forest (MST) Repair Operator (Lamarckian): Prune active edges
     // that form cycles, prioritizing keeping the highest-density matches (based on inliers and scores).
     // This makes the genotype honest about what the phenotype (assembly) actually uses.
     void RepairChromosome(Chromosome& chromosome) const
@@ -901,17 +901,7 @@ private:
                                 continue; // Skip self and active parent
                             }
 
-                            // Skip if this pair is active in the tree (to avoid double-counting active edge inliers)
-                            bool is_active_edge = false;
-                            for (const auto& edge : pose_adj[idx]) {
-                                if (edge.first == placed_shard) {
-                                    is_active_edge = true;
-                                    break;
-                                }
-                            }
-                            if (is_active_edge) {
-                                continue;
-                            }
+                            // Active tree edges are evaluated for consensus reward as requested by the user.
 
                             int g_idx = PairGroupIndex(idx, placed_shard);
                             if (g_idx < 0) {
@@ -2440,17 +2430,7 @@ private:
                     continue; // Skip self and active parent
                 }
 
-                // Skip if this pair is active in the tree (to avoid double-counting active edge inliers)
-                bool is_active_edge = false;
-                for (const auto& edge : pose_adj[idx]) {
-                    if (edge.first == placed_shard) {
-                        is_active_edge = true;
-                        break;
-                    }
-                }
-                if (is_active_edge) {
-                    continue;
-                }
+                // Active tree edges are evaluated for consensus reward as requested by the user.
 
                 int g_idx = PairGroupIndex(idx, placed_shard);
                 if (g_idx < 0) {
@@ -2953,10 +2933,10 @@ private:
         // for pot g
         set_gt_gene(1, 3, 2);
         set_gt_gene(1, 4, 1);
-        set_gt_gene(4, 7, 1);
-        set_gt_gene(3, 6, 2);
-        set_gt_gene(5, 7, 2);
-        set_gt_gene(2, 5, 1);
+        // set_gt_gene(4, 7, 1);
+        // set_gt_gene(3, 6, 2);
+        // set_gt_gene(5, 7, 2);
+        // set_gt_gene(2, 5, 1);
         cout << "---------------------------------------" << endl;
 
         Chromosome gt_chromosome;
