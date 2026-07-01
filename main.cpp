@@ -324,7 +324,8 @@ int main(int argc, char** argv)
 	for (int i = 0; i < SHARD_NUMBER; ++i) {
 		if (shard_on_off[i]) active_shard_count++;
 	}
-	const int kMaxGAIterations = std::max(1, active_shard_count);
+	// const int kMaxGAIterations = std::max(1, active_shard_count);
+	const int kMaxGAIterations = 2;
 	const double kConvergenceThreshold = 5.0;	// minimum fitness improvement to continue
 	const int kMaxPatience = 5;
 
@@ -403,8 +404,8 @@ int main(int argc, char** argv)
 
 		cout << "=== GA Iteration " << ga_iteration + 1 << " / " << kMaxGAIterations << " ===" << endl;
 
-		// Run GA on current match list, limiting the number of active edges to the current iteration index + 1
-		int target_edges = std::min(active_shard_count - 1, ga_iteration + 1);
+		// Run GA on current match list, selecting the full assembly size
+		int target_edges = active_shard_count - 1;
 		GeneticAssembler ga_iter(shard, LCS_out, SHARD_NUMBER, target_edges);
 		ga_iter.Run(GT_graph, GT_trans, T_axis);
 		T_ga = ga_iter.GetTransforms();
@@ -426,9 +427,9 @@ int main(int argc, char** argv)
 
 		// Only keep state if it strictly improves the global best fitness.
 		if (improved) {
-            best_fitness_so_far = current_fitness;
+			best_fitness_so_far = current_fitness;
 
-            graph_ga = ga_iter.GetGraph();
+			graph_ga = ga_iter.GetGraph();
 			T_best = T_live; // Snapshot the best axis-aligned transform
 
 			for (int i = 0; i < SHARD_NUMBER; ++i) {

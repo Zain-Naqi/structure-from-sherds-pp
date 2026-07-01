@@ -38,7 +38,7 @@ class GeneticAssembler {
 public:
     bool use_inlier_score        = true;
     bool use_connectivity_reward = true;
-    bool use_component_penalty   = false;
+    bool use_component_penalty   = true;
     bool use_cycle_penalty       = false;  // Always 0 after BFS repair (no cycles in a tree)
     bool use_edge_residual       = false;  // Always 0 after BFS repair (no cycles in a tree)
     bool use_rot_residual        = false;  // Always 0 after BFS repair (no cycles in a tree)
@@ -901,7 +901,17 @@ private:
                                 continue; // Skip self and active parent
                             }
 
-                            // Active tree edges are evaluated for consensus reward as requested by the user.
+                            // // Skip if this pair is active in the tree (to avoid double-counting active edge inliers)
+                            // bool is_active_edge = false;
+                            // for (const auto& edge : pose_adj[idx]) {
+                            //     if (edge.first == placed_shard) {
+                            //         is_active_edge = true;
+                            //         break;
+                            //     }
+                            // }
+                            // if (is_active_edge) {
+                            //     continue;
+                            // }
 
                             int g_idx = PairGroupIndex(idx, placed_shard);
                             if (g_idx < 0) {
@@ -2430,7 +2440,17 @@ private:
                     continue; // Skip self and active parent
                 }
 
-                // Active tree edges are evaluated for consensus reward as requested by the user.
+                // // Skip if this pair is active in the tree (to avoid double-counting active edge inliers)
+                // bool is_active_edge = false;
+                // for (const auto& edge : pose_adj[idx]) {
+                //     if (edge.first == placed_shard) {
+                //         is_active_edge = true;
+                //         break;
+                //     }
+                // }
+                // if (is_active_edge) {
+                //     continue;
+                // }
 
                 int g_idx = PairGroupIndex(idx, placed_shard);
                 if (g_idx < 0) {
@@ -2932,11 +2952,11 @@ private:
 
         // for pot g
         set_gt_gene(1, 3, 2);
+        set_gt_gene(4, 7, 1);
         set_gt_gene(1, 4, 1);
-        // set_gt_gene(4, 7, 1);
-        // set_gt_gene(3, 6, 2);
-        // set_gt_gene(5, 7, 2);
-        // set_gt_gene(2, 5, 1);
+        set_gt_gene(2, 5, 1);
+        set_gt_gene(3, 6, 2);
+        set_gt_gene(5, 7, 2);
         cout << "---------------------------------------" << endl;
 
         Chromosome gt_chromosome;
