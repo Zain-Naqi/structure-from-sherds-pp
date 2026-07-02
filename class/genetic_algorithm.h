@@ -30,6 +30,7 @@
 // Check # 02: #include "data_structure.h" should also work
 #include "../class/data_structure.h"
 #include "../class/KDTree.h"
+#include "../class/reconstruction.h"
 
 // extern: there is a shard_on_off array somewhere in the codebase, I want to use it here, but I'm not defining it
 extern bool shard_on_off[];
@@ -1212,6 +1213,7 @@ private:
             int to;
             Matrix4d T_to_current;
             double weight;
+            int match_idx;
         };
 
         vector<vector<AdjEdge>> adjacency(num_shards_);
@@ -1242,23 +1244,29 @@ private:
             lcs.trans_.Output(T_xy);
             Matrix4d T_yx = T_xy.inverse();
             double edge_weight = max(1.0, static_cast<double>(lcs.inliner_));
+            int match_idx = static_cast<int>(group[local_idx]);
 
-            adjacency[x].push_back({ y, T_yx, edge_weight });
-            adjacency[y].push_back({ x, T_xy, edge_weight });
+            adjacency[x].push_back({ y, T_yx, edge_weight, match_idx });
+            adjacency[y].push_back({ x, T_xy, edge_weight, match_idx });
         }
 
         vector<bool> visited(num_shards_, false);
-        vector<bool> is_component_root(num_shards_, false);
         vector<Matrix4d> T_to_root(num_shards_, Matrix4d::Identity());
 
-        // Build an initial pose per connected component using simple FIFO BFS.
-        // Start from the chromosome's designated root for consistency with
-        // RepairChromosome and EvaluateFitness.
-        auto build_bfs = [&](int root) {
+        // Progressive BFS lambda
+        auto build_progressive_bfs = [&](int root) {
             if (!IsShardValidAndOn(root) || visited[root]) return;
 
             visited[root] = true;
-            is_component_root[root] = true;
+
+            // Set up a temporary ranking subgraph for IcpIncGraphAxis
+            std::list<LCSIndex> matches_list(matches_.begin(), matches_.end());
+            RankingSubgraph graph_icp(matches_list, num_shards_);
+            graph_icp.node_[root] = true;
+            graph_icp.root_node_ = root + 1;
+            graph_icp.ResetMatchedIndex(shard_);
+
+            vector<int> placed_edges;
 
             queue<int> bfs_q;
             bfs_q.push(root);
@@ -1269,22 +1277,71 @@ private:
 
                 for (size_t i = 0; i < adjacency[curr].size(); ++i) {
                     const AdjEdge& edge = adjacency[curr][i];
-                    if (visited[edge.to]) {
-                        continue;
-                    }
+                    if (visited[edge.to]) continue;
 
+                    // 1. Mark visited and place initially
                     visited[edge.to] = true;
                     T_to_root[edge.to] = T_to_root[curr] * edge.T_to_current;
+                    graph_icp.node_[edge.to] = true;
+                    placed_edges.push_back(edge.match_idx);
+
+                    // 2. Generate temporary aligned shard geom copies for optimization
+                    vector<Geom> temp_shards = shard_;
+                    for (int k = 0; k < num_shards_; ++k) {
+                        if (graph_icp.node_[k]) {
+                            Matrix3d R_k = T_to_root[k].block<3, 3>(0, 0);
+                            Vector3d t_k = T_to_root[k].block<3, 1>(0, 3);
+                            temp_shards[k].Move(R_k, t_k, true);
+                        }
+                    }
+
+                    // 3. Optimize the current subgraph using Ceres ICP
+                    vector<Matrix3d> R_step(num_shards_, Matrix3d::Identity());
+                    vector<Vector3d> t_step(num_shards_, Vector3d::Zero());
+                    vector<RankingSubgraph> dummy_pregraph;
+                    int inlier_step = 0;
+                    bool rim_restrain = true, axis_restrain = true;
+
+                    // Populate priority_list_ with currently placed edges to prevent out-of-bounds in graph.EdgeOut()
+                    graph_icp.priority_list_.clear();
+                    Chunk dummy_chunk;
+                    dummy_chunk.i_edge = placed_edges;
+                    graph_icp.priority_list_.push_back(dummy_chunk);
+                    graph_icp.priority_index_ = 0;
+
+                    // IcpIncGraphAxis refines the relative poses of all placed pieces
+                    IcpIncGraphAxis(
+                        temp_shards,
+                        R_step,
+                        t_step,
+                        graph_icp,
+                        dummy_pregraph,
+                        inlier_step,
+                        rim_restrain,
+                        axis_restrain
+                    );
+
+                    // 4. Update accumulated transforms with delta optimizations
+                    for (int k = 0; k < num_shards_; ++k) {
+                        if (graph_icp.node_[k]) {
+                            Matrix4d Ti = Matrix4d::Identity();
+                            Ti.block<3, 3>(0, 0) = R_step[k];
+                            Ti.block<3, 1>(0, 3) = t_step[k];
+                            T_to_root[k] = Ti * T_to_root[k];
+                        }
+                    }
+
                     bfs_q.push(edge.to);
                 }
             }
         };
 
+        // Run progressive BFS
         if (root_shard >= 0 && root_shard < num_shards_) {
-            build_bfs(root_shard);
+            build_progressive_bfs(root_shard);
         }
         for (int root = 0; root < num_shards_; ++root) {
-            build_bfs(root);
+            build_progressive_bfs(root);
         }
 
         if (enable_pose_debug_logging) {
@@ -1306,13 +1363,12 @@ private:
             }
         }
 
+        // Apply final optimized transforms to transforms_
         Matrix3d I = Matrix3d::Identity();
         Vector3d zero = Vector3d::Zero();
         for (int i = 0; i < num_shards_; ++i) {
             transforms_[i].Set(I, zero, i + 1, 1);
-            if (!IsShardValidAndOn(i)) {
-                continue;
-            }
+            if (!IsShardValidAndOn(i)) continue;
             transforms_[i].Set(T_to_root[i], i + 1, 1);
         }
     }

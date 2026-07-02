@@ -9,3 +9,4 @@ build_local/
 .codex
 results/
 *.log
+plans/
