@@ -313,6 +313,7 @@ public:
 
         LogBestChromosomeBreakdown(kMaxGenerations, overall_best);
         AuditChromosomeCollisions(overall_best, "FINAL BEST");
+        PrintConsensusDiagnostics(overall_best, "FINAL BEST");
 
         const Chromosome& best = population_.front();
         const bool run_pair_diagnostics = enable_debug_logging || enable_swap_diagnostics;
@@ -469,12 +470,11 @@ private:
         population_.clear();
         population_.reserve(kPopulationSize);
 
-        std::uniform_int_distribution<int> root_dist(0, static_cast<int>(valid_shard_indices_.size()) - 1);
         for (int i = 0; i < kPopulationSize; ++i) {
             Chromosome chromosome;
             chromosome.genes.resize(pair_groups_.size(), 0);
             chromosome.fitness = 0.0;
-            chromosome.root_shard = valid_shard_indices_[root_dist(rng_)];
+            chromosome.root_shard = 0; // Force base sherd to Shard 1 (index 0)
 
             for (size_t gene_idx = 0; gene_idx < chromosome.genes.size(); ++gene_idx) {
                 chromosome.genes[gene_idx] = SampleGroupChoice(gene_idx);
@@ -891,28 +891,31 @@ private:
 
                 // --- Calculate Consensus Support for placed component ---
                 if (use_consensus_reward) {
-                    for (int idx : placed) {
-                        int parent = parent_shard[idx];
-                        if (parent < 0) {
-                            continue; // Skip root shard
-                        }
-
-                        for (int placed_shard : placed) {
-                            if (placed_shard == idx || placed_shard == parent) {
-                                continue; // Skip self and active parent
+                    vector<vector<bool>> active_adj(num_shards_, vector<bool>(num_shards_, false));
+                    for (size_t group_idx = 0; group_idx < chromosome.genes.size(); ++group_idx) {
+                        int choice = chromosome.genes[group_idx];
+                        if (choice <= 0) continue;
+                        const vector<size_t>& group = pair_groups_[group_idx];
+                        int local_idx = choice - 1;
+                        if (local_idx >= 0 && local_idx < static_cast<int>(group.size())) {
+                            const LCSIndex& lcs = matches_[group[local_idx]];
+                            int x = lcs.shard_x_ - 1;
+                            int y = lcs.shard_y_ - 1;
+                            if (IsShardValidAndOn(x) && IsShardValidAndOn(y)) {
+                                active_adj[x][y] = true;
+                                active_adj[y][x] = true;
                             }
+                        }
+                    }
 
-                            // // Skip if this pair is active in the tree (to avoid double-counting active edge inliers)
-                            // bool is_active_edge = false;
-                            // for (const auto& edge : pose_adj[idx]) {
-                            //     if (edge.first == placed_shard) {
-                            //         is_active_edge = true;
-                            //         break;
-                            //     }
-                            // }
-                            // if (is_active_edge) {
-                            //     continue;
-                            // }
+                    for (int idx : placed) {
+                        for (int placed_shard : placed) {
+                            if (placed_shard == idx) {
+                                continue; // Skip self
+                            }
+                            if (active_adj[idx][placed_shard]) {
+                                continue; // Symmetrically skip active tree edges
+                            }
 
                             int g_idx = PairGroupIndex(idx, placed_shard);
                             if (g_idx < 0) {
@@ -1126,9 +1129,7 @@ private:
         child.fitness = 0.0;
         child.genes.resize(parent1.genes.size(), 0);
 
-        // Inherit root from one parent at random
-        std::uniform_int_distribution<int> coin_root(0, 1);
-        child.root_shard = (coin_root(rng_) == 0) ? parent1.root_shard : parent2.root_shard;
+        child.root_shard = 0; // Force base sherd to Shard 1 (index 0)
 
         if (child.genes.empty()) return child;
 
@@ -1161,11 +1162,8 @@ private:
     {
         std::uniform_real_distribution<double> real_dist(0.0, 1.0);
 
-        // Root mutation: occasionally change the BFS root (macro-mutation)
-        if (real_dist(rng_) < kRootMutationRate) {
-            std::uniform_int_distribution<int> root_dist(0, static_cast<int>(valid_shard_indices_.size()) - 1);
-            chromosome.root_shard = valid_shard_indices_[root_dist(rng_)];
-        }
+        // Root mutation disabled; base sherd remains 0
+        chromosome.root_shard = 0;
 
         if (real_dist(rng_) >= kMutationRate) {
             return -1;
@@ -2442,6 +2440,7 @@ private:
             Matrix4d second;
         };
         vector<vector<BFSAdjacent>> pose_adj(num_shards_);
+        vector<vector<bool>> active_adj(num_shards_, vector<bool>(num_shards_, false));
 
         for (size_t group_idx = 0; group_idx < chromosome.genes.size(); ++group_idx) {
             int choice = chromosome.genes[group_idx];
@@ -2462,6 +2461,8 @@ private:
 
             pose_adj[x].push_back({ y, T_yx });
             pose_adj[y].push_back({ x, T_xy });
+            active_adj[x][y] = true;
+            active_adj[y][x] = true;
         }
 
         while (!q_comp.empty()) {
@@ -2482,34 +2483,33 @@ private:
         }
 
         ss << "  Active Spanning Tree Component: " << placed.size() << " shards." << endl;
+        double total_consensus_reward = 0.0;
 
         for (int idx : placed) {
             int parent = parent_shard[idx];
-            if (parent < 0) {
-                continue; // Skip root shard
+            if (parent >= 0) {
+                ss << "  Shard " << (idx + 1) << " (placed by parent " << (parent + 1) << "):" << endl;
+            } else {
+                ss << "  Shard " << (idx + 1) << " (Root Shard):" << endl;
             }
 
-            ss << "  Shard " << (idx + 1) << " (placed by parent " << (parent + 1) << "):" << endl;
-
             for (int placed_shard : placed) {
-                if (placed_shard == idx || placed_shard == parent) {
-                    continue; // Skip self and active parent
+                if (placed_shard == idx) {
+                    continue; // Skip self
                 }
 
-                // // Skip if this pair is active in the tree (to avoid double-counting active edge inliers)
-                // bool is_active_edge = false;
-                // for (const auto& edge : pose_adj[idx]) {
-                //     if (edge.first == placed_shard) {
-                //         is_active_edge = true;
-                //         break;
-                //     }
-                // }
-                // if (is_active_edge) {
-                //     continue;
-                // }
+                bool is_active_edge = active_adj[idx][placed_shard];
+
+                if (is_active_edge) {
+                    ss << "    Alternative Pair with Shard " << (placed_shard + 1) << " (ACTIVE IN TREE) [SKIPPED]" << endl;
+                    continue; // Skip evaluating active tree edges
+                } else {
+                    ss << "    Alternative Pair with Shard " << (placed_shard + 1) << " (NOT ACTIVE IN TREE):" << endl;
+                }
 
                 int g_idx = PairGroupIndex(idx, placed_shard);
                 if (g_idx < 0) {
+                    ss << "      [No match candidates found]" << endl;
                     continue;
                 }
 
@@ -2544,15 +2544,23 @@ private:
                     double t_err = t_diff.norm();
 
                     bool passes = (r_err < kConsensusRotThreshold && t_err < kConsensusTransThreshold);
+                    double added_reward = passes ? (kConsensusWeight * static_cast<double>(lcs.inliner_)) : 0.0;
+                    if (passes) {
+                        total_consensus_reward += added_reward;
+                    }
 
-                    ss << "    Alternative Pair with Shard " << (placed_shard + 1)
-                       << ": choice=" << (c_idx - group[0] + 1) << " inliner=" << lcs.inliner_
+                    ss << "      Candidate choice=" << (c_idx - group[0] + 1) << " inlier=" << lcs.inliner_
                        << " | RotErr = " << fixed << setprecision(4) << r_err << " rad (" << (r_err * 180.0 / M_PI) << " deg)"
                        << " | TransErr = " << fixed << setprecision(2) << t_err << " mm"
-                       << (passes ? " [PASSES]" : " [FAILS]") << endl;
+                       << (passes ? " [PASSES]" : " [FAILS]");
+                    if (passes) {
+                        ss << " -> Reward: +" << fixed << setprecision(2) << added_reward;
+                    }
+                    ss << endl;
                 }
             }
         }
+        ss << "  Total Logged Consensus Reward: " << fixed << setprecision(2) << total_consensus_reward << endl;
         ss << "=========================================================" << endl;
         LogDiagnostic(ss.str());
         cout << ss.str();
@@ -3172,7 +3180,7 @@ private:
 
 
     static constexpr int kPopulationSize = 350;
-    static constexpr int kMaxGenerations = 150;
+    static constexpr int kMaxGenerations = 50;
     static constexpr int kElitismCount = 1;
     static constexpr int kNumSeeds = 1;
     static constexpr double kMutationRate = 0.20; // Increased from 0.05 for better symmetry exploration
