@@ -852,162 +852,134 @@ private:
             }
         }
 
-        // --- Overlap Penalty (Physical occupancy check to handle symmetry) ---
-        if (use_overlap_penalty) {
-            vector<bool> vis_global(num_shards_, false);
-            double overlap_penalty_sum = 0.0;
-            double consensus_reward = 0.0;
+        // Build active tree adjacency lookup for overlap & consensus checking
+        vector<vector<bool>> active_adj(num_shards_, vector<bool>(num_shards_, false));
+        for (const auto& edge : pair_edges) {
+            active_adj[edge.a][edge.b] = true;
+            active_adj[edge.b][edge.a] = true;
+        }
 
-            auto overlap_bfs = [&](int start_node) {
-                if (vis_global[start_node]) {
-                    return;
+        // --- Step 1: BFS Component Assembly (Required for both metrics) ---
+        vector<bool> vis_global(num_shards_, false);
+
+        struct ComponentAssembly {
+            vector<int> placed;
+            vector<Matrix4d> T_comp;
+        };
+        vector<ComponentAssembly> components;
+
+        auto assemble_component_bfs = [&](int start_node) {
+            if (vis_global[start_node]) return;
+
+            ComponentAssembly comp;
+            comp.T_comp.resize(num_shards_, Matrix4d::Identity());
+
+            queue<int> q;
+            q.push(start_node);
+            vis_global[start_node] = true;
+            comp.placed.push_back(start_node);
+
+            while (!q.empty()) {
+                int curr = q.front();
+                q.pop();
+
+                for (const auto& edge : pose_adj[curr]) {
+                    if (vis_global[edge.first]) continue;
+
+                    comp.T_comp[edge.first] = comp.T_comp[curr] * edge.second;
+                    vis_global[edge.first] = true;
+                    comp.placed.push_back(edge.first);
+                    q.push(edge.first);
                 }
+            }
+            components.push_back(comp);
+        };
 
-                vector<Matrix4d> T_comp(num_shards_, Matrix4d::Identity());
-                vector<int> parent_shard(num_shards_, -1);
-                queue<int> q_comp;
-                vector<int> placed;
+        // Run component assembly starting at the root shard, then other valid active shards
+        assemble_component_bfs(chromosome.root_shard);
+        for (int start_node : valid_shard_indices_) {
+            assemble_component_bfs(start_node);
+        }
 
-                q_comp.push(start_node);
-                vis_global[start_node] = true;
-                placed.push_back(start_node);
+        // --- Step 2: Overlap Penalty (Physical occupancy check) ---
+        double overlap_penalty_sum = 0.0;
+        if (use_overlap_penalty) {
+            for (const auto& comp : components) {
+                for (size_t i = 0; i < comp.placed.size(); ++i) {
+                    for (size_t j = i + 1; j < comp.placed.size(); ++j) {
+                        int idx1 = comp.placed[i];
+                        int idx2 = comp.placed[j];
 
-                while (!q_comp.empty()) {
-                    int curr = q_comp.front();
-                    q_comp.pop();
+                        if (collision_clouds_[idx1].empty() || collision_clouds_[idx2].empty()) continue;
 
-                    for (const auto& edge : pose_adj[curr]) {
-                        if (vis_global[edge.first]) {
-                            continue;
-                        }
+                        // Skip active adjacent pairs
+                        if (active_adj[idx1][idx2]) continue;
 
-                        T_comp[edge.first] = T_comp[curr] * edge.second;
-                        parent_shard[edge.first] = curr;
-                        vis_global[edge.first] = true;
-                        placed.push_back(edge.first);
-                        q_comp.push(edge.first);
+                        overlap_penalty_sum += ComputeCloudOverlapPenaltyIndexed(
+                            idx1, idx2, comp.T_comp[idx1], comp.T_comp[idx2]);
                     }
                 }
+            }
+        }
+        if (use_overlap_penalty) {
+            fitness -= overlap_penalty_sum;
+        }
+        if (breakdown != nullptr) {
+            breakdown->overlap_penalty = overlap_penalty_sum;
+        }
 
-                // --- Calculate Consensus Support for placed component ---
-                if (use_consensus_reward) {
-                    vector<vector<bool>> active_adj(num_shards_, vector<bool>(num_shards_, false));
-                    for (size_t group_idx = 0; group_idx < chromosome.genes.size(); ++group_idx) {
-                        int choice = chromosome.genes[group_idx];
-                        if (choice <= 0) continue;
-                        const vector<size_t>& group = pair_groups_[group_idx];
-                        int local_idx = choice - 1;
-                        if (local_idx >= 0 && local_idx < static_cast<int>(group.size())) {
-                            const LCSIndex& lcs = matches_[group[local_idx]];
+        // --- Step 3: Consensus Support Reward (Candidate match agreement) ---
+        double consensus_reward = 0.0;
+        if (use_consensus_reward) {
+            for (const auto& comp : components) {
+                for (int idx : comp.placed) {
+                    for (int placed_shard : comp.placed) {
+                        if (placed_shard == idx) continue;
+
+                        // Symmetrically skip active tree edges
+                        if (active_adj[idx][placed_shard]) continue;
+
+                        int g_idx = PairGroupIndex(idx, placed_shard);
+                        if (g_idx < 0) continue;
+
+                        const vector<size_t>& group = pair_groups_[g_idx];
+                        for (size_t c_idx : group) {
+                            const LCSIndex& lcs = matches_[c_idx];
                             int x = lcs.shard_x_ - 1;
                             int y = lcs.shard_y_ - 1;
-                            if (IsShardValidAndOn(x) && IsShardValidAndOn(y)) {
-                                active_adj[x][y] = true;
-                                active_adj[y][x] = true;
-                            }
-                        }
-                    }
 
-                    for (int idx : placed) {
-                        for (int placed_shard : placed) {
-                            if (placed_shard == idx) {
-                                continue; // Skip self
-                            }
-                            if (active_adj[idx][placed_shard]) {
-                                continue; // Symmetrically skip active tree edges
-                            }
+                            Matrix4d T_candidate = Matrix4d::Identity();
+                            lcs.trans_.Output(T_candidate);
 
-                            int g_idx = PairGroupIndex(idx, placed_shard);
-                            if (g_idx < 0) {
+                            Matrix4d T_landed;
+                            if (idx == y && placed_shard == x) {
+                                T_landed = comp.T_comp[placed_shard] * T_candidate.inverse();
+                            } else if (idx == x && placed_shard == y) {
+                                T_landed = comp.T_comp[placed_shard] * T_candidate;
+                            } else {
                                 continue;
                             }
 
-                            const vector<size_t>& group = pair_groups_[g_idx];
-                            for (size_t c_idx : group) {
-                                const LCSIndex& lcs = matches_[c_idx];
-                                int x = lcs.shard_x_ - 1;
-                                int y = lcs.shard_y_ - 1;
+                            Matrix4d T_diff = T_landed * comp.T_comp[idx].inverse();
 
-                                Matrix4d T_candidate = Matrix4d::Identity();
-                                lcs.trans_.Output(T_candidate);
+                            Vector3d t_diff(T_diff(0, 3), T_diff(1, 3), T_diff(2, 3));
+                            double t_err_sq = t_diff.squaredNorm();
+                            if (t_err_sq >= kConsensusTransThreshold * kConsensusTransThreshold) continue;
 
-                                // Compute landed transform based on the visited shard
-                                Matrix4d T_landed;
-                                if (idx == y && placed_shard == x) {
-                                    T_landed = T_comp[placed_shard] * T_candidate.inverse();
-                                } else if (idx == x && placed_shard == y) {
-                                    T_landed = T_comp[placed_shard] * T_candidate;
-                                } else {
-                                    continue;
-                                }
-
-                                // Measure error between landed transform and idx's current transform
-                                Matrix4d T_diff = T_landed * T_comp[idx].inverse();
-
-                                // 1. Translation check first using squared norm (avoids sqrt)
-                                Vector3d t_diff(T_diff(0, 3), T_diff(1, 3), T_diff(2, 3));
-                                double t_err_sq = t_diff.squaredNorm();
-                                if (t_err_sq >= kConsensusTransThreshold * kConsensusTransThreshold) {
-                                    continue;
-                                }
-
-                                // 2. Rotation check using trace (avoids matrix log and acos)
-                                double trace = T_diff(0, 0) + T_diff(1, 1) + T_diff(2, 2);
-                                if (trace > 2.0 * kCosConsensusRotThreshold + 1.0) {
-                                    consensus_reward += kConsensusWeight * static_cast<double>(lcs.inliner_);
-                                    break; // Max one supporting candidate per alternative pair
-                                }
+                            double trace = T_diff(0, 0) + T_diff(1, 1) + T_diff(2, 2);
+                            if (trace > 2.0 * kCosConsensusRotThreshold + 1.0) {
+                                consensus_reward += kConsensusWeight * static_cast<double>(lcs.inliner_);
+                                break; // Max one supporting candidate per alternative pair
                             }
                         }
                     }
                 }
-
-                for (size_t i = 0; i < placed.size(); ++i) {
-                    for (size_t j = i + 1; j < placed.size(); ++j) {
-                        int idx1 = placed[i];
-                        int idx2 = placed[j];
-
-                        if (collision_clouds_[idx1].empty() || collision_clouds_[idx2].empty()) {
-                            continue;
-                        }
-
-                        // Skip overlap check for active adjacent pairs in the reconstruction tree
-                        bool is_adjacent = false;
-                        for (const auto& edge : pose_adj[idx1]) {
-                            if (edge.first == idx2) {
-                                is_adjacent = true;
-                                break;
-                            }
-                        }
-                        if (is_adjacent) {
-                            continue;
-                        }
-
-                        overlap_penalty_sum += ComputeCloudOverlapPenaltyIndexed(
-                            idx1,
-                            idx2,
-                            T_comp[idx1],
-                            T_comp[idx2]);
-                    }
-                }
-            };
-
-            // Start from this chromosome's BFS root for consistency with RepairChromosome
-            overlap_bfs(chromosome.root_shard);
-            for (int start_node : valid_shard_indices_) {
-                overlap_bfs(start_node);
             }
-
-            fitness -= overlap_penalty_sum;
+        }
+        if (use_consensus_reward) {
+            fitness += consensus_reward;
             if (breakdown != nullptr) {
-                breakdown->overlap_penalty = overlap_penalty_sum;
-            }
-
-            if (use_consensus_reward) {
-                fitness += consensus_reward;
-                if (breakdown != nullptr) {
-                    breakdown->consensus_reward = consensus_reward;
-                }
+                breakdown->consensus_reward = consensus_reward;
             }
         }
 
@@ -1882,7 +1854,7 @@ private:
 
         const double ratio_ab = static_cast<double>(ab.hits) / static_cast<double>(max(1, ab.query_size));
         const double ratio_ba = static_cast<double>(ba.hits) / static_cast<double>(max(1, ba.query_size));
-        diag.hit_ratio = min(ratio_ab, ratio_ba);
+        diag.hit_ratio = max(ratio_ab, ratio_ba);
         diag.avg_depth = (ab.depth_sum + ba.depth_sum) / static_cast<double>(total_hits);
 
         if (diag.hit_ratio < kOverlapMinHitRatio) {
@@ -2031,7 +2003,7 @@ private:
 
         const double ratio_ab = static_cast<double>(ab.hits) / static_cast<double>(max(1, ab.query_size));
         const double ratio_ba = static_cast<double>(ba.hits) / static_cast<double>(max(1, ba.query_size));
-        diag.hit_ratio = min(ratio_ab, ratio_ba);
+        diag.hit_ratio = max(ratio_ab, ratio_ba);
         diag.avg_depth = (ab.depth_sum + ba.depth_sum) / static_cast<double>(total_hits);
 
         if (diag.hit_ratio < kOverlapMinHitRatio) {
@@ -3015,12 +2987,95 @@ private:
         // set_gt_gene(4, 2, 6);
 
         // for pot g
-        set_gt_gene(1, 3, 2);
-        set_gt_gene(4, 7, 1);
-        set_gt_gene(1, 4, 1);
-        set_gt_gene(2, 5, 1);
-        set_gt_gene(3, 6, 2);
-        set_gt_gene(5, 7, 2);
+        // set_gt_gene(1, 3, 2);
+        // set_gt_gene(4, 7, 1);
+        // set_gt_gene(1, 4, 1);
+        // set_gt_gene(2, 5, 1);
+        // set_gt_gene(3, 6, 2);
+        // set_gt_gene(5, 7, 2);
+
+        // for pot e
+        struct ValidGTEdge {
+            int a;
+            int b;
+            int choice;
+            int inliers = 0;
+        };
+
+        vector<ValidGTEdge> gt_candidates = {
+            {1, 2, 4}, {1, 4, 3}, {1, 6, 1}, {1, 14, 1}, {1, 19, 5},
+            {2, 4, 1}, {2, 14, 6}, {2, 21, 1},
+            {3, 17, 5}, {3, 25, 1}, {3, 26, 1},
+            {4, 9, 1}, {4, 18, 3}, {4, 20, 3},
+            {5, 8, 5}, {5, 13, 2}, {5, 16, 1}, {5, 22, 3}, {5, 25, 3},
+            {6, 8, 5}, {6, 14, 1}, {6, 29, 3},
+            {7, 15, 1}, {7, 16, 1}, {7, 22, 6},
+            {8, 10, 2}, {8, 16, 2}, {8, 30, 2},
+            {9, 11, 1}, {9, 19, 2},
+            {10, 15, 1}, {10, 16, 3}, {10, 29, 1},
+            {11, 12, 1}, {11, 19, 2}, {11, 27, 2},
+            {12, 13, 3}, {12, 15, 4}, {12, 22, 6}, {12, 29, 1},
+            {13, 25, 1}, {13, 27, 1}, {13, 28, 1},
+            {14, 30, 1},
+            {17, 18, 1}, {17, 21, 1},
+            {18, 21, 2}, {18, 23, 1},
+            {23, 24, 1},
+            {25, 31, 1},
+            {27, 28, 1}, {28, 31, 1}
+        };
+
+        // Fill in actual inlier counts at runtime
+        for (auto& edge : gt_candidates) {
+            int g_idx = PairGroupIndex(edge.a - 1, edge.b - 1);
+            if (g_idx >= 0) {
+                const vector<size_t>& group = pair_groups_[g_idx];
+                int local_idx = edge.choice - 1;
+                if (local_idx >= 0 && local_idx < static_cast<int>(group.size())) {
+                    edge.inliers = matches_[group[local_idx]].inliner_;
+                }
+            }
+        }
+
+        // Sort edges by inlier count descending
+        sort(gt_candidates.begin(), gt_candidates.end(), [](const ValidGTEdge& e1, const ValidGTEdge& e2) {
+            return e1.inliers > e2.inliers;
+        });
+
+        // Run Kruskal's to find the Maximum Spanning Tree
+        struct DSU {
+            vector<int> parent;
+            DSU(int n) {
+                parent.resize(n);
+                iota(parent.begin(), parent.end(), 0);
+            }
+            int find(int i) {
+                if (parent[i] == i) return i;
+                return parent[i] = find(parent[i]);
+            }
+            bool unite(int i, int j) {
+                int r_i = find(i);
+                int r_j = find(j);
+                if (r_i != r_j) {
+                    parent[r_i] = r_j;
+                    return true;
+                }
+                return false;
+            }
+        };
+
+        DSU dsu(num_shards_);
+        int mst_edges_built = 0;
+
+        cout << "\n=== COMPUTING MAXIMUM SPANNING TREE FOR POT E GT ===" << endl;
+        for (const auto& edge : gt_candidates) {
+            if (dsu.unite(edge.a - 1, edge.b - 1)) {
+                set_gt_gene(edge.a, edge.b, edge.choice);
+                mst_edges_built++;
+            }
+        }
+        cout << "Maximum Spanning Tree completed with " << mst_edges_built << " edges." << endl;
+        cout << "====================================================\n" << endl;
+
         cout << "---------------------------------------" << endl;
 
         Chromosome gt_chromosome;
@@ -3158,7 +3213,7 @@ private:
 
         const double ratio_ab = static_cast<double>(ab.hits) / static_cast<double>(max(1, ab.query_size));
         const double ratio_ba = static_cast<double>(ba.hits) / static_cast<double>(max(1, ba.query_size));
-        const double hit_ratio = min(ratio_ab, ratio_ba);
+        const double hit_ratio = max(ratio_ab, ratio_ba);
 
         if (hit_ratio < kOverlapMinHitRatio) {
             return 0.0;
@@ -3179,8 +3234,8 @@ private:
     // }
 
 
-    static constexpr int kPopulationSize = 350;
-    static constexpr int kMaxGenerations = 50;
+    static constexpr int kPopulationSize = 500;
+    static constexpr int kMaxGenerations = 100;
     static constexpr int kElitismCount = 1;
     static constexpr int kNumSeeds = 1;
     static constexpr double kMutationRate = 0.20; // Increased from 0.05 for better symmetry exploration
@@ -3196,14 +3251,14 @@ private:
 
     // Overlap constants
     static constexpr double kOverlapPenalty = 1200.0;
-    static constexpr double kOverlapMinHitRatio = 0.05;
-    static constexpr double kCollisionPointEpsilon = 2.5;   // mm
+    static constexpr double kOverlapMinHitRatio = 0.11;
+    static constexpr double kCollisionPointEpsilon = 1.0;   // mm
     static constexpr double kCollisionEdgeExclusion = 4.0;  // mm
     static constexpr double kCollisionVoxelSize = 3.0;      // mm
 
     // Consensus Support parameters
     static constexpr bool use_consensus_reward = true;
-    static constexpr double kConsensusWeight = 0.25;         // Multiplier for supporting inliners
+    static constexpr double kConsensusWeight = 1.0;         // Multiplier for supporting inliners
     static constexpr double kConsensusRotThreshold = 0.22;   // ~12.6 degrees rotation error limit
     static constexpr double kConsensusTransThreshold = 12.0; // 12.0 mm translation error limit
 
