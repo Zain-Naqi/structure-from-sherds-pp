@@ -662,7 +662,8 @@ private:
             double selected_density = 0.0;
             if (use_inlier_score) {
                 double score_weight = 1.0 / (1.0 + lcs.score_);
-                selected_density = static_cast<double>(lcs.inliner_) * score_weight;
+                // Apply logarithmic scaling to compress inlier count differences
+                selected_density = kInlierScale * std::log(static_cast<double>(lcs.inliner_) + 1.0) * score_weight;
                 fitness += selected_density;
                 if (breakdown != nullptr) {
                     breakdown->inlier_reward += selected_density;
@@ -904,6 +905,8 @@ private:
         // --- Step 2: Overlap Penalty (Physical occupancy check) ---
         double overlap_penalty_sum = 0.0;
         if (use_overlap_penalty) {
+            vector<double> sherd_accumulated_overlap(num_shards_, 0.0);
+
             for (const auto& comp : components) {
                 for (size_t i = 0; i < comp.placed.size(); ++i) {
                     for (size_t j = i + 1; j < comp.placed.size(); ++j) {
@@ -915,9 +918,19 @@ private:
                         // Skip active adjacent pairs
                         if (active_adj[idx1][idx2]) continue;
 
-                        overlap_penalty_sum += ComputeCloudOverlapPenaltyIndexed(
+                        double hit_ratio = ComputeCloudOverlapRatioIndexed(
                             idx1, idx2, comp.T_comp[idx1], comp.T_comp[idx2]);
+
+                        sherd_accumulated_overlap[idx1] += hit_ratio;
+                        sherd_accumulated_overlap[idx2] += hit_ratio;
                     }
+                }
+            }
+
+            // Apply threshold check on each sherd's total accumulated overlap
+            for (int i = 0; i < num_shards_; ++i) {
+                if (sherd_accumulated_overlap[i] >= kOverlapMinHitRatio) {
+                    overlap_penalty_sum += kOverlapPenalty * sherd_accumulated_overlap[i];
                 }
             }
         }
@@ -968,7 +981,7 @@ private:
 
                             double trace = T_diff(0, 0) + T_diff(1, 1) + T_diff(2, 2);
                             if (trace > 2.0 * kCosConsensusRotThreshold + 1.0) {
-                                consensus_reward += kConsensusWeight * static_cast<double>(lcs.inliner_);
+                                consensus_reward += kConsensusWeight; // Flat reward per matching pair
                                 break; // Max one supporting candidate per alternative pair
                             }
                         }
@@ -1083,7 +1096,7 @@ private:
         int best_index = dist(rng_);
 
         // Check # 13: The tournament size (2 here) can be experimented with...
-        for (int i = 1; i < 3; ++i) {
+        for (int i = 1; i < 2; ++i) {
             int candidate_index = dist(rng_);
             if (population_[candidate_index].fitness > population_[best_index].fitness) {
                 best_index = candidate_index;
@@ -1149,28 +1162,59 @@ private:
             return -1;
         }
 
-        // Pick one incident edge of the chosen shard
-        std::uniform_int_distribution<int> gene_dist(0, static_cast<int>(sherd_incident_groups_[shard_idx].size()) - 1);
-        int gene_idx = static_cast<int>(sherd_incident_groups_[shard_idx][gene_dist(rng_)]);
-
-        int old_choice = chromosome.genes[gene_idx];
-        int new_choice = old_choice;
-
-        // Action Flip: Decide whether to turn off or explore another match
+        // 50% chance: Pivot Swap (change WHO the sherd is connected to)
+        // 50% chance: Alignment Tweak (change HOW the sherd is connected to the same neighbor)
         if (real_dist(rng_) < 0.5) {
-            // 50% chance: Deactivate to reduce potential conflicts/residuals
-            new_choice = 0;
-        } else {
-            // 50% chance: Try a different candidate (Symmetry/Density exploration)
-            new_choice = SampleGroupChoice(gene_idx);
-            if (new_choice == old_choice && !pair_groups_[gene_idx].empty()) {
-                // Force a flip if SampleGroupChoice happens to return current choice
-                new_choice = (old_choice == 0) ? 1 : 0;
+            // Find active and inactive incident edges for this shard
+            vector<int> active_incident_genes;
+            vector<int> inactive_incident_genes;
+            for (int g_idx : sherd_incident_groups_[shard_idx]) {
+                if (chromosome.genes[g_idx] > 0) {
+                    active_incident_genes.push_back(g_idx);
+                } else {
+                    inactive_incident_genes.push_back(g_idx);
+                }
+            }
+
+            if (!active_incident_genes.empty()) {
+                // Pick a random active edge to turn off (deactivate)
+                std::uniform_int_distribution<int> active_dist(0, static_cast<int>(active_incident_genes.size()) - 1);
+                int deactivate_gene = active_incident_genes[active_dist(rng_)];
+                chromosome.genes[deactivate_gene] = 0;
+
+                // Pick a random inactive edge to turn on (activate)
+                if (!inactive_incident_genes.empty()) {
+                    std::uniform_int_distribution<int> inactive_dist(0, static_cast<int>(inactive_incident_genes.size()) - 1);
+                    int activate_gene = inactive_incident_genes[inactive_dist(rng_)];
+                    chromosome.genes[activate_gene] = SampleGroupChoice(activate_gene);
+                    return activate_gene;
+                }
+                return deactivate_gene;
+            } else {
+                // If the shard has no active connections, turn a random inactive one on
+                std::uniform_int_distribution<int> gene_dist(0, static_cast<int>(sherd_incident_groups_[shard_idx].size()) - 1);
+                int gene_idx = static_cast<int>(sherd_incident_groups_[shard_idx][gene_dist(rng_)]);
+                chromosome.genes[gene_idx] = SampleGroupChoice(gene_idx);
+                return gene_idx;
             }
         }
+        else {
+            // Pick one incident edge of the chosen shard
+            std::uniform_int_distribution<int> gene_dist(0, static_cast<int>(sherd_incident_groups_[shard_idx].size()) - 1);
+            int gene_idx = static_cast<int>(sherd_incident_groups_[shard_idx][gene_dist(rng_)]);
 
-        chromosome.genes[gene_idx] = new_choice;
-        return gene_idx;
+            int old_choice = chromosome.genes[gene_idx];
+            int new_choice = old_choice;
+
+            // Try a different candidate choice for the same pair
+            new_choice = SampleGroupChoice(gene_idx);
+            if (new_choice == old_choice && !pair_groups_[gene_idx].empty()) {
+                new_choice = (old_choice == 0) ? 1 : 0;
+            }
+
+            chromosome.genes[gene_idx] = new_choice;
+            return gene_idx;
+        }
     }
 
     //-----------------------------------------------------------------------------------------------------------------//
@@ -2163,11 +2207,43 @@ private:
                 diag.min_nn_distance = narrow.min_nn_distance;
                 diag.pair_penalty = narrow.pair_penalty;
 
-                if (diag.pair_penalty > 1.0e-12) {
-                    active_collision_pair_count++;
-                    overlap_sum += diag.pair_penalty;
-                }
                 pair_diags.push_back(diag);
+            }
+        }
+
+        // Recompute the accumulated overlap sum using the new sherd-centric logic
+        vector<double> sherd_accumulated_overlap(num_shards_, 0.0);
+        for (const auto& d : pair_diags) {
+            if (d.same_component) {
+                // Skip adjacent active edges
+                bool is_adjacent = false;
+                for (const auto& edge : adjacency[d.idx_a]) {
+                    if (edge.to == d.idx_b) {
+                        is_adjacent = true;
+                        break;
+                    }
+                }
+                if (is_adjacent) continue;
+
+                if (!d.cloud_a_empty && !d.cloud_b_empty && !d.broad_phase_rejected) {
+                    sherd_accumulated_overlap[d.idx_a] += d.hit_ratio;
+                    sherd_accumulated_overlap[d.idx_b] += d.hit_ratio;
+                }
+            }
+        }
+
+        for (int i = 0; i < num_shards_; ++i) {
+            if (sherd_accumulated_overlap[i] >= kOverlapMinHitRatio) {
+                overlap_sum += kOverlapPenalty * sherd_accumulated_overlap[i];
+            }
+        }
+
+        // Update the active collision count for reporting
+        for (const auto& d : pair_diags) {
+            if (d.same_component && !d.cloud_a_empty && !d.cloud_b_empty && !d.broad_phase_rejected) {
+                if (d.hit_ratio > 0.0) {
+                    active_collision_pair_count++;
+                }
             }
         }
     }
@@ -2516,7 +2592,7 @@ private:
                     double t_err = t_diff.norm();
 
                     bool passes = (r_err < kConsensusRotThreshold && t_err < kConsensusTransThreshold);
-                    double added_reward = passes ? (kConsensusWeight * static_cast<double>(lcs.inliner_)) : 0.0;
+                    double added_reward = passes ? kConsensusWeight : 0.0; // Flat reward per matching pair
                     if (passes) {
                         total_consensus_reward += added_reward;
                     }
@@ -3115,10 +3191,10 @@ private:
     //-----------------------------------------------------------------------------------------------------------------//
 
 private:
-    double ComputeCloudOverlapPenaltyIndexed(int idx_a,
-                                             int idx_b,
-                                             const Matrix4d& T_a,
-                                             const Matrix4d& T_b) const
+    double ComputeCloudOverlapRatioIndexed(int idx_a,
+                                           int idx_b,
+                                           const Matrix4d& T_a,
+                                           const Matrix4d& T_b) const
     {
         if (idx_a < 0 || idx_a >= num_shards_ || idx_b < 0 || idx_b >= num_shards_) {
             return 0.0;
@@ -3213,13 +3289,7 @@ private:
 
         const double ratio_ab = static_cast<double>(ab.hits) / static_cast<double>(max(1, ab.query_size));
         const double ratio_ba = static_cast<double>(ba.hits) / static_cast<double>(max(1, ba.query_size));
-        const double hit_ratio = max(ratio_ab, ratio_ba);
-
-        if (hit_ratio < kOverlapMinHitRatio) {
-            return 0.0;
-        }
-
-        return kOverlapPenalty * hit_ratio;
+        return max(ratio_ab, ratio_ba);
     }
 
     // static std::mt19937::result_type CreateSeed()
@@ -3234,11 +3304,11 @@ private:
     // }
 
 
-    static constexpr int kPopulationSize = 500;
+    static constexpr int kPopulationSize = 1000;
     static constexpr int kMaxGenerations = 100;
     static constexpr int kElitismCount = 1;
     static constexpr int kNumSeeds = 1;
-    static constexpr double kMutationRate = 0.20; // Increased from 0.05 for better symmetry exploration
+    static constexpr double kMutationRate = 0.80; // Increased from 0.05 for better symmetry exploration
     static constexpr double kBiasInheritRatio = 0.4;
     static constexpr double kRootMutationRate = 0.15;
     static constexpr double kInitialPairInactiveRate = 0.05;
@@ -3251,14 +3321,15 @@ private:
 
     // Overlap constants
     static constexpr double kOverlapPenalty = 1200.0;
-    static constexpr double kOverlapMinHitRatio = 0.11;
+    static constexpr double kOverlapMinHitRatio = 0.00;
     static constexpr double kCollisionPointEpsilon = 1.0;   // mm
-    static constexpr double kCollisionEdgeExclusion = 4.0;  // mm
+    static constexpr double kCollisionEdgeExclusion = 10.0;  // mm
     static constexpr double kCollisionVoxelSize = 3.0;      // mm
 
     // Consensus Support parameters
     static constexpr bool use_consensus_reward = true;
-    static constexpr double kConsensusWeight = 1.0;         // Multiplier for supporting inliners
+    static constexpr double kInlierScale = 6.0;             // Multiplier for log-inlier reward
+    static constexpr double kConsensusWeight = 20.0;         // Flat reward per supporting match
     static constexpr double kConsensusRotThreshold = 0.22;   // ~12.6 degrees rotation error limit
     static constexpr double kConsensusTransThreshold = 12.0; // 12.0 mm translation error limit
 
