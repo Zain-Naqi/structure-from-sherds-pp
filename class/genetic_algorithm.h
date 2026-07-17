@@ -69,6 +69,7 @@ public:
         double connectivity_reward = 0.0;
         double connectivity_component_penalty = 0.0;
         double consensus_reward = 0.0;
+        vector<int> sherd_consensus_counts;  // Per-sherd consensus match count
         int active_pair_count = 0;
         int valid_group_count = 0;
         int largest_component = 0;
@@ -234,7 +235,17 @@ public:
             sort(population_.begin(), population_.end(), [](const Chromosome& a, const Chromosome& b) {
                 return a.fitness > b.fitness;
             });
-
+            if (!population_.empty()) {
+                FitnessBreakdown best_breakdown;
+                EvaluateFitness(population_.front(), &best_breakdown);
+                sherd_consensus_counts_ = best_breakdown.sherd_consensus_counts;
+            }
+            double best_fitness_so_far = -1e9;
+            if (!population_.empty()) {
+                best_fitness_so_far = population_.front().fitness;
+            }
+            int generations_since_improvement = 0;
+            current_mutation_rate_ = kBaseMutationRate;
             for (int generation = 0; generation < kMaxGenerations; ++generation) {
 
                 cout << "[GA] Generation " << generation << " best fitness: " << population_.front().fitness << endl;
@@ -269,7 +280,34 @@ public:
                 sort(population_.begin(), population_.end(), [](const Chromosome& a, const Chromosome& b) {
                     return a.fitness > b.fitness;
                 });
-
+                // Cache per-sherd consensus counts from the best individual for guided mutation
+                if (!population_.empty()) {
+                    FitnessBreakdown best_breakdown;
+                    EvaluateFitness(population_.front(), &best_breakdown);
+                    sherd_consensus_counts_ = best_breakdown.sherd_consensus_counts;
+                }
+                // --- Plateau Detection ---
+                if (!population_.empty()) {
+                    double current_best_fitness = population_.front().fitness;
+                    if (current_best_fitness > best_fitness_so_far + 1e-5) {
+                        best_fitness_so_far = current_best_fitness;
+                        generations_since_improvement = 0;
+                        if (current_mutation_rate_ != kBaseMutationRate) {
+                            cout << "[GA] Best fitness improved to " << best_fitness_so_far
+                                 << ". Resetting mutation rate to " << kBaseMutationRate << endl;
+                            current_mutation_rate_ = kBaseMutationRate;
+                        }
+                    } else {
+                        generations_since_improvement++;
+                        if (generations_since_improvement >= kStagnationThreshold) {
+                            if (current_mutation_rate_ != kHyperMutationRate) {
+                                cout << "[GA] Stagnation detected (" << generations_since_improvement
+                                     << " generations). Raising mutation rate to " << kHyperMutationRate << endl;
+                                current_mutation_rate_ = kHyperMutationRate;
+                            }
+                        }
+                    }
+                }
                 if (generation % 10 == 0 && !population_.empty()) {
                     LogBestChromosomeBreakdown(generation, population_.front());
                 }
@@ -612,6 +650,7 @@ private:
     {
         if (breakdown != nullptr) {
             *breakdown = FitnessBreakdown();
+            breakdown->sherd_consensus_counts.assign(num_shards_, 0);
         }
 
         const int kMaxNeighbors = max_neighbors_cap_;
@@ -927,7 +966,6 @@ private:
                 }
             }
 
-            // Apply threshold check on each sherd's total accumulated overlap
             for (int i = 0; i < num_shards_; ++i) {
                 if (sherd_accumulated_overlap[i] >= kOverlapMinHitRatio) {
                     overlap_penalty_sum += kOverlapPenalty * sherd_accumulated_overlap[i];
@@ -981,9 +1019,12 @@ private:
 
                             double trace = T_diff(0, 0) + T_diff(1, 1) + T_diff(2, 2);
                             if (trace > 2.0 * kCosConsensusRotThreshold + 1.0) {
-                                consensus_reward += kConsensusWeight; // Flat reward per matching pair
-                                break; // Max one supporting candidate per alternative pair
-                            }
+                                 consensus_reward += kConsensusWeight; // Flat reward per matching pair
+                                 if (breakdown != nullptr && !breakdown->sherd_consensus_counts.empty()) {
+                                     breakdown->sherd_consensus_counts[idx]++;
+                                 }
+                                 break; // Max one supporting candidate per alternative pair
+                             }
                         }
                     }
                 }
@@ -1150,22 +1191,63 @@ private:
         // Root mutation disabled; base sherd remains 0
         chromosome.root_shard = 0;
 
-        if (real_dist(rng_) >= kMutationRate) {
+        if (real_dist(rng_) >= current_mutation_rate_) {
             return -1;
         }
 
-        // Shard-Centric Mutation: Focus on a specific shard and its relationships
-        std::uniform_int_distribution<int> shard_dist(0, num_shards_ - 1);
-        int shard_idx = shard_dist(rng_);
+        // --- Weighted Sherd Selection (inverse consensus) ---
+        vector<double> weights(num_shards_, 0.0);
+        double total_weight = 0.0;
+        for (int i = 0; i < num_shards_; ++i) {
+            if (sherd_incident_groups_[i].empty()) continue;
+            int cc = (i < static_cast<int>(sherd_consensus_counts_.size()))
+                     ? sherd_consensus_counts_[i] : 0;
+            weights[i] = 1.0 / (1.0 + static_cast<double>(cc));
+            total_weight += weights[i];
+        }
 
-        if (sherd_incident_groups_[shard_idx].empty()) {
+        if (total_weight <= 0.0) return -1;
+
+        // Roulette wheel selection
+        double pick = real_dist(rng_) * total_weight;
+        int shard_idx = -1;
+        double cumulative = 0.0;
+        for (int i = 0; i < num_shards_; ++i) {
+            if (sherd_incident_groups_[i].empty()) continue;
+            cumulative += weights[i];
+            if (cumulative >= pick) {
+                shard_idx = i;
+                break;
+            }
+        }
+        // Fallback in case of floating-point precision issues:
+        if (shard_idx == -1) {
+            for (int i = num_shards_ - 1; i >= 0; --i) {
+                if (!sherd_incident_groups_[i].empty()) {
+                    shard_idx = i;
+                    break;
+                }
+            }
+        }
+
+        if (shard_idx == -1 || sherd_incident_groups_[shard_idx].empty()) {
             return -1;
         }
 
-        // 50% chance: Pivot Swap (change WHO the sherd is connected to)
-        // 50% chance: Alignment Tweak (change HOW the sherd is connected to the same neighbor)
-        if (real_dist(rng_) < 0.5) {
-            // Find active and inactive incident edges for this shard
+        // --- Adaptive Pivot/Tweak Probability ---
+        int cc = (shard_idx < static_cast<int>(sherd_consensus_counts_.size()))
+                 ? sherd_consensus_counts_[shard_idx] : 0;
+        double pivot_swap_prob;
+        if (cc == 0) {
+            pivot_swap_prob = 0.70;  // 70% pivot swap, 30% alignment tweak
+        } else if (cc == 1) {
+            pivot_swap_prob = 0.50;  // 50/50
+        } else {
+            pivot_swap_prob = 0.30;  // 30% pivot swap, 70% alignment tweak
+        }
+
+        if (real_dist(rng_) < pivot_swap_prob) {
+            // --- Pivot Swap ---
             vector<int> active_incident_genes;
             vector<int> inactive_incident_genes;
             for (int g_idx : sherd_incident_groups_[shard_idx]) {
@@ -1199,15 +1281,12 @@ private:
             }
         }
         else {
-            // Pick one incident edge of the chosen shard
+            // --- Alignment Tweak ---
             std::uniform_int_distribution<int> gene_dist(0, static_cast<int>(sherd_incident_groups_[shard_idx].size()) - 1);
             int gene_idx = static_cast<int>(sherd_incident_groups_[shard_idx][gene_dist(rng_)]);
 
             int old_choice = chromosome.genes[gene_idx];
-            int new_choice = old_choice;
-
-            // Try a different candidate choice for the same pair
-            new_choice = SampleGroupChoice(gene_idx);
+            int new_choice = SampleGroupChoice(gene_idx);
             if (new_choice == old_choice && !pair_groups_[gene_idx].empty()) {
                 new_choice = (old_choice == 0) ? 1 : 0;
             }
@@ -3305,10 +3384,12 @@ private:
 
 
     static constexpr int kPopulationSize = 1000;
-    static constexpr int kMaxGenerations = 100;
+    static constexpr int kMaxGenerations = 250;
     static constexpr int kElitismCount = 1;
     static constexpr int kNumSeeds = 1;
-    static constexpr double kMutationRate = 0.80; // Increased from 0.05 for better symmetry exploration
+    static constexpr double kBaseMutationRate = 0.15;       // Base mutation rate (allows convergence)
+    static constexpr double kHyperMutationRate = 0.40;      // Hyper-mutation rate (escapes local traps)
+    static constexpr int kStagnationThreshold = 15;         // Generations without improvement to trigger hyper-mutation
     static constexpr double kBiasInheritRatio = 0.4;
     static constexpr double kRootMutationRate = 0.15;
     static constexpr double kInitialPairInactiveRate = 0.05;
@@ -3321,7 +3402,7 @@ private:
 
     // Overlap constants
     static constexpr double kOverlapPenalty = 1200.0;
-    static constexpr double kOverlapMinHitRatio = 0.00;
+    static constexpr double kOverlapMinHitRatio = 0.01;
     static constexpr double kCollisionPointEpsilon = 1.0;   // mm
     static constexpr double kCollisionEdgeExclusion = 10.0;  // mm
     static constexpr double kCollisionVoxelSize = 3.0;      // mm
@@ -3453,6 +3534,8 @@ private:
     vector<int> pair_group_lookup_;
     int valid_shard_count_ = 0;
     int valid_group_count_ = 0;
+    vector<int> sherd_consensus_counts_; // Per-sherd consensus match count from best individual
+    double current_mutation_rate_ = kBaseMutationRate;
 
     const double kCosConsensusRotThreshold = cos(kConsensusRotThreshold);
 

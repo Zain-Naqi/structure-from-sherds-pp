@@ -46,19 +46,28 @@ This representation naturally guarantees that at most one transform is selected 
 The fitness function evaluates global geometric and topological consistency. Since the **BFS Spanning Tree Repair Operator** prunes all non-tree edges to prevent loops, cycles are eliminated and residual propagation errors on tree edges are mathematically zero. Therefore, cycle penalties ($F_{\text{cycle}}$) and edge/rotational residuals ($F_{\text{res}}$) are disabled in practice (`use_cycle_penalty = false`, `use_edge_residual = false`, `use_rot_residual = false`). 
 
 The active fitness function simplifies to:
-$$F(\mathbf{c}) = \sum q_k + F_{\text{conn}} + F_{\text{consensus}} - F_{\text{overlap}}$$
+$$F(\mathbf{c}) = F_{\text{inlier\_reward}} + F_{\text{conn}} + F_{\text{consensus}} - F_{\text{overlap\_penalty}}$$
 
-1. **Match Quality Score ($q_k$):** Proportional to $\frac{\text{inliers}}{1 + \text{score}}$, rewarding high-inlier counts combined with low dissimilarity scores (precision).
+1. **Logarithmic Inlier Reward ($F_{\text{inlier\_reward}}$):** Compresses raw inlier count differences using natural log scaling to prevent high-inlier false-positives from dominating the landscape:
+   $$F_{\text{inlier\_reward}} = \sum_{k \in \text{active}} k_{\text{InlierScale}} \times \ln(\text{inliers}_k + 1.0) \times \frac{1.0}{1.0 + \text{score}_k}$$
+   *Default: `kInlierScale = 6.0`.*
 2. **Connectivity Reward ($F_{\text{conn}}$):** Rewards the size of the largest connected component and penalizes fragmented component counts.
-3. **Consensus Support Reward ($F_{\text{consensus}}$):** Rewards structural consensus. For each placed component, we check every alternative (inactive) pair of shards. If there is a candidate LCS match that aligns them within a translation threshold ($12.0$ mm) and rotation threshold ($0.22$ rad) of their current relative pose, we reward the fitness proportionally to the match's inlier count ($0.25 \times \text{inliers}$).
-4. **Overlap Penalty ($F_{\text{overlap}}$):** Evaluates physical interpenetration of sherd point-clouds using voxel-downsampled collision clouds and kd-tree distance queries.
+3. **Flat Consensus Reward ($F_{\text{consensus}}$):** Decoupled from inliers to prevent reward hacking. Adds a flat reward for each supporting candidate match that geometrically agrees with the current relative pose of any placed pair:
+   $$F_{\text{consensus}} = \sum_{m \in \text{matches}} k_{\text{ConsensusWeight}}$$
+   *Default: `kConsensusWeight = 20.0`.*
+4. **Accumulated Sherd-Centric Overlap Penalty ($F_{\text{overlap\_penalty}}$):** Evaluates physical interpenetration of sherd point-clouds. To prevent chimeras from escaping penalties via multiple small clipping zones, overlap hit ratios are accumulated per-sherd before thresholding:
+   $$\text{Total Overlap}_i = \sum_{j \neq i} \text{hit\_ratio}(i, j)$$
+   $$\text{If } \text{Total Overlap}_i \ge k_{\text{OverlapMinHitRatio}}, \quad \text{Penalty}_i = k_{\text{OverlapPenalty}} \times \text{Total Overlap}_i$$
+   *Default: `kOverlapMinHitRatio = 0.00`, `kCollisionEdgeExclusion = 10.0` mm.*
 
 ### 🔀 Genetic Operators
 * **Shard-Partition Crossover:** Randomly assigns shards to one of two parents. 
   * If both shards in a gene belong to the same parent, the child inherits that parent's gene.
   * If they are split, the child inherits from either parent with equal probability.
   This preserves locally consistent spatial clusters.
-* **Shard-Centric Mutation (Probability $p_m = 0.20$):** Focuses on a single random shard, selects one of its incident genes, and either deactivates it (50% chance) or samples a new candidate transform (50% chance). (Tuned from 0.10 to enhance exploration of symmetric choices).
+* **Smart Reconnection Mutation (Pivot Swap):** Focuses on a single random shard. 
+  * **Pivot Swap (50% chance)**: Disconnects the shard from its current active neighbor, and immediately connects it to a different random inactive neighbor using `SampleGroupChoice`. This keeps the tree topology mostly intact rather than relying on blind repair.
+  * **Alignment Tweak (50% chance)**: Keeps the same active neighbor, but samples a different candidate alignment choice.
 
 ---
 
@@ -81,12 +90,16 @@ Our GA achieves perfect results on moderate or simple pots (A, B, C, F) but stru
 
 ---
 
-## 4. Identified Weaknesses & GA Bottlenecks
-
-### 🔍 Unidentified Ground Truth Matches at Start
-* **The Problem:** The pairwise curve matching algorithm (`FeatureComp`) does not identify all valid ground truth matches at the start of the process. This is due to complexities in estimating the initial symmetric axis and the resulting alignment of the curves.
-* **Impact:** Because the search space is limited to matches computed at the start, the GA cannot find the correct overall assembly if critical edges are missing. This is the main issue that plagues reconstruction on highly fragmented pots like **Pot G**.
-* **Implication:** The pottery needs to be assembled incrementally so that as some sherds are correctly aligned and positioned, the remaining matches can be resolved and uncovered.
+### 🔍 Search Exploration & Convergence Bottleneck (Current Core Focus)
+* **The Problem:** For larger/complex pots like **Pot G**, the Ground Truth fitness is proven to be the absolute global optimum of our fitness function (`1116.76` vs GA best). However, even when running the GA with massive parameter sizes (`kMaxGenerations = 200`, `kPopulationSize = 2000`), the GA gets trapped and is unable to reach the Ground Truth score.
+* **Why it happens:**
+  1. **Strict Overlap Constraints**: Setting `kOverlapMinHitRatio = 0.00` and `kCollisionEdgeExclusion = 10.0` mm ensures the GT gets zero penalty, but makes the fitness landscape highly constrained ("barbed wire" or needle-in-a-haystack landscape). Almost all intermediate/partially aligned structures receive severe penalties, trapping the search.
+  2. **Premature Convergence**: A high tournament size (`3`) combined with a large elitism count (`kElitismCount = 10`) causes the population to quickly lose genetic diversity and converge to local optima chimeras early on. Once converged, the single-gene mutation cannot bridge the multi-edge gap to the Ground Truth.
+* **Active Solutions under Investigation:**
+  * **Reducing Tournament Size**: Lowering it from `3` to `2` to decrease selection pressure and allow less-fit, diverse genomes to survive.
+  * **Reducing Elitism Count**: Dropping `kElitismCount` from `10` to `1` or `2` to prevent clonal population takeover.
+  * **Dynamic Constraint Relaxation (Annealing)**: Gradually tightening `kOverlapMinHitRatio` (e.g. from `0.15` down to `0.00`) and the edge exclusion zone as generations progress to guide the population smoothly.
+  * **Crossover/Cloning Balance**: Introducing a crossover rate (e.g. 80% crossover, 20% direct cloning with mutation) to preserve high-fitness schemas.
 
 ---
 
