@@ -224,6 +224,7 @@ public:
         Chromosome overall_best;
         overall_best.fitness = -1e18;
         int best_seed_idx = -1;
+        int best_seed_generations = 0;
 
         for (int seed_idx = 0; seed_idx < kNumSeeds; ++seed_idx) {
             std::mt19937::result_type seed = static_cast<std::mt19937::result_type>(42 + seed_idx * 7);
@@ -246,7 +247,10 @@ public:
             }
             int generations_since_improvement = 0;
             current_mutation_rate_ = kBaseMutationRate;
-            for (int generation = 0; generation < kMaxGenerations; ++generation) {
+            std::uniform_real_distribution<double> real_dist(0.0, 1.0);
+            int final_generation = 0;
+            for (int generation = 0; ; ++generation) {
+                final_generation = generation;
 
                 cout << "[GA] Generation " << generation << " best fitness: " << population_.front().fitness << endl;
 
@@ -263,13 +267,23 @@ public:
                     const Chromosome& parent2 = TournamentSelect();
 
                     Chromosome child1 = Crossover(parent1, parent2);
-                    int mutated_gene1 = Mutate(child1);
+                    int mutated_gene1;
+                    if (real_dist(rng_) < 0.30) {
+                        mutated_gene1 = NeighborhoodMutate(child1);
+                    } else {
+                        mutated_gene1 = Mutate(child1);
+                    }
 
                     next_population.push_back(child1);
 
                     if (static_cast<int>(next_population.size()) < kPopulationSize) {
                         Chromosome child2 = Crossover(parent2, parent1);
-                        int mutated_gene2 = Mutate(child2);
+                        int mutated_gene2;
+                        if (real_dist(rng_) < 0.30) {
+                            mutated_gene2 = NeighborhoodMutate(child2);
+                        } else {
+                            mutated_gene2 = Mutate(child2);
+                        }
                         next_population.push_back(child2);
                     }
                 }
@@ -306,6 +320,14 @@ public:
                                 current_mutation_rate_ = kHyperMutationRate;
                             }
                         }
+                        if (generations_since_improvement >= kEarlyTerminationThreshold) {
+                            cout << "[GA] Hard stagnation detected (" << generations_since_improvement
+                                 << " generations). Early termination at generation " << generation << endl;
+                            if (kEnableSnapshots) {
+                                SaveAssemblySnapshot(generation, population_.front());
+                            }
+                            break;
+                        }
                     }
                 }
                 if (generation % 10 == 0 && !population_.empty()) {
@@ -325,7 +347,7 @@ public:
                     LogConvergenceCSV(generation);
                 }
 
-                if (kEnableSnapshots && (generation % kSnapshotInterval == 0 || generation == kMaxGenerations - 1)) {
+                if (kEnableSnapshots && (generation % kSnapshotInterval == 0)) {
                     SaveAssemblySnapshot(generation, population_.front());
                 }
             }
@@ -339,6 +361,7 @@ public:
                 if (seed_best > overall_best.fitness) {
                     overall_best = population_.front();
                     best_seed_idx = seed_idx;
+                    best_seed_generations = final_generation;
                 }
             }
         }
@@ -349,7 +372,7 @@ public:
         population_.clear();
         population_.push_back(overall_best);
 
-        LogBestChromosomeBreakdown(kMaxGenerations, overall_best);
+        LogBestChromosomeBreakdown(best_seed_generations, overall_best);
         AuditChromosomeCollisions(overall_best, "FINAL BEST");
         PrintConsensusDiagnostics(overall_best, "FINAL BEST");
 
@@ -499,6 +522,18 @@ public:
         return best;
     }
 
+    void SeedElites(const vector<Chromosome>& elites)
+    {
+        seeded_elites_ = elites;
+    }
+
+    vector<Chromosome> GetTopChromosomes(int count) const
+    {
+        int n = min(count, static_cast<int>(population_.size()));
+        vector<Chromosome> top(population_.begin(), population_.begin() + n);
+        return top;
+    }
+
     //-----------------------------------------------------------------------------------------------------------------//
 
 private:
@@ -518,6 +553,28 @@ private:
                 chromosome.genes[gene_idx] = SampleGroupChoice(gene_idx);
             }
             population_.push_back(chromosome);
+        }
+
+        // Apply seeded elites if they exist
+        if (!seeded_elites_.empty()) {
+            int num_elites = min(static_cast<int>(seeded_elites_.size()), kPopulationSize / 2);
+            for (int i = 0; i < num_elites; ++i) {
+                int target_idx = kPopulationSize - 1 - i;  // Replace from the back
+                population_[target_idx] = seeded_elites_[i];
+
+                // Add exactly one random pair to the chromosome to fill the new edge budget
+                vector<int> inactive_genes;
+                for (size_t g_idx = 0; g_idx < population_[target_idx].genes.size(); ++g_idx) {
+                    if (population_[target_idx].genes[g_idx] == 0 && !pair_groups_[g_idx].empty()) {
+                        inactive_genes.push_back(static_cast<int>(g_idx));
+                    }
+                }
+                if (!inactive_genes.empty()) {
+                    std::uniform_int_distribution<int> dist(0, static_cast<int>(inactive_genes.size()) - 1);
+                    int rand_gene = inactive_genes[dist(rng_)];
+                    population_[target_idx].genes[rand_gene] = SampleGroupChoice(rand_gene);
+                }
+            }
         }
     }
 
@@ -1048,8 +1105,9 @@ private:
                 breakdown->connectivity_reward = reward;
             }
 
-            if (use_component_penalty && num_components > 1) {
-                double penalty = kConnectivityComponentPenalty * static_cast<double>(num_components - 1);
+            int expected_components = (max_edges_ >= 0) ? (valid_shard_count_ - max_edges_) : 1;
+            if (use_component_penalty && num_components > expected_components) {
+                double penalty = kConnectivityComponentPenalty * static_cast<double>(num_components - expected_components);
                 fitness -= penalty;
                 if (breakdown != nullptr) {
                     breakdown->connectivity_component_penalty = penalty;
@@ -1294,6 +1352,146 @@ private:
             chromosome.genes[gene_idx] = new_choice;
             return gene_idx;
         }
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------//
+
+    int NeighborhoodMutate(Chromosome& chromosome) const
+    {
+        std::uniform_real_distribution<double> real_dist(0.0, 1.0);
+        chromosome.root_shard = 0;
+
+        if (real_dist(rng_) >= current_mutation_rate_) {
+            return -1;
+        }
+
+        // 1. Pick focal sherd using inverse-consensus weighting
+        vector<double> weights(num_shards_, 0.0);
+        double total_weight = 0.0;
+        for (int i = 0; i < num_shards_; ++i) {
+            if (sherd_incident_groups_[i].empty()) continue;
+            int cc = (i < static_cast<int>(sherd_consensus_counts_.size()))
+                     ? sherd_consensus_counts_[i] : 0;
+            weights[i] = 1.0 / (1.0 + static_cast<double>(cc));
+            total_weight += weights[i];
+        }
+        if (total_weight <= 0.0) return -1;
+
+        double pick = real_dist(rng_) * total_weight;
+        int focal = -1;
+        double cumulative = 0.0;
+        for (int i = 0; i < num_shards_; ++i) {
+            if (sherd_incident_groups_[i].empty()) continue;
+            cumulative += weights[i];
+            if (cumulative >= pick) {
+                focal = i;
+                break;
+            }
+        }
+        if (focal == -1) {
+            for (int i = num_shards_ - 1; i >= 0; --i) {
+                if (!sherd_incident_groups_[i].empty()) {
+                    focal = i;
+                    break;
+                }
+            }
+        }
+        if (focal == -1) return -1;
+
+        // 2. Find all ACTIVE edges incident to focal shard and save originals
+        vector<int> incident_genes;
+        vector<int> original_choices;
+        for (int g_idx : sherd_incident_groups_[focal]) {
+            if (chromosome.genes[g_idx] > 0) {
+                incident_genes.push_back(g_idx);
+                original_choices.push_back(chromosome.genes[g_idx]);
+            }
+        }
+        int degree = static_cast<int>(incident_genes.size());
+        if (degree == 0) return -1;
+
+        // 3. Deactivate all incident edges
+        for (int g : incident_genes) {
+            chromosome.genes[g] = 0;
+        }
+
+        // 4. Build DSU of the remaining tree (without focal's edges)
+        struct DSU {
+            vector<int> parent;
+            DSU(int n) {
+                parent.resize(n);
+                for (int i = 0; i < n; ++i) parent[i] = i;
+            }
+            int find(int i) {
+                if (parent[i] == i) return i;
+                return parent[i] = find(parent[i]);
+            }
+            bool unite(int i, int j) {
+                int ri = find(i), rj = find(j);
+                if (ri != rj) {
+                    parent[ri] = rj;
+                    return true;
+                }
+                return false;
+            }
+        };
+
+        DSU dsu(num_shards_);
+        for (size_t g = 0; g < chromosome.genes.size(); ++g) {
+            if (chromosome.genes[g] <= 0) continue;
+            int gx = group_rep_x_[g];
+            int gy = group_rep_y_[g];
+            if (gx == focal || gy == focal) continue;
+            if (gx >= 0 && gy >= 0) {
+                dsu.unite(gx, gy);
+            }
+        }
+
+        // 5. Collect ALL candidate pair groups incident to focal
+        vector<int> all_candidates;
+        for (int g_idx : sherd_incident_groups_[focal]) {
+            if (pair_groups_[g_idx].empty()) continue;
+            all_candidates.push_back(g_idx);
+        }
+
+        // Shuffle candidates for randomness
+        for (int i = static_cast<int>(all_candidates.size()) - 1; i > 0; --i) {
+            std::uniform_int_distribution<int> swap_dist(0, i);
+            std::swap(all_candidates[i], all_candidates[swap_dist(rng_)]);
+        }
+
+        // 6. Greedily pick candidates that reconnect distinct components
+        int edges_added = 0;
+        for (int g_idx : all_candidates) {
+            if (edges_added >= degree) break;
+
+            int gx = group_rep_x_[g_idx];
+            int gy = group_rep_y_[g_idx];
+            int other = (gx == focal) ? gy : gx;
+            if (other < 0) continue;
+
+            if (dsu.unite(focal, other)) {
+                chromosome.genes[g_idx] = SampleGroupChoice(g_idx);
+                edges_added++;
+            }
+        }
+
+        // 7. Fallback: if we couldn't reconnect all components, restore originals
+        if (edges_added < degree) {
+            for (size_t g = 0; g < chromosome.genes.size(); ++g) {
+                int gx = group_rep_x_[g];
+                int gy = group_rep_y_[g];
+                if (gx == focal || gy == focal) {
+                    chromosome.genes[g] = 0;
+                }
+            }
+            for (int i = 0; i < degree; ++i) {
+                chromosome.genes[incident_genes[i]] = original_choices[i];
+            }
+            return -1;
+        }
+
+        return incident_genes[0];
     }
 
     //-----------------------------------------------------------------------------------------------------------------//
@@ -3383,13 +3581,14 @@ private:
     // }
 
 
-    static constexpr int kPopulationSize = 1000;
-    static constexpr int kMaxGenerations = 250;
+    static constexpr int kPopulationSize = 350;
+    static constexpr int kMaxGenerations = 100;
     static constexpr int kElitismCount = 1;
     static constexpr int kNumSeeds = 1;
     static constexpr double kBaseMutationRate = 0.15;       // Base mutation rate (allows convergence)
     static constexpr double kHyperMutationRate = 0.40;      // Hyper-mutation rate (escapes local traps)
     static constexpr int kStagnationThreshold = 15;         // Generations without improvement to trigger hyper-mutation
+    static constexpr int kEarlyTerminationThreshold = 70;   // Generations without improvement to exit early
     static constexpr double kBiasInheritRatio = 0.4;
     static constexpr double kRootMutationRate = 0.15;
     static constexpr double kInitialPairInactiveRate = 0.05;
@@ -3511,6 +3710,7 @@ private:
     int num_shards_;
 
     vector<Chromosome> population_;
+    vector<Chromosome> seeded_elites_;
 
     vector<Trans> transforms_;
     MatrixXd graph_;
