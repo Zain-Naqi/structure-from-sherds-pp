@@ -557,7 +557,7 @@ private:
 
         // Apply seeded elites if they exist
         if (!seeded_elites_.empty()) {
-            int num_elites = min(static_cast<int>(seeded_elites_.size()), kPopulationSize / 2);
+            int num_elites = min(static_cast<int>(seeded_elites_.size()), kPopulationSize);
             for (int i = 0; i < num_elites; ++i) {
                 int target_idx = kPopulationSize - 1 - i;  // Replace from the back
                 population_[target_idx] = seeded_elites_[i];

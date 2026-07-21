@@ -19,7 +19,7 @@ else
 fi
 
 # Run container
-sudo docker run \
+docker run \
     -it \
     --rm \
     --user $(id -u):$(id -g) \

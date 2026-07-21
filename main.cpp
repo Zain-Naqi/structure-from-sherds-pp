@@ -325,7 +325,7 @@ int main(int argc, char** argv)
 		if (shard_on_off[i]) active_shard_count++;
 	}
 	const int kMaxGAIterations = active_shard_count - 1;
-	const int kPhaseEliteCount = 50;
+	const int kPhaseEliteCount = 330;
 	vector<GeneticAssembler::Chromosome> elite_chromosomes;
 	const double kConvergenceThreshold = 5.0;	// minimum fitness improvement to continue
 	const int kMaxPatience = 5;

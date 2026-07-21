@@ -148,6 +148,11 @@ RUN mkdir -p ceres-solver-${CERES_VERSION} \
 # Clean up
 RUN sudo rm -rf /tmp/deps
 
+# Install Xvfb for headless/No-Display VTK rendering
+USER root
+RUN apt-get update && apt-get install -y xvfb && rm -rf /var/lib/apt/lists/*
+USER user
+
 WORKDIR /SfS
 
 CMD ["/bin/bash"]

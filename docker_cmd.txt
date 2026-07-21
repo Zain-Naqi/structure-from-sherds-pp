@@ -1,0 +1,13 @@
+docker run \
+        -d \
+        --rm \
+        --user $(id -u):$(id -g) \
+        --net=host \
+        -e DISPLAY=$DISPLAY \
+        -e XAUTHORITY=/home/user/.Xauthority \
+        --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
+        --volume="$HOME/.Xauthority:/home/user/.Xauthority" \
+        --volume="$PWD:/SfS" \
+        --volume="$PWD/Dataset:/Dataset" \
+        sfs:latest \
+        sh -c "xvfb-run ./build/Hierarchy-Clear --icp-compare > output.log 2>&1"
