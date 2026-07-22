@@ -268,7 +268,7 @@ public:
 
                     Chromosome child1 = Crossover(parent1, parent2);
                     int mutated_gene1;
-                    if (real_dist(rng_) < 0.30) {
+                    if (real_dist(rng_) < 0.50) {
                         mutated_gene1 = NeighborhoodMutate(child1);
                     } else {
                         mutated_gene1 = Mutate(child1);
@@ -279,7 +279,7 @@ public:
                     if (static_cast<int>(next_population.size()) < kPopulationSize) {
                         Chromosome child2 = Crossover(parent2, parent1);
                         int mutated_gene2;
-                        if (real_dist(rng_) < 0.30) {
+                        if (real_dist(rng_) < 0.50) {
                             mutated_gene2 = NeighborhoodMutate(child2);
                         } else {
                             mutated_gene2 = Mutate(child2);
@@ -1292,66 +1292,19 @@ private:
             return -1;
         }
 
-        // --- Adaptive Pivot/Tweak Probability ---
-        int cc = (shard_idx < static_cast<int>(sherd_consensus_counts_.size()))
-                 ? sherd_consensus_counts_[shard_idx] : 0;
-        double pivot_swap_prob;
-        if (cc == 0) {
-            pivot_swap_prob = 0.70;  // 70% pivot swap, 30% alignment tweak
-        } else if (cc == 1) {
-            pivot_swap_prob = 0.50;  // 50/50
-        } else {
-            pivot_swap_prob = 0.30;  // 30% pivot swap, 70% alignment tweak
+        // --- Candidate Choice Switching ---
+        // Pick an incident gene on this shard and change its candidate choice
+        std::uniform_int_distribution<int> gene_dist(0, static_cast<int>(sherd_incident_groups_[shard_idx].size()) - 1);
+        int gene_idx = static_cast<int>(sherd_incident_groups_[shard_idx][gene_dist(rng_)]);
+
+        int old_choice = chromosome.genes[gene_idx];
+        int new_choice = SampleGroupChoice(gene_idx);
+        if (new_choice == old_choice && !pair_groups_[gene_idx].empty()) {
+            new_choice = (old_choice == 0) ? 1 : 0;
         }
 
-        if (real_dist(rng_) < pivot_swap_prob) {
-            // --- Pivot Swap ---
-            vector<int> active_incident_genes;
-            vector<int> inactive_incident_genes;
-            for (int g_idx : sherd_incident_groups_[shard_idx]) {
-                if (chromosome.genes[g_idx] > 0) {
-                    active_incident_genes.push_back(g_idx);
-                } else {
-                    inactive_incident_genes.push_back(g_idx);
-                }
-            }
-
-            if (!active_incident_genes.empty()) {
-                // Pick a random active edge to turn off (deactivate)
-                std::uniform_int_distribution<int> active_dist(0, static_cast<int>(active_incident_genes.size()) - 1);
-                int deactivate_gene = active_incident_genes[active_dist(rng_)];
-                chromosome.genes[deactivate_gene] = 0;
-
-                // Pick a random inactive edge to turn on (activate)
-                if (!inactive_incident_genes.empty()) {
-                    std::uniform_int_distribution<int> inactive_dist(0, static_cast<int>(inactive_incident_genes.size()) - 1);
-                    int activate_gene = inactive_incident_genes[inactive_dist(rng_)];
-                    chromosome.genes[activate_gene] = SampleGroupChoice(activate_gene);
-                    return activate_gene;
-                }
-                return deactivate_gene;
-            } else {
-                // If the shard has no active connections, turn a random inactive one on
-                std::uniform_int_distribution<int> gene_dist(0, static_cast<int>(sherd_incident_groups_[shard_idx].size()) - 1);
-                int gene_idx = static_cast<int>(sherd_incident_groups_[shard_idx][gene_dist(rng_)]);
-                chromosome.genes[gene_idx] = SampleGroupChoice(gene_idx);
-                return gene_idx;
-            }
-        }
-        else {
-            // --- Alignment Tweak ---
-            std::uniform_int_distribution<int> gene_dist(0, static_cast<int>(sherd_incident_groups_[shard_idx].size()) - 1);
-            int gene_idx = static_cast<int>(sherd_incident_groups_[shard_idx][gene_dist(rng_)]);
-
-            int old_choice = chromosome.genes[gene_idx];
-            int new_choice = SampleGroupChoice(gene_idx);
-            if (new_choice == old_choice && !pair_groups_[gene_idx].empty()) {
-                new_choice = (old_choice == 0) ? 1 : 0;
-            }
-
-            chromosome.genes[gene_idx] = new_choice;
-            return gene_idx;
-        }
+        chromosome.genes[gene_idx] = new_choice;
+        return gene_idx;
     }
 
     //-----------------------------------------------------------------------------------------------------------------//
@@ -3588,7 +3541,7 @@ private:
     static constexpr double kBaseMutationRate = 0.15;       // Base mutation rate (allows convergence)
     static constexpr double kHyperMutationRate = 0.40;      // Hyper-mutation rate (escapes local traps)
     static constexpr int kStagnationThreshold = 15;         // Generations without improvement to trigger hyper-mutation
-    static constexpr int kEarlyTerminationThreshold = 70;   // Generations without improvement to exit early
+    static constexpr int kEarlyTerminationThreshold = 120;   // Generations without improvement to exit early
     static constexpr double kBiasInheritRatio = 0.4;
     static constexpr double kRootMutationRate = 0.15;
     static constexpr double kInitialPairInactiveRate = 0.05;
