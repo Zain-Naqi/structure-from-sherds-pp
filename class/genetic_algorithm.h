@@ -1241,6 +1241,19 @@ private:
 
     //-----------------------------------------------------------------------------------------------------------------//
 
+    bool IsSherdActiveInChromosome(int sherd_idx, const Chromosome& chromosome) const
+    {
+        if (!IsShardValidAndOn(sherd_idx) || sherd_incident_groups_[sherd_idx].empty()) {
+            return false;
+        }
+        for (int g_idx : sherd_incident_groups_[sherd_idx]) {
+            if (chromosome.genes[g_idx] > 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     // Check # 16: There is a high potential in increasing the chances of mutation as based on this code, there are very less. Multiple genes can be mutated at once as well.
     int Mutate(Chromosome& chromosome) const
     {
@@ -1253,11 +1266,23 @@ private:
             return -1;
         }
 
-        // --- Weighted Sherd Selection (inverse consensus) ---
+        // --- Weighted Sherd Selection (inverse consensus among active valid sherds) ---
         vector<double> weights(num_shards_, 0.0);
         double total_weight = 0.0;
+        int active_sherd_count = 0;
+
         for (int i = 0; i < num_shards_; ++i) {
-            if (sherd_incident_groups_[i].empty()) continue;
+            if (IsSherdActiveInChromosome(i, chromosome)) {
+                active_sherd_count++;
+            }
+        }
+
+        for (int i = 0; i < num_shards_; ++i) {
+            if (active_sherd_count > 0) {
+                if (!IsSherdActiveInChromosome(i, chromosome)) continue;
+            } else {
+                if (!IsShardValidAndOn(i) || sherd_incident_groups_[i].empty()) continue;
+            }
             int cc = (i < static_cast<int>(sherd_consensus_counts_.size()))
                      ? sherd_consensus_counts_[i] : 0;
             weights[i] = 1.0 / (1.0 + static_cast<double>(cc));
@@ -1271,7 +1296,11 @@ private:
         int shard_idx = -1;
         double cumulative = 0.0;
         for (int i = 0; i < num_shards_; ++i) {
-            if (sherd_incident_groups_[i].empty()) continue;
+            if (active_sherd_count > 0) {
+                if (!IsSherdActiveInChromosome(i, chromosome)) continue;
+            } else {
+                if (!IsShardValidAndOn(i) || sherd_incident_groups_[i].empty()) continue;
+            }
             cumulative += weights[i];
             if (cumulative >= pick) {
                 shard_idx = i;
@@ -1281,7 +1310,9 @@ private:
         // Fallback in case of floating-point precision issues:
         if (shard_idx == -1) {
             for (int i = num_shards_ - 1; i >= 0; --i) {
-                if (!sherd_incident_groups_[i].empty()) {
+                bool ok = (active_sherd_count > 0) ? IsSherdActiveInChromosome(i, chromosome)
+                                                   : (IsShardValidAndOn(i) && !sherd_incident_groups_[i].empty());
+                if (ok) {
                     shard_idx = i;
                     break;
                 }
@@ -1318,11 +1349,23 @@ private:
             return -1;
         }
 
-        // 1. Pick focal sherd using inverse-consensus weighting
+        // 1. Pick focal sherd using inverse-consensus weighting among active valid sherds
         vector<double> weights(num_shards_, 0.0);
         double total_weight = 0.0;
+        int active_sherd_count = 0;
+
         for (int i = 0; i < num_shards_; ++i) {
-            if (sherd_incident_groups_[i].empty()) continue;
+            if (IsSherdActiveInChromosome(i, chromosome)) {
+                active_sherd_count++;
+            }
+        }
+
+        for (int i = 0; i < num_shards_; ++i) {
+            if (active_sherd_count > 0) {
+                if (!IsSherdActiveInChromosome(i, chromosome)) continue;
+            } else {
+                if (!IsShardValidAndOn(i) || sherd_incident_groups_[i].empty()) continue;
+            }
             int cc = (i < static_cast<int>(sherd_consensus_counts_.size()))
                      ? sherd_consensus_counts_[i] : 0;
             weights[i] = 1.0 / (1.0 + static_cast<double>(cc));
@@ -1334,7 +1377,11 @@ private:
         int focal = -1;
         double cumulative = 0.0;
         for (int i = 0; i < num_shards_; ++i) {
-            if (sherd_incident_groups_[i].empty()) continue;
+            if (active_sherd_count > 0) {
+                if (!IsSherdActiveInChromosome(i, chromosome)) continue;
+            } else {
+                if (!IsShardValidAndOn(i) || sherd_incident_groups_[i].empty()) continue;
+            }
             cumulative += weights[i];
             if (cumulative >= pick) {
                 focal = i;
@@ -1343,7 +1390,9 @@ private:
         }
         if (focal == -1) {
             for (int i = num_shards_ - 1; i >= 0; --i) {
-                if (!sherd_incident_groups_[i].empty()) {
+                bool ok = (active_sherd_count > 0) ? IsSherdActiveInChromosome(i, chromosome)
+                                                   : (IsShardValidAndOn(i) && !sherd_incident_groups_[i].empty());
+                if (ok) {
                     focal = i;
                     break;
                 }
