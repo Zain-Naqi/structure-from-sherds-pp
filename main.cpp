@@ -324,9 +324,7 @@ int main(int argc, char** argv)
 	for (int i = 0; i < SHARD_NUMBER; ++i) {
 		if (shard_on_off[i]) active_shard_count++;
 	}
-	const int kMaxGAIterations = active_shard_count - 1;
-	const int kPhaseEliteCount = 330;
-	vector<GeneticAssembler::Chromosome> elite_chromosomes;
+	const int kMaxGAIterations = 1;
 	const double kConvergenceThreshold = 5.0;	// minimum fitness improvement to continue
 	const int kMaxPatience = 5;
 
@@ -403,22 +401,12 @@ int main(int argc, char** argv)
 
 	for (ga_iteration = 0; ga_iteration < kMaxGAIterations; ++ga_iteration) {
 
-		cout << "=== GA Phase " << ga_iteration + 1 << " / " << kMaxGAIterations 
-			 << " (max_pairs=" << ga_iteration + 1 << ") ===" << endl;
+		cout << "=== GA Iteration " << ga_iteration + 1 << " / " << kMaxGAIterations << " ===" << endl;
 
-		// Run GA progressively by specifying the current phase edge budget
-		int current_max_edges = ga_iteration + 1;
-		GeneticAssembler ga_iter(shard, LCS_out, SHARD_NUMBER, current_max_edges);
-
-		if (!elite_chromosomes.empty()) {
-			ga_iter.SeedElites(elite_chromosomes);
-		}
-
+		// Run GA on current match list, selecting the full assembly size
+		int target_edges = active_shard_count - 1;
+		GeneticAssembler ga_iter(shard, LCS_out, SHARD_NUMBER, target_edges);
 		ga_iter.Run(GT_graph, GT_trans, T_axis);
-
-		// Extract the best chromosomes to seed the next phase
-		elite_chromosomes = ga_iter.GetTopChromosomes(kPhaseEliteCount);
-
 		T_ga = ga_iter.GetTransforms();
 
 		// Update live transformation directly to the absolute pose T_ga
@@ -462,56 +450,6 @@ int main(int argc, char** argv)
 		cout << "[GA Iter " << ga_iteration + 1 << "] "
 			 << "Best fitness: " << current_fitness
 			 << " (improvement: " << improvement << ")" << endl;
-
-		// // Interactive preview: visualize the current iteration's best individual,
-		// // then wait for space key before moving to the next GA iteration.
-		// for (int i = 0; i < SHARD_NUMBER; ++i) {
-		// 	if (!shard_on_off[i]) {
-		// 		continue;
-		// 	}
-
-		// 	Matrix3d R_target = Matrix3d::Identity();
-		// 	Vector3d t_target = Vector3d::Zero();
-		// 	T_live[i].Output(R_target, t_target);
-
-		// 	Matrix3d R_delta = R_target * R_preview_applied[i].transpose();
-		// 	Vector3d t_delta = t_target - R_delta * t_preview_applied[i];
-		// 	pc_origin[i].Transform(R_delta, t_delta, viewer);
-		// 	R_preview_applied[i] = R_target;
-		// 	t_preview_applied[i] = t_target;
-		// }
-
-		// ShowSherdLabels(T_live, 1.0, 1.0, 0.2);
-
-		// cout << "[GA Iter " << ga_iteration + 1
-		// 	 << "] Previewing current best individual. Press SPACE to continue." << endl;
-		// vis.first_ = false;
-		// while (!viewer->wasStopped() && !vis.first_) {
-		// 	viewer->spinOnce(50);
-		// }
-		// vis.first_ = false;
-		// if (viewer->wasStopped()) {
-		// 	return 0;
-		// }
-
-		// Progressive GA runs all phases to completion; convergence check disabled.
-		/*
-		if (ga_iteration > 0) {
-			if (improvement < kConvergenceThreshold) {
-				patience_counter++;
-				if (patience_counter >= kMaxPatience) {
-					cout << "[GA Iter " << ga_iteration + 1 << "] Converged after " << kMaxPatience << " successive non-improving iterations. Stopping." << endl;
-					break;
-				} else {
-					cout << "[GA Iter " << ga_iteration + 1 << "] Did not improve. Patience: " << patience_counter << " / " << kMaxPatience << endl;
-				}
-			} else {
-				patience_counter = 0;
-			}
-		}
-		*/
-
-		// Recomputing matches between phases is disabled (featurecomp already provides all correct pairs).
 	}
 
 	auto end_time_ga = std::chrono::high_resolution_clock::now();
