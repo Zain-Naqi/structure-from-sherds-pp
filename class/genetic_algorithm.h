@@ -38,7 +38,7 @@ extern bool shard_on_off[];
 class GeneticAssembler {
 public:
     bool use_inlier_score        = true;
-    bool use_connectivity_reward = true;
+    bool use_connectivity_reward = false;
     bool use_component_penalty   = true;
     bool use_cycle_penalty       = false;  // Always 0 after BFS repair (no cycles in a tree)
     bool use_edge_residual       = false;  // Always 0 after BFS repair (no cycles in a tree)
@@ -646,7 +646,10 @@ private:
             int y = lcs.shard_y_ - 1;
             if (!IsShardValidAndOn(x) || !IsShardValidAndOn(y)) continue;
 
-            double weight = static_cast<double>(lcs.inliner_) / (1.0 + lcs.score_);
+            double density = static_cast<double>(lcs.inliner_) / (1.0 + lcs.score_);
+            size_t match_idx = group[local_idx];
+            double consensus_proxy = (match_idx < local_consensus_score_.size()) ? static_cast<double>(local_consensus_score_[match_idx]) : 0.0;
+            double weight = density + (kConsensusWeight * consensus_proxy);
             active_edges.push_back({x, y, static_cast<int>(group_idx), weight});
         }
 
@@ -1104,14 +1107,14 @@ private:
             if (breakdown != nullptr) {
                 breakdown->connectivity_reward = reward;
             }
+        }
 
-            int expected_components = (max_edges_ >= 0) ? (valid_shard_count_ - max_edges_) : 1;
-            if (use_component_penalty && num_components > expected_components) {
-                double penalty = kConnectivityComponentPenalty * static_cast<double>(num_components - expected_components);
-                fitness -= penalty;
-                if (breakdown != nullptr) {
-                    breakdown->connectivity_component_penalty = penalty;
-                }
+        int expected_components = (max_edges_ >= 0) ? (valid_shard_count_ - max_edges_) : 1;
+        if (use_component_penalty && num_components > expected_components) {
+            double penalty = kConnectivityComponentPenalty * static_cast<double>(num_components - expected_components);
+            fitness -= penalty;
+            if (breakdown != nullptr) {
+                breakdown->connectivity_component_penalty = penalty;
             }
         }
 
@@ -1808,6 +1811,93 @@ private:
 
             group_best_density_[group_idx] = best_density;
         }
+
+        PrecomputeConsensusProxies();
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------//
+
+    Matrix4d GetMatchTransform(size_t match_idx, int from_shard, int to_shard) const
+    {
+        const LCSIndex& lcs = matches_[match_idx];
+        Matrix4d T = Matrix4d::Identity();
+        lcs.trans_.Output(T);
+        int sx = lcs.shard_x_ - 1;
+        int sy = lcs.shard_y_ - 1;
+        if (to_shard == sx && from_shard == sy) {
+            return T;
+        } else if (to_shard == sy && from_shard == sx) {
+            return T.inverse();
+        }
+        return T;
+    }
+
+    void PrecomputeConsensusProxies()
+    {
+        local_consensus_score_.assign(matches_.size(), 0);
+
+        cout << "#################### PRECOMPUTING TRIANGLE CONSENSUS PROXIES ####################" << endl;
+        auto start_t = std::chrono::high_resolution_clock::now();
+
+        int triangle_count = 0;
+
+        for (int i = 0; i < num_shards_; ++i) {
+            if (!IsShardValidAndOn(i)) continue;
+
+            for (int j = i + 1; j < num_shards_; ++j) {
+                if (!IsShardValidAndOn(j)) continue;
+                int group_ij = PairGroupIndex(i, j);
+                if (group_ij < 0 || pair_groups_[group_ij].empty()) continue;
+
+                for (int k = j + 1; k < num_shards_; ++k) {
+                    if (!IsShardValidAndOn(k)) continue;
+
+                    int group_jk = PairGroupIndex(j, k);
+                    int group_ik = PairGroupIndex(i, k);
+
+                    if (group_jk < 0 || pair_groups_[group_jk].empty()) continue;
+                    if (group_ik < 0 || pair_groups_[group_ik].empty()) continue;
+
+                    for (size_t c_ij : pair_groups_[group_ij]) {
+                        Matrix4d T_ji = GetMatchTransform(c_ij, j, i);
+
+                        for (size_t c_jk : pair_groups_[group_jk]) {
+                            Matrix4d T_kj = GetMatchTransform(c_jk, k, j);
+
+                            Matrix4d T_chain = T_ji * T_kj;
+                            Matrix3d R_chain = T_chain.block<3, 3>(0, 0);
+                            Vector3d t_chain = T_chain.block<3, 1>(0, 3);
+
+                            for (size_t c_ik : pair_groups_[group_ik]) {
+                                Matrix4d T_ki = GetMatchTransform(c_ik, k, i);
+                                Matrix3d R_ki = T_ki.block<3, 3>(0, 0);
+                                Vector3d t_ki = T_ki.block<3, 1>(0, 3);
+
+                                Matrix3d R_diff = R_chain * R_ki.inverse();
+                                Vector3d t_diff = t_chain - R_diff * t_ki;
+
+                                double trace = R_diff.trace();
+                                double cos_theta = std::clamp((trace - 1.0) / 2.0, -1.0, 1.0);
+                                double r_err = std::acos(cos_theta);
+                                double t_err = t_diff.norm();
+
+                                if (r_err < kConsensusRotThreshold && t_err < kConsensusTransThreshold) {
+                                    local_consensus_score_[c_ij]++;
+                                    local_consensus_score_[c_jk]++;
+                                    local_consensus_score_[c_ik]++;
+                                    triangle_count++;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        auto end_t = std::chrono::high_resolution_clock::now();
+        double elapsed = std::chrono::duration<double>(end_t - start_t).count();
+        cout << "[CONSENSUS PROXY] Found " << triangle_count << " consistent triangles across "
+             << matches_.size() << " match candidates in " << fixed << setprecision(3) << elapsed << " s." << endl;
     }
 
     //-----------------------------------------------------------------------------------------------------------------//
@@ -3599,7 +3689,7 @@ private:
     static constexpr double kEdgeRotResidualThreshold = 0.2;
     static constexpr double kEdgeRotResidualPenalty = 5.0;
     static constexpr double kConnectivityReward = 10.0;
-    static constexpr double kConnectivityComponentPenalty = 100;
+    static constexpr double kConnectivityComponentPenalty = 500.0;
 
     // Overlap constants
     static constexpr double kOverlapPenalty = 1200.0;
@@ -3737,6 +3827,7 @@ private:
     int valid_shard_count_ = 0;
     int valid_group_count_ = 0;
     vector<int> sherd_consensus_counts_; // Per-sherd consensus match count from best individual
+    vector<int> local_consensus_score_; // Precomputed triangle consensus count for each candidate match
     double current_mutation_rate_ = kBaseMutationRate;
 
     const double kCosConsensusRotThreshold = cos(kConsensusRotThreshold);
