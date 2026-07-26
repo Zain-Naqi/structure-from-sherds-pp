@@ -314,9 +314,22 @@ public:
                     } else {
                         generations_since_improvement++;
                         if (generations_since_improvement >= kStagnationThreshold) {
-                            if (current_mutation_rate_ != kHyperMutationRate) {
+                            if (generations_since_improvement % kStagnationThreshold == 0) {
                                 cout << "[GA] Stagnation detected (" << generations_since_improvement
-                                     << " generations). Raising mutation rate to " << kHyperMutationRate << endl;
+                                     << " generations). Triggering Mass Extinction!" << endl;
+                                int num_elites = min(kElitismCount, static_cast<int>(population_.size()));
+                                for (size_t i = num_elites; i < population_.size(); ++i) {
+                                    for (size_t gene_idx = 0; gene_idx < population_[i].genes.size(); ++gene_idx) {
+                                        population_[i].genes[gene_idx] = SampleGroupChoice(gene_idx);
+                                    }
+                                }
+                                EvaluatePopulation();
+                                std::sort(population_.begin(), population_.end(), [](const Chromosome& a, const Chromosome& b) {
+                                    return a.fitness > b.fitness;
+                                });
+                            }
+                            if (current_mutation_rate_ != kHyperMutationRate) {
+                                cout << "[GA] Raising mutation rate to " << kHyperMutationRate << endl;
                                 current_mutation_rate_ = kHyperMutationRate;
                             }
                         }
@@ -1881,7 +1894,7 @@ private:
                                 double r_err = std::acos(cos_theta);
                                 double t_err = t_diff.norm();
 
-                                if (r_err < kConsensusRotThreshold && t_err < kConsensusTransThreshold) {
+                                if (r_err < kProxyRotThreshold && t_err < kProxyTransThreshold) {
                                     local_consensus_score_[c_ij]++;
                                     local_consensus_score_[c_jk]++;
                                     local_consensus_score_[c_ik]++;
@@ -3675,7 +3688,7 @@ private:
 
     static constexpr int kPopulationSize = 1000;
     static constexpr int kMaxGenerations = 100;
-    static constexpr int kElitismCount = 1;
+    static constexpr int kElitismCount = 100;
     static constexpr int kNumSeeds = 1;
     static constexpr double kBaseMutationRate = 0.15;       // Base mutation rate (allows convergence)
     static constexpr double kHyperMutationRate = 0.40;      // Hyper-mutation rate (escapes local traps)
@@ -3704,6 +3717,9 @@ private:
     static constexpr double kConsensusWeight = 20.0;         // Flat reward per supporting match
     static constexpr double kConsensusRotThreshold = 0.22;   // ~12.6 degrees rotation error limit
     static constexpr double kConsensusTransThreshold = 12.0; // 12.0 mm translation error limit
+
+    static constexpr double kProxyRotThreshold = 0.30;       // ~17.2 degrees rotation error limit for proxy
+    static constexpr double kProxyTransThreshold = 20.0;     // 20.0 mm translation error limit for proxy
 
     static constexpr int kSnapshotInterval = 25;
     static constexpr bool kEnableSnapshots = true;
