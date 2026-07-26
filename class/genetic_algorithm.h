@@ -247,7 +247,6 @@ public:
             }
             int generations_since_improvement = 0;
             current_mutation_rate_ = kBaseMutationRate;
-            current_mutation_severity_ = 1;
             std::uniform_real_distribution<double> real_dist(0.0, 1.0);
             int final_generation = 0;
             for (int generation = 0; ; ++generation) {
@@ -268,24 +267,22 @@ public:
                     const Chromosome& parent2 = TournamentSelect();
 
                     Chromosome child1 = Crossover(parent1, parent2);
-                    for (int m = 0; m < current_mutation_severity_; ++m) {
-                        if (real_dist(rng_) < 0.50) {
-                            NeighborhoodMutate(child1);
-                        } else {
-                            Mutate(child1);
-                        }
+                    int mutated_gene1;
+                    if (real_dist(rng_) < 0.50) {
+                        mutated_gene1 = NeighborhoodMutate(child1);
+                    } else {
+                        mutated_gene1 = Mutate(child1);
                     }
 
                     next_population.push_back(child1);
 
                     if (static_cast<int>(next_population.size()) < kPopulationSize) {
                         Chromosome child2 = Crossover(parent2, parent1);
-                        for (int m = 0; m < current_mutation_severity_; ++m) {
-                            if (real_dist(rng_) < 0.50) {
-                                NeighborhoodMutate(child2);
-                            } else {
-                                Mutate(child2);
-                            }
+                        int mutated_gene2;
+                        if (real_dist(rng_) < 0.50) {
+                            mutated_gene2 = NeighborhoodMutate(child2);
+                        } else {
+                            mutated_gene2 = Mutate(child2);
                         }
                         next_population.push_back(child2);
                     }
@@ -311,19 +308,16 @@ public:
                         generations_since_improvement = 0;
                         if (current_mutation_rate_ != kBaseMutationRate) {
                             cout << "[GA] Best fitness improved to " << best_fitness_so_far
-                                 << ". Resetting mutation rate and severity." << endl;
+                                 << ". Resetting mutation rate to " << kBaseMutationRate << endl;
                             current_mutation_rate_ = kBaseMutationRate;
-                            current_mutation_severity_ = 1;
                         }
                     } else {
                         generations_since_improvement++;
                         if (generations_since_improvement >= kStagnationThreshold) {
                             if (current_mutation_rate_ != kHyperMutationRate) {
                                 cout << "[GA] Stagnation detected (" << generations_since_improvement
-                                     << " generations). Raising mutation rate to " << kHyperMutationRate 
-                                     << " and severity to 4" << endl;
+                                     << " generations). Raising mutation rate to " << kHyperMutationRate << endl;
                                 current_mutation_rate_ = kHyperMutationRate;
-                                current_mutation_severity_ = 4;
                             }
                         }
                         if (generations_since_improvement >= kEarlyTerminationThreshold) {
@@ -1842,9 +1836,6 @@ private:
     {
         local_consensus_score_.assign(matches_.size(), 0);
 
-        const double kProxyRotThreshold = 0.50;  // radians (~28 degrees) to handle pre-ICP compound noise
-        const double kProxyTransThreshold = 40.0; // mm to handle pre-ICP compound noise
-
         cout << "#################### PRECOMPUTING TRIANGLE CONSENSUS PROXIES ####################" << endl;
         auto start_t = std::chrono::high_resolution_clock::now();
 
@@ -1890,7 +1881,7 @@ private:
                                 double r_err = std::acos(cos_theta);
                                 double t_err = t_diff.norm();
 
-                                if (r_err < kProxyRotThreshold && t_err < kProxyTransThreshold) {
+                                if (r_err < kConsensusRotThreshold && t_err < kConsensusTransThreshold) {
                                     local_consensus_score_[c_ij]++;
                                     local_consensus_score_[c_jk]++;
                                     local_consensus_score_[c_ik]++;
@@ -3838,7 +3829,6 @@ private:
     vector<int> sherd_consensus_counts_; // Per-sherd consensus match count from best individual
     vector<int> local_consensus_score_; // Precomputed triangle consensus count for each candidate match
     double current_mutation_rate_ = kBaseMutationRate;
-    int current_mutation_severity_ = 1;
 
     const double kCosConsensusRotThreshold = cos(kConsensusRotThreshold);
 
