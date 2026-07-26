@@ -10,4 +10,4 @@ docker run \
         --volume="$PWD:/SfS" \
         --volume="$PWD/Dataset:/Dataset" \
         sfs:latest \
-        sh -c "xvfb-run ./build/Hierarchy-Clear --icp-compare > output.log 2>&1"
+        sh -c "xvfb-run -a ./build/Hierarchy-Clear --icp-compare > output.log 2>&1"

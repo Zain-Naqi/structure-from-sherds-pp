@@ -1472,10 +1472,30 @@ private:
             all_candidates.push_back(g_idx);
         }
 
-        // Shuffle candidates for randomness
-        for (int i = static_cast<int>(all_candidates.size()) - 1; i > 0; --i) {
-            std::uniform_int_distribution<int> swap_dist(0, i);
-            std::swap(all_candidates[i], all_candidates[swap_dist(rng_)]);
+        // Score candidates based on inliers and proxy consensus
+        vector<pair<double, int>> scored_candidates;
+        for (int g_idx : all_candidates) {
+            double best_weight = 0.0;
+            for (size_t c_idx : pair_groups_[g_idx]) {
+                const LCSIndex& lcs = matches_[c_idx];
+                double density = static_cast<double>(lcs.inliner_) / (1.0 + lcs.score_);
+                double proxy = (c_idx < local_consensus_score_.size()) ? static_cast<double>(local_consensus_score_[c_idx]) : 0.0;
+                double w = density + (kConsensusWeight * proxy);
+                best_weight = max(best_weight, w);
+            }
+            // Add slight random noise (0.8x to 1.2x) so the mutation retains some exploration capability
+            std::uniform_real_distribution<double> noise(0.8, 1.2);
+            scored_candidates.push_back({best_weight * noise(rng_), g_idx});
+        }
+
+        // Sort candidates in descending order of score
+        std::sort(scored_candidates.begin(), scored_candidates.end(), [](const auto& a, const auto& b) {
+            return a.first > b.first;
+        });
+
+        // Repopulate all_candidates with sorted indices
+        for (size_t i = 0; i < all_candidates.size(); ++i) {
+            all_candidates[i] = scored_candidates[i].second;
         }
 
         // 6. Greedily pick candidates that reconnect distinct components
@@ -3461,25 +3481,25 @@ private:
         };
 
         vector<ValidGTEdge> gt_candidates = {
-            {1, 2, 4}, {1, 4, 3}, {1, 6, 1}, {1, 14, 1}, {1, 19, 5},
+            {1, 4, 3}, {1, 6, 1}, {1, 19, 5},
             {2, 4, 1}, {2, 14, 6}, {2, 21, 1},
-            {3, 17, 5}, {3, 25, 1}, {3, 26, 1},
-            {4, 9, 1}, {4, 18, 3}, {4, 20, 3},
-            {5, 8, 5}, {5, 13, 2}, {5, 16, 1}, {5, 22, 3}, {5, 25, 3},
-            {6, 8, 5}, {6, 14, 1}, {6, 29, 3},
-            {7, 15, 1}, {7, 16, 1}, {7, 22, 6},
-            {8, 10, 2}, {8, 16, 2}, {8, 30, 2},
-            {9, 11, 1}, {9, 19, 2},
-            {10, 15, 1}, {10, 16, 3}, {10, 29, 1},
-            {11, 12, 1}, {11, 19, 2}, {11, 27, 2},
-            {12, 13, 3}, {12, 15, 4}, {12, 22, 6}, {12, 29, 1},
-            {13, 25, 1}, {13, 27, 1}, {13, 28, 1},
+            {3, 17, 5}, {3, 26, 1},
+            {4, 20, 3},
+            {5, 8, 4}, {5, 25, 3},
+            {6, 8, 5},
+            {7, 15, 1}, {7, 22, 6},
+            {8, 10, 2},
+            {9, 11, 1},
+            {10, 16, 3}, {10, 29, 1},
+            {11, 19, 2},
+            {12, 22, 6}, {12, 29, 1},
+            {13, 25, 1}, {13, 27, 1},
             {14, 30, 1},
-            {17, 18, 1}, {17, 21, 1},
+            {17, 18, 1},
             {18, 21, 2}, {18, 23, 1},
             {23, 24, 1},
             {25, 31, 1},
-            {27, 28, 1}, {28, 31, 1}
+            {28, 31, 1}
         };
 
         // Fill in actual inlier counts at runtime
