@@ -3705,7 +3705,7 @@ private:
     static constexpr double kConnectivityComponentPenalty = 500.0;
 
     // Overlap constants
-    static constexpr double kOverlapPenalty = 1200.0;
+    static constexpr double kOverlapPenalty = 4000.0;
     static constexpr double kOverlapMinHitRatio = 0.01;
     static constexpr double kCollisionPointEpsilon = 1.0;   // mm
     static constexpr double kCollisionEdgeExclusion = 10.0;  // mm
