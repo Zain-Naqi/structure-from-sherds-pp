@@ -400,8 +400,8 @@ public:
             selected_total_fitness = EvaluateFitness(best, &selected_breakdown);
         }
 
-        auto DensityScore = [](const LCSIndex& lcs) {
-            return static_cast<double>(lcs.inliner_) / (1.0 + lcs.score_);
+        auto DensityScore = [this](const LCSIndex& lcs) {
+            return ComputeEdgeDensity(lcs);
         };
 
         if (run_pair_diagnostics) {
@@ -633,6 +633,11 @@ private:
     // Maximum Spanning Forest (MST) Repair Operator (Lamarckian): Prune active edges
     // that form cycles, prioritizing keeping the highest-density matches (based on inliers and scores).
     // This makes the genotype honest about what the phenotype (assembly) actually uses.
+    inline double ComputeEdgeDensity(const LCSIndex& lcs) const {
+        double score_weight = 1.0 / (1.0 + lcs.score_);
+        return kInlierScale * std::log(static_cast<double>(lcs.inliner_) + 1.0) * score_weight;
+    }
+
     void RepairChromosome(Chromosome& chromosome) const
     {
         struct ActiveEdge {
@@ -659,10 +664,10 @@ private:
             int y = lcs.shard_y_ - 1;
             if (!IsShardValidAndOn(x) || !IsShardValidAndOn(y)) continue;
 
-            double density = static_cast<double>(lcs.inliner_) / (1.0 + lcs.score_);
+            double density = ComputeEdgeDensity(lcs);
             size_t match_idx = group[local_idx];
             double consensus_proxy = (match_idx < local_consensus_score_.size()) ? static_cast<double>(local_consensus_score_[match_idx]) : 0.0;
-            double weight = density + (kConsensusWeight * consensus_proxy);
+            double weight = density + (kProxyWeight * consensus_proxy);
             active_edges.push_back({x, y, static_cast<int>(group_idx), weight});
         }
 
@@ -1478,9 +1483,9 @@ private:
             double best_weight = 0.0;
             for (size_t c_idx : pair_groups_[g_idx]) {
                 const LCSIndex& lcs = matches_[c_idx];
-                double density = static_cast<double>(lcs.inliner_) / (1.0 + lcs.score_);
+                double density = ComputeEdgeDensity(lcs);
                 double proxy = (c_idx < local_consensus_score_.size()) ? static_cast<double>(local_consensus_score_[c_idx]) : 0.0;
-                double w = density + (kConsensusWeight * proxy);
+                double w = density + (kProxyWeight * proxy);
                 best_weight = max(best_weight, w);
             }
             // Add slight random noise (0.8x to 1.2x) so the mutation retains some exploration capability
@@ -1836,7 +1841,7 @@ private:
             double best_density = 0.0;
             for (size_t local_idx = 0; local_idx < group.size(); ++local_idx) {
                 const LCSIndex& lcs = matches_[group[local_idx]];
-                double density = static_cast<double>(lcs.inliner_) / (1.0 + lcs.score_);
+                double density = ComputeEdgeDensity(lcs);
                 if (density > best_density) {
                     best_density = density;
                 }
@@ -2674,7 +2679,7 @@ private:
                 continue;
             }
 
-            double density = static_cast<double>(lcs.inliner_) / (1.0 + lcs.score_);
+            double density = ComputeEdgeDensity(lcs);
             if (density > best_density) {
                 best_density = density;
                 best_choice = static_cast<int>(local_idx) + 1;
@@ -2752,7 +2757,7 @@ private:
                 }
 
                 const LCSIndex& lcs = matches_[group[local_idx]];
-                double density = static_cast<double>(lcs.inliner_) / (1.0 + lcs.score_);
+                double density = ComputeEdgeDensity(lcs);
                 if (!found || density > best_density) {
                     found = true;
                     best_density = density;
@@ -3239,7 +3244,7 @@ private:
         for (size_t i = 0; i < group.size(); ++i) {
             const LCSIndex& lcs = matches_[group[i]];
             // density = inliner / (1 + score)
-            double density = static_cast<double>(lcs.inliner_) / (1.0 + lcs.score_);
+            double density = ComputeEdgeDensity(lcs);
             ranked_candidates.push_back(make_pair(density, static_cast<int>(i)));
         }
 
@@ -3355,7 +3360,7 @@ private:
                     r_best = r_inv; t_best = t_inv; used_inverse = true;
                 }
 
-                double density = static_cast<double>(lcs.inliner_) / (1.0 + lcs.score_);
+                double density = ComputeEdgeDensity(lcs);
 
                 cout << "  Choice " << (i + 1) << ": inliner=" << setw(3) << lcs.inliner_
                      << " score=" << fixed << setprecision(3) << lcs.score_
@@ -3735,6 +3740,7 @@ private:
     static constexpr bool use_consensus_reward = true;
     static constexpr double kInlierScale = 6.0;             // Multiplier for log-inlier reward
     static constexpr double kConsensusWeight = 20.0;         // Flat reward per supporting match
+    static constexpr double kProxyWeight = 4.0;              // Heuristic weight multiplier for proxy predictions
     static constexpr double kConsensusRotThreshold = 0.22;   // ~12.6 degrees rotation error limit
     static constexpr double kConsensusTransThreshold = 12.0; // 12.0 mm translation error limit
 
