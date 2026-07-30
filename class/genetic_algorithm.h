@@ -218,7 +218,6 @@ public:
             cout << "[GA DEBUG] Chromosome Length (Total Connections): " << pair_groups_.size() << endl;
         }
 
-        InitializePopulation();
         AuditGroundTruthCandidates(GT_graph, GT_trans, T_axis);
 
         Chromosome overall_best;
@@ -266,26 +265,10 @@ public:
                     const Chromosome& parent1 = TournamentSelect();
                     const Chromosome& parent2 = TournamentSelect();
 
-                    Chromosome child1 = Crossover(parent1, parent2);
-                    int mutated_gene1;
-                    if (real_dist(rng_) < 0.50) {
-                        mutated_gene1 = NeighborhoodMutate(child1);
-                    } else {
-                        mutated_gene1 = Mutate(child1);
-                    }
+                    Chromosome child = Crossover(parent1, parent2);
+                    NeighborhoodMutate(child);
 
-                    next_population.push_back(child1);
-
-                    if (static_cast<int>(next_population.size()) < kPopulationSize) {
-                        Chromosome child2 = Crossover(parent2, parent1);
-                        int mutated_gene2;
-                        if (real_dist(rng_) < 0.50) {
-                            mutated_gene2 = NeighborhoodMutate(child2);
-                        } else {
-                            mutated_gene2 = Mutate(child2);
-                        }
-                        next_population.push_back(child2);
-                    }
+                    next_population.push_back(child);
                 }
 
                 population_ = next_population;
@@ -535,11 +518,6 @@ public:
         return best;
     }
 
-    void SeedElites(const vector<Chromosome>& elites)
-    {
-        seeded_elites_ = elites;
-    }
-
     vector<Chromosome> GetTopChromosomes(int count) const
     {
         int n = min(count, static_cast<int>(population_.size()));
@@ -566,28 +544,6 @@ private:
                 chromosome.genes[gene_idx] = SampleGroupChoice(gene_idx);
             }
             population_.push_back(chromosome);
-        }
-
-        // Apply seeded elites if they exist
-        if (!seeded_elites_.empty()) {
-            int num_elites = min(static_cast<int>(seeded_elites_.size()), kPopulationSize);
-            for (int i = 0; i < num_elites; ++i) {
-                int target_idx = kPopulationSize - 1 - i;  // Replace from the back
-                population_[target_idx] = seeded_elites_[i];
-
-                // Add exactly one random pair to the chromosome to fill the new edge budget
-                vector<int> inactive_genes;
-                for (size_t g_idx = 0; g_idx < population_[target_idx].genes.size(); ++g_idx) {
-                    if (population_[target_idx].genes[g_idx] == 0 && !pair_groups_[g_idx].empty()) {
-                        inactive_genes.push_back(static_cast<int>(g_idx));
-                    }
-                }
-                if (!inactive_genes.empty()) {
-                    std::uniform_int_distribution<int> dist(0, static_cast<int>(inactive_genes.size()) - 1);
-                    int rand_gene = inactive_genes[dist(rng_)];
-                    population_[target_idx].genes[rand_gene] = SampleGroupChoice(rand_gene);
-                }
-            }
         }
     }
 
@@ -665,9 +621,7 @@ private:
             if (!IsShardValidAndOn(x) || !IsShardValidAndOn(y)) continue;
 
             double density = ComputeEdgeDensity(lcs);
-            size_t match_idx = group[local_idx];
-            double consensus_proxy = (match_idx < local_consensus_score_.size()) ? static_cast<double>(local_consensus_score_[match_idx]) : 0.0;
-            double weight = density + (kProxyWeight * consensus_proxy);
+            double weight = density;
             active_edges.push_back({x, y, static_cast<int>(group_idx), weight});
         }
 
@@ -780,7 +734,7 @@ private:
             if (use_inlier_score) {
                 double score_weight = 1.0 / (1.0 + lcs.score_);
                 // Apply logarithmic scaling to compress inlier count differences
-                selected_density = kInlierScale * std::log(static_cast<double>(lcs.inliner_) + 1.0) * score_weight;
+                selected_density = kInlierScale * static_cast<double>(lcs.inliner_) * score_weight;
                 fitness += selected_density;
                 if (breakdown != nullptr) {
                     breakdown->inlier_reward += selected_density;
@@ -1233,212 +1187,41 @@ private:
         Chromosome child;
         child.fitness = 0.0;
         child.genes.resize(parent1.genes.size(), 0);
-
-        child.root_shard = 0; // Force base sherd to Shard 1 (index 0)
+        child.root_shard = 0;
 
         if (child.genes.empty()) return child;
 
-        // Shard-Partition Crossover: Divide shards between parents to preserve local consensus
-        vector<int> shard_owner(num_shards_);
-        std::uniform_int_distribution<int> coin(0, 1);
-        for (int i = 0; i < num_shards_; ++i) {
-            shard_owner[i] = coin(rng_);
-        }
-
-        for (size_t gene_idx = 0; gene_idx < child.genes.size(); ++gene_idx) {
-            int x = group_rep_x_[gene_idx];
-            int y = group_rep_y_[gene_idx];
-
-            if (shard_owner[x] == shard_owner[y]) {
-                // Internal edge: inherit from the parent who "owns" these shards
-                child.genes[gene_idx] = (shard_owner[x] == 0) ? parent1.genes[gene_idx] : parent2.genes[gene_idx];
-            } else {
-                // Bridge edge: inherit from a random parent
-                child.genes[gene_idx] = (coin(rng_) == 0) ? parent1.genes[gene_idx] : parent2.genes[gene_idx];
-            }
-        }
-        return child;
-    }
-
-    //-----------------------------------------------------------------------------------------------------------------//
-
-    bool IsSherdActiveInChromosome(int sherd_idx, const Chromosome& chromosome) const
-    {
-        if (!IsShardValidAndOn(sherd_idx) || sherd_incident_groups_[sherd_idx].empty()) {
-            return false;
-        }
-        for (int g_idx : sherd_incident_groups_[sherd_idx]) {
-            if (chromosome.genes[g_idx] > 0) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    // Check # 16: There is a high potential in increasing the chances of mutation as based on this code, there are very less. Multiple genes can be mutated at once as well.
-    int Mutate(Chromosome& chromosome) const
-    {
-        std::uniform_real_distribution<double> real_dist(0.0, 1.0);
-
-        // Root mutation disabled; base sherd remains 0
-        chromosome.root_shard = 0;
-
-        if (real_dist(rng_) >= current_mutation_rate_) {
-            return -1;
-        }
-
-        // --- Weighted Sherd Selection (inverse consensus among active valid sherds) ---
-        vector<double> weights(num_shards_, 0.0);
-        double total_weight = 0.0;
-        int active_sherd_count = 0;
-
-        for (int i = 0; i < num_shards_; ++i) {
-            if (IsSherdActiveInChromosome(i, chromosome)) {
-                active_sherd_count++;
-            }
-        }
-
-        for (int i = 0; i < num_shards_; ++i) {
-            if (active_sherd_count > 0) {
-                if (!IsSherdActiveInChromosome(i, chromosome)) continue;
-            } else {
-                if (!IsShardValidAndOn(i) || sherd_incident_groups_[i].empty()) continue;
-            }
-            int cc = (i < static_cast<int>(sherd_consensus_counts_.size()))
-                     ? sherd_consensus_counts_[i] : 0;
-            weights[i] = 1.0 / (1.0 + static_cast<double>(cc));
-            total_weight += weights[i];
-        }
-
-        if (total_weight <= 0.0) return -1;
-
-        // Roulette wheel selection
-        double pick = real_dist(rng_) * total_weight;
-        int shard_idx = -1;
-        double cumulative = 0.0;
-        for (int i = 0; i < num_shards_; ++i) {
-            if (active_sherd_count > 0) {
-                if (!IsSherdActiveInChromosome(i, chromosome)) continue;
-            } else {
-                if (!IsShardValidAndOn(i) || sherd_incident_groups_[i].empty()) continue;
-            }
-            cumulative += weights[i];
-            if (cumulative >= pick) {
-                shard_idx = i;
-                break;
-            }
-        }
-        // Fallback in case of floating-point precision issues:
-        if (shard_idx == -1) {
-            for (int i = num_shards_ - 1; i >= 0; --i) {
-                bool ok = (active_sherd_count > 0) ? IsSherdActiveInChromosome(i, chromosome)
-                                                   : (IsShardValidAndOn(i) && !sherd_incident_groups_[i].empty());
-                if (ok) {
-                    shard_idx = i;
-                    break;
+        // BFS-Partition Crossover: Preserve local sub-assemblies
+        vector<vector<int>> p1_adj(num_shards_);
+        for (size_t g = 0; g < parent1.genes.size(); ++g) {
+            if (parent1.genes[g] > 0) {
+                int u = group_rep_x_[g];
+                int v = group_rep_y_[g];
+                if (u >= 0 && v >= 0) {
+                    p1_adj[u].push_back(v);
+                    p1_adj[v].push_back(u);
                 }
             }
         }
 
-        if (shard_idx == -1 || sherd_incident_groups_[shard_idx].empty()) {
-            return -1;
-        }
-
-        // --- Candidate Choice Switching ---
-        // Pick an incident gene on this shard and change its candidate choice
-        std::uniform_int_distribution<int> gene_dist(0, static_cast<int>(sherd_incident_groups_[shard_idx].size()) - 1);
-        int gene_idx = static_cast<int>(sherd_incident_groups_[shard_idx][gene_dist(rng_)]);
-
-        int old_choice = chromosome.genes[gene_idx];
-        int new_choice = SampleGroupChoice(gene_idx);
-        if (new_choice == old_choice && !pair_groups_[gene_idx].empty()) {
-            new_choice = (old_choice == 0) ? 1 : 0;
-        }
-
-        chromosome.genes[gene_idx] = new_choice;
-        return gene_idx;
-    }
-
-    //-----------------------------------------------------------------------------------------------------------------//
-
-    int NeighborhoodMutate(Chromosome& chromosome) const
-    {
-        std::uniform_real_distribution<double> real_dist(0.0, 1.0);
-        chromosome.root_shard = 0;
-
-        if (real_dist(rng_) >= current_mutation_rate_) {
-            return -1;
-        }
-
-        // 1. Pick focal sherd using inverse-consensus weighting among active valid sherds
-        vector<double> weights(num_shards_, 0.0);
-        double total_weight = 0.0;
-        int active_sherd_count = 0;
-
+        vector<int> valid_nodes;
         for (int i = 0; i < num_shards_; ++i) {
-            if (IsSherdActiveInChromosome(i, chromosome)) {
-                active_sherd_count++;
-            }
+            if (IsShardValidAndOn(i)) valid_nodes.push_back(i);
         }
 
-        for (int i = 0; i < num_shards_; ++i) {
-            if (active_sherd_count > 0) {
-                if (!IsSherdActiveInChromosome(i, chromosome)) continue;
-            } else {
-                if (!IsShardValidAndOn(i) || sherd_incident_groups_[i].empty()) continue;
-            }
-            int cc = (i < static_cast<int>(sherd_consensus_counts_.size()))
-                     ? sherd_consensus_counts_[i] : 0;
-            weights[i] = 1.0 / (1.0 + static_cast<double>(cc));
-            total_weight += weights[i];
-        }
-        if (total_weight <= 0.0) return -1;
+        if (valid_nodes.empty()) return child;
 
-        double pick = real_dist(rng_) * total_weight;
-        int focal = -1;
-        double cumulative = 0.0;
-        for (int i = 0; i < num_shards_; ++i) {
-            if (active_sherd_count > 0) {
-                if (!IsSherdActiveInChromosome(i, chromosome)) continue;
-            } else {
-                if (!IsShardValidAndOn(i) || sherd_incident_groups_[i].empty()) continue;
-            }
-            cumulative += weights[i];
-            if (cumulative >= pick) {
-                focal = i;
-                break;
-            }
-        }
-        if (focal == -1) {
-            for (int i = num_shards_ - 1; i >= 0; --i) {
-                bool ok = (active_sherd_count > 0) ? IsSherdActiveInChromosome(i, chromosome)
-                                                   : (IsShardValidAndOn(i) && !sherd_incident_groups_[i].empty());
-                if (ok) {
-                    focal = i;
-                    break;
-                }
-            }
-        }
-        if (focal == -1) return -1;
+        std::uniform_int_distribution<int> node_dist(0, static_cast<int>(valid_nodes.size()) - 1);
+        int start_node = valid_nodes[node_dist(rng_)];
 
-        // 2. Find all ACTIVE edges incident to focal shard and save originals
-        vector<int> incident_genes;
-        vector<int> original_choices;
-        for (int g_idx : sherd_incident_groups_[focal]) {
-            if (chromosome.genes[g_idx] > 0) {
-                incident_genes.push_back(g_idx);
-                original_choices.push_back(chromosome.genes[g_idx]);
-            }
-        }
-        int degree = static_cast<int>(incident_genes.size());
-        if (degree == 0) return -1;
+        int target_edges = (static_cast<int>(valid_nodes.size()) - 1) / 2;
+        int edges_added = 0;
 
-        // 3. Deactivate all incident edges
-        for (int g : incident_genes) {
-            chromosome.genes[g] = 0;
-        }
+        vector<bool> vis(num_shards_, false);
+        queue<int> q;
+        q.push(start_node);
+        vis[start_node] = true;
 
-        // 4. Build DSU of the remaining tree (without focal's edges)
         struct DSU {
             vector<int> parent;
             DSU(int n) {
@@ -1460,81 +1243,448 @@ private:
         };
 
         DSU dsu(num_shards_);
-        for (size_t g = 0; g < chromosome.genes.size(); ++g) {
-            if (chromosome.genes[g] <= 0) continue;
-            int gx = group_rep_x_[g];
-            int gy = group_rep_y_[g];
-            if (gx == focal || gy == focal) continue;
-            if (gx >= 0 && gy >= 0) {
-                dsu.unite(gx, gy);
-            }
-        }
 
-        // 5. Collect ALL candidate pair groups incident to focal
-        vector<int> all_candidates;
-        for (int g_idx : sherd_incident_groups_[focal]) {
-            if (pair_groups_[g_idx].empty()) continue;
-            all_candidates.push_back(g_idx);
-        }
+        // 1. Inherit from Parent 1 via BFS
+        while (!q.empty() && edges_added < target_edges) {
+            int curr = q.front();
+            q.pop();
 
-        // Score candidates based on inliers and proxy consensus
-        vector<pair<double, int>> scored_candidates;
-        for (int g_idx : all_candidates) {
-            double best_weight = 0.0;
-            for (size_t c_idx : pair_groups_[g_idx]) {
-                const LCSIndex& lcs = matches_[c_idx];
-                double density = ComputeEdgeDensity(lcs);
-                double proxy = (c_idx < local_consensus_score_.size()) ? static_cast<double>(local_consensus_score_[c_idx]) : 0.0;
-                double w = density + (kProxyWeight * proxy);
-                best_weight = max(best_weight, w);
-            }
-            // Add slight random noise (0.8x to 1.2x) so the mutation retains some exploration capability
-            std::uniform_real_distribution<double> noise(0.8, 1.2);
-            scored_candidates.push_back({best_weight * noise(rng_), g_idx});
-        }
+            vector<int> neighbors = p1_adj[curr];
+            std::shuffle(neighbors.begin(), neighbors.end(), rng_);
 
-        // Sort candidates in descending order of score
-        std::sort(scored_candidates.begin(), scored_candidates.end(), [](const auto& a, const auto& b) {
-            return a.first > b.first;
-        });
+            for (int nxt : neighbors) {
+                if (!vis[nxt]) {
+                    vis[nxt] = true;
+                    q.push(nxt);
 
-        // Repopulate all_candidates with sorted indices
-        for (size_t i = 0; i < all_candidates.size(); ++i) {
-            all_candidates[i] = scored_candidates[i].second;
-        }
+                    int g_idx = -1;
+                    for (size_t g = 0; g < parent1.genes.size(); ++g) {
+                        if (parent1.genes[g] > 0 &&
+                            ((group_rep_x_[g] == curr && group_rep_y_[g] == nxt) ||
+                             (group_rep_x_[g] == nxt && group_rep_y_[g] == curr))) {
+                            g_idx = static_cast<int>(g);
+                            break;
+                        }
+                    }
 
-        // 6. Greedily pick candidates that reconnect distinct components
-        int edges_added = 0;
-        for (int g_idx : all_candidates) {
-            if (edges_added >= degree) break;
-
-            int gx = group_rep_x_[g_idx];
-            int gy = group_rep_y_[g_idx];
-            int other = (gx == focal) ? gy : gx;
-            if (other < 0) continue;
-
-            if (dsu.unite(focal, other)) {
-                chromosome.genes[g_idx] = SampleGroupChoice(g_idx);
-                edges_added++;
-            }
-        }
-
-        // 7. Fallback: if we couldn't reconnect all components, restore originals
-        if (edges_added < degree) {
-            for (size_t g = 0; g < chromosome.genes.size(); ++g) {
-                int gx = group_rep_x_[g];
-                int gy = group_rep_y_[g];
-                if (gx == focal || gy == focal) {
-                    chromosome.genes[g] = 0;
+                    if (g_idx >= 0 && dsu.unite(curr, nxt)) {
+                        child.genes[g_idx] = parent1.genes[g_idx];
+                        edges_added++;
+                        if (edges_added >= target_edges) break;
+                    }
                 }
             }
-            for (int i = 0; i < degree; ++i) {
-                chromosome.genes[incident_genes[i]] = original_choices[i];
+        }
+
+        // 2. Fill remaining from Parent 2
+        for (size_t g = 0; g < parent2.genes.size(); ++g) {
+            if (parent2.genes[g] > 0) {
+                int u = group_rep_x_[g];
+                int v = group_rep_y_[g];
+                if (u >= 0 && v >= 0 && IsShardValidAndOn(u) && IsShardValidAndOn(v)) {
+                    if (dsu.unite(u, v)) {
+                        child.genes[g] = parent2.genes[g];
+                    }
+                }
             }
+        }
+
+        // 3. Guarantee full connectivity with fallback bridge edges
+        while (true) {
+            struct ValidBridge {
+                int group_idx;
+                int best_choice;
+                double score;
+            };
+
+            vector<ValidBridge> valid_bridges;
+            for (size_t g = 0; g < child.genes.size(); ++g) {
+                if (child.genes[g] > 0) continue;
+                int gx = group_rep_x_[g];
+                int gy = group_rep_y_[g];
+                if (gx < 0 || gy < 0 || !IsShardValidAndOn(gx) || !IsShardValidAndOn(gy)) continue;
+
+                if (dsu.find(gx) != dsu.find(gy)) {
+                    const vector<size_t>& group = pair_groups_[g];
+                    if (group.empty()) continue;
+
+                    double max_score = -1e9;
+                    int best_choice = 1;
+                    for (size_t c = 0; c < group.size(); ++c) {
+                        size_t match_idx = group[c];
+                        const LCSIndex& lcs = matches_[match_idx];
+                        double density = ComputeEdgeDensity(lcs);
+                        double score = density;
+                        if (score > max_score) {
+                            max_score = score;
+                            best_choice = static_cast<int>(c) + 1;
+                        }
+                    }
+                    valid_bridges.push_back({static_cast<int>(g), best_choice, max_score});
+                }
+            }
+
+            if (valid_bridges.empty()) break; // Fully connected or impossible to connect
+
+            std::sort(valid_bridges.begin(), valid_bridges.end(), [](const ValidBridge& a, const ValidBridge& b) {
+                return a.score < b.score;
+            });
+
+            int N = static_cast<int>(valid_bridges.size());
+            double denom = static_cast<double>(N * (N + 1));
+            std::uniform_real_distribution<double> dist_unit(0.0, 1.0);
+            double r = dist_unit(rng_);
+            double cum_prob = 0.0;
+            int selected_idx = N - 1;
+
+            for (int k = 0; k < N; ++k) {
+                int rank = k + 1;
+                double p_i = (2.0 * static_cast<double>(rank)) / denom;
+                cum_prob += p_i;
+                if (r <= cum_prob) {
+                    selected_idx = k;
+                    break;
+                }
+            }
+
+            const auto& chosen_bridge = valid_bridges[selected_idx];
+            int new_choice = SampleGroupChoice(chosen_bridge.group_idx);
+            child.genes[chosen_bridge.group_idx] = (new_choice > 0) ? new_choice : chosen_bridge.best_choice;
+            dsu.unite(group_rep_x_[chosen_bridge.group_idx], group_rep_y_[chosen_bridge.group_idx]);
+        }
+
+        return child;
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------//
+
+    bool IsSherdActiveInChromosome(int sherd_idx, const Chromosome& chromosome) const
+    {
+        if (!IsShardValidAndOn(sherd_idx) || sherd_incident_groups_[sherd_idx].empty()) {
+            return false;
+        }
+        for (int g_idx : sherd_incident_groups_[sherd_idx]) {
+            if (chromosome.genes[g_idx] > 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------//
+
+    int NeighborhoodMutate(Chromosome& chromosome) const
+    {
+        std::uniform_real_distribution<double> real_dist(0.0, 1.0);
+        chromosome.root_shard = 0;
+
+        if (real_dist(rng_) >= current_mutation_rate_) {
             return -1;
         }
 
-        return incident_genes[0];
+        // Collect all active pair groups (genes > 0)
+        vector<int> active_groups;
+        for (size_t g = 0; g < chromosome.genes.size(); ++g) {
+            if (chromosome.genes[g] > 0) {
+                active_groups.push_back(static_cast<int>(g));
+            }
+        }
+        if (active_groups.empty()) return -1;
+
+        if (current_mutation_rate_ >= 0.4) {
+            // Sherd-Centric Macro Mutation
+            vector<int> valid_shards;
+            for (int i = 0; i < num_shards_; ++i) {
+                if (IsShardValidAndOn(i)) valid_shards.push_back(i);
+            }
+            if (!valid_shards.empty()) {
+                std::uniform_int_distribution<int> sherd_dist(0, static_cast<int>(valid_shards.size()) - 1);
+                int target_sherd = valid_shards[sherd_dist(rng_)];
+
+                vector<int> original_genes = chromosome.genes;
+
+                // Turn off all edges connected to target_sherd
+                for (int g : active_groups) {
+                    if (group_rep_x_[g] == target_sherd || group_rep_y_[g] == target_sherd) {
+                        chromosome.genes[g] = 0;
+                    }
+                }
+
+                struct DSU {
+                    vector<int> parent;
+                    DSU(int n) {
+                        parent.resize(n);
+                        for (int i = 0; i < n; ++i) parent[i] = i;
+                    }
+                    int find(int i) {
+                        if (parent[i] == i) return i;
+                        return parent[i] = find(parent[i]);
+                    }
+                    bool unite(int i, int j) {
+                        int ri = find(i), rj = find(j);
+                        if (ri != rj) {
+                            parent[ri] = rj;
+                            return true;
+                        }
+                        return false;
+                    }
+                };
+
+                DSU dsu(num_shards_);
+                for (size_t g = 0; g < chromosome.genes.size(); ++g) {
+                    if (chromosome.genes[g] <= 0) continue;
+                    int gx = group_rep_x_[g];
+                    int gy = group_rep_y_[g];
+                    if (gx >= 0 && gy >= 0) {
+                        dsu.unite(gx, gy);
+                    }
+                }
+
+                bool success = true;
+                while (true) {
+                    struct ValidBridge {
+                        int group_idx;
+                        int best_choice;
+                        double score;
+                    };
+
+                    vector<ValidBridge> valid_bridges;
+                    for (size_t g = 0; g < chromosome.genes.size(); ++g) {
+                        if (chromosome.genes[g] > 0) continue;
+                        int gx = group_rep_x_[g];
+                        int gy = group_rep_y_[g];
+                        if (gx < 0 || gy < 0 || !IsShardValidAndOn(gx) || !IsShardValidAndOn(gy)) continue;
+
+                        if (dsu.find(gx) != dsu.find(gy)) {
+                            const vector<size_t>& group = pair_groups_[g];
+                            if (group.empty()) continue;
+
+                            double max_score = -1e9;
+                            int best_choice = 1;
+                            for (size_t c = 0; c < group.size(); ++c) {
+                                size_t match_idx = group[c];
+                                const LCSIndex& lcs = matches_[match_idx];
+                                double density = ComputeEdgeDensity(lcs);
+                                double score = density;
+                                if (score > max_score) {
+                                    max_score = score;
+                                    best_choice = static_cast<int>(c) + 1;
+                                }
+                            }
+                            valid_bridges.push_back({static_cast<int>(g), best_choice, max_score});
+                        }
+                    }
+
+                    if (valid_bridges.empty()) {
+                        int root = -1;
+                        for (int i : valid_shards) {
+                            if (root == -1) root = dsu.find(i);
+                            else if (dsu.find(i) != root) {
+                                success = false;
+                                break;
+                            }
+                        }
+                        break;
+                    }
+
+                    std::sort(valid_bridges.begin(), valid_bridges.end(), [](const ValidBridge& a, const ValidBridge& b) {
+                        return a.score < b.score;
+                    });
+
+                    int N = static_cast<int>(valid_bridges.size());
+                    double denom = static_cast<double>(N * (N + 1));
+                    std::uniform_real_distribution<double> dist_unit(0.0, 1.0);
+                    double r = dist_unit(rng_);
+                    double cum_prob = 0.0;
+                    int selected_idx = N - 1;
+
+                    for (int k = 0; k < N; ++k) {
+                        int rank = k + 1;
+                        double p_i = (2.0 * static_cast<double>(rank)) / denom;
+                        cum_prob += p_i;
+                        if (r <= cum_prob) {
+                            selected_idx = k;
+                            break;
+                        }
+                    }
+
+                    const auto& chosen_bridge = valid_bridges[selected_idx];
+                    int new_choice = SampleGroupChoice(chosen_bridge.group_idx);
+                    chromosome.genes[chosen_bridge.group_idx] = (new_choice > 0) ? new_choice : chosen_bridge.best_choice;
+                    dsu.unite(group_rep_x_[chosen_bridge.group_idx], group_rep_y_[chosen_bridge.group_idx]);
+                }
+
+                if (success) {
+                    return 1;
+                } else {
+                    chromosome.genes = original_genes;
+                }
+            }
+        }
+
+        // 50% Candidate Switch | 50% Pair Switch
+        if (real_dist(rng_) < 0.50) {
+            // --- 1. Candidate Switch (Rank-Based) ---
+            std::uniform_int_distribution<int> group_dist(0, static_cast<int>(active_groups.size()) - 1);
+            int g_idx = active_groups[group_dist(rng_)];
+
+            const vector<size_t>& group = pair_groups_[g_idx];
+            if (group.size() <= 1) {
+                return g_idx;
+            }
+
+            int old_choice = chromosome.genes[g_idx];
+
+            struct CandidateRank {
+                int choice;
+                double score;
+            };
+            vector<CandidateRank> alt_candidates;
+            for (size_t c = 0; c < group.size(); ++c) {
+                int choice_val = static_cast<int>(c) + 1;
+                if (choice_val == old_choice) continue;
+
+                size_t match_idx = group[c];
+                const LCSIndex& lcs = matches_[match_idx];
+                double density = ComputeEdgeDensity(lcs);
+                double score = density;
+                alt_candidates.push_back({choice_val, score});
+            }
+
+            if (alt_candidates.empty()) return g_idx;
+
+            // Sort in ASCENDING order of score (worst = index 0, best = index M-1)
+            std::sort(alt_candidates.begin(), alt_candidates.end(), [](const CandidateRank& a, const CandidateRank& b) {
+                return a.score < b.score;
+            });
+
+            int M = static_cast<int>(alt_candidates.size());
+            double denom = static_cast<double>(M * (M + 1));
+            std::uniform_real_distribution<double> dist_unit(0.0, 1.0);
+            double r = dist_unit(rng_);
+            double cum_prob = 0.0;
+            int selected_idx = M - 1;
+
+            for (int k = 0; k < M; ++k) {
+                int rank = k + 1;
+                double p_i = (2.0 * static_cast<double>(rank)) / denom;
+                cum_prob += p_i;
+                if (r <= cum_prob) {
+                    selected_idx = k;
+                    break;
+                }
+            }
+
+            chromosome.genes[g_idx] = alt_candidates[selected_idx].choice;
+            return g_idx;
+        } else {
+            // --- 2. Pair Switch ---
+            std::uniform_int_distribution<int> group_dist(0, static_cast<int>(active_groups.size()) - 1);
+            int g_idx_off = active_groups[group_dist(rng_)];
+            int original_choice = chromosome.genes[g_idx_off];
+
+            // Turn OFF the selected edge
+            chromosome.genes[g_idx_off] = 0;
+
+            // Build DSU of the remaining active edges
+            struct DSU {
+                vector<int> parent;
+                DSU(int n) {
+                    parent.resize(n);
+                    for (int i = 0; i < n; ++i) parent[i] = i;
+                }
+                int find(int i) {
+                    if (parent[i] == i) return i;
+                    return parent[i] = find(parent[i]);
+                }
+                bool unite(int i, int j) {
+                    int ri = find(i), rj = find(j);
+                    if (ri != rj) {
+                        parent[ri] = rj;
+                        return true;
+                    }
+                    return false;
+                }
+            };
+
+            DSU dsu(num_shards_);
+            for (size_t g = 0; g < chromosome.genes.size(); ++g) {
+                if (chromosome.genes[g] <= 0) continue;
+                int gx = group_rep_x_[g];
+                int gy = group_rep_y_[g];
+                if (gx >= 0 && gy >= 0) {
+                    dsu.unite(gx, gy);
+                }
+            }
+
+            // Find all INACTIVE pair groups that bridge Island A and Island B
+            struct ValidBridge {
+                int group_idx;
+                int best_choice;
+                double score;
+            };
+
+            vector<ValidBridge> valid_bridges;
+            for (size_t g = 0; g < chromosome.genes.size(); ++g) {
+                if (chromosome.genes[g] > 0) continue;
+                int gx = group_rep_x_[g];
+                int gy = group_rep_y_[g];
+                if (gx < 0 || gy < 0 || !IsShardValidAndOn(gx) || !IsShardValidAndOn(gy)) continue;
+
+                if (dsu.find(gx) != dsu.find(gy)) {
+                    const vector<size_t>& group = pair_groups_[g];
+                    if (group.empty()) continue;
+
+                    double max_score = -1e9;
+                    int best_choice = 1;
+                    for (size_t c = 0; c < group.size(); ++c) {
+                        size_t match_idx = group[c];
+                        const LCSIndex& lcs = matches_[match_idx];
+                        double density = ComputeEdgeDensity(lcs);
+                        double score = density;
+                        if (score > max_score) {
+                            max_score = score;
+                            best_choice = static_cast<int>(c) + 1;
+                        }
+                    }
+                    valid_bridges.push_back({static_cast<int>(g), best_choice, max_score});
+                }
+            }
+
+            // Fallback: restore original if no bridge available
+            if (valid_bridges.empty()) {
+                chromosome.genes[g_idx_off] = original_choice;
+                return -1;
+            }
+
+            // Sort in ASCENDING order of score (worst = index 0, best = index N-1)
+            std::sort(valid_bridges.begin(), valid_bridges.end(), [](const ValidBridge& a, const ValidBridge& b) {
+                return a.score < b.score;
+            });
+
+            // Rank-Based Selection: P(i) = 2*i / (N*(N+1)) for 1-based rank i in 1..N
+            int N = static_cast<int>(valid_bridges.size());
+            double denom = static_cast<double>(N * (N + 1));
+
+            std::uniform_real_distribution<double> dist_unit(0.0, 1.0);
+            double r = dist_unit(rng_);
+            double cum_prob = 0.0;
+            int selected_idx = N - 1;
+
+            for (int k = 0; k < N; ++k) {
+                int rank = k + 1;
+                double p_i = (2.0 * static_cast<double>(rank)) / denom;
+                cum_prob += p_i;
+                if (r <= cum_prob) {
+                    selected_idx = k;
+                    break;
+                }
+            }
+
+            const auto& chosen_bridge = valid_bridges[selected_idx];
+            chromosome.genes[chosen_bridge.group_idx] = chosen_bridge.best_choice;
+            return chosen_bridge.group_idx;
+        }
     }
 
     //-----------------------------------------------------------------------------------------------------------------//
@@ -1850,7 +2000,7 @@ private:
             group_best_density_[group_idx] = best_density;
         }
 
-        PrecomputeConsensusProxies();
+        // PrecomputeConsensusProxies(); // Disabled proxy precomputation
     }
 
     //-----------------------------------------------------------------------------------------------------------------//
@@ -1868,74 +2018,6 @@ private:
             return T.inverse();
         }
         return T;
-    }
-
-    void PrecomputeConsensusProxies()
-    {
-        local_consensus_score_.assign(matches_.size(), 0);
-
-        cout << "#################### PRECOMPUTING TRIANGLE CONSENSUS PROXIES ####################" << endl;
-        auto start_t = std::chrono::high_resolution_clock::now();
-
-        int triangle_count = 0;
-
-        for (int i = 0; i < num_shards_; ++i) {
-            if (!IsShardValidAndOn(i)) continue;
-
-            for (int j = i + 1; j < num_shards_; ++j) {
-                if (!IsShardValidAndOn(j)) continue;
-                int group_ij = PairGroupIndex(i, j);
-                if (group_ij < 0 || pair_groups_[group_ij].empty()) continue;
-
-                for (int k = j + 1; k < num_shards_; ++k) {
-                    if (!IsShardValidAndOn(k)) continue;
-
-                    int group_jk = PairGroupIndex(j, k);
-                    int group_ik = PairGroupIndex(i, k);
-
-                    if (group_jk < 0 || pair_groups_[group_jk].empty()) continue;
-                    if (group_ik < 0 || pair_groups_[group_ik].empty()) continue;
-
-                    for (size_t c_ij : pair_groups_[group_ij]) {
-                        Matrix4d T_ji = GetMatchTransform(c_ij, j, i);
-
-                        for (size_t c_jk : pair_groups_[group_jk]) {
-                            Matrix4d T_kj = GetMatchTransform(c_jk, k, j);
-
-                            Matrix4d T_chain = T_ji * T_kj;
-                            Matrix3d R_chain = T_chain.block<3, 3>(0, 0);
-                            Vector3d t_chain = T_chain.block<3, 1>(0, 3);
-
-                            for (size_t c_ik : pair_groups_[group_ik]) {
-                                Matrix4d T_ki = GetMatchTransform(c_ik, k, i);
-                                Matrix3d R_ki = T_ki.block<3, 3>(0, 0);
-                                Vector3d t_ki = T_ki.block<3, 1>(0, 3);
-
-                                Matrix3d R_diff = R_chain * R_ki.inverse();
-                                Vector3d t_diff = t_chain - R_diff * t_ki;
-
-                                double trace = R_diff.trace();
-                                double cos_theta = std::clamp((trace - 1.0) / 2.0, -1.0, 1.0);
-                                double r_err = std::acos(cos_theta);
-                                double t_err = t_diff.norm();
-
-                                if (r_err < kProxyRotThreshold && t_err < kProxyTransThreshold) {
-                                    local_consensus_score_[c_ij]++;
-                                    local_consensus_score_[c_jk]++;
-                                    local_consensus_score_[c_ik]++;
-                                    triangle_count++;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        auto end_t = std::chrono::high_resolution_clock::now();
-        double elapsed = std::chrono::duration<double>(end_t - start_t).count();
-        cout << "[CONSENSUS PROXY] Found " << triangle_count << " consistent triangles across "
-             << matches_.size() << " match candidates in " << fixed << setprecision(3) << elapsed << " s." << endl;
     }
 
     //-----------------------------------------------------------------------------------------------------------------//
@@ -3129,106 +3211,13 @@ private:
 
     //-----------------------------------------------------------------------------------------------------------------//
 
-    Chromosome GenerateBiasedReplacement(const Chromosome& survivor)
-    {
-        Chromosome replacement;
-        replacement.genes.resize(survivor.genes.size(), 0);
-        replacement.fitness = 0.0;
-
-        struct ActiveGene {
-            size_t gene_idx;
-            int choice;
-            int inliners;
-        };
-        vector<ActiveGene> active_genes;
-
-        for (size_t i = 0; i < survivor.genes.size(); ++i) {
-            int choice = survivor.genes[i];
-            if (choice > 0) {
-                const vector<size_t>& group = pair_groups_[i];
-                int local_idx = choice - 1;
-                if (local_idx >= 0 && local_idx < static_cast<int>(group.size())) {
-                    int inl = matches_[group[local_idx]].inliner_;
-                    active_genes.push_back({i, choice, inl});
-                }
-            }
-        }
-
-        sort(active_genes.begin(), active_genes.end(), [](const ActiveGene& a, const ActiveGene& b) {
-            return a.inliners > b.inliners;
-        });
-
-        int keep_count = static_cast<int>(active_genes.size() * kBiasInheritRatio);
-        vector<bool> inherited(survivor.genes.size(), false);
-
-        for (int i = 0; i < keep_count; ++i) {
-            replacement.genes[active_genes[i].gene_idx] = active_genes[i].choice;
-            inherited[active_genes[i].gene_idx] = true;
-        }
-
-        vector<size_t> random_genes;
-        random_genes.reserve(survivor.genes.size() - keep_count);
-
-        for (size_t i = 0; i < survivor.genes.size(); ++i) {
-            if (!inherited[i]) {
-                replacement.genes[i] = SampleGroupChoice(i);
-                random_genes.push_back(i);
-            }
-        }
-
-        if (!random_genes.empty()) {
-            std::uniform_int_distribution<int> dist(0, static_cast<int>(random_genes.size()) - 1);
-            size_t repair_idx = random_genes[dist(rng_)];
-            // GuidedRepair(replacement, repair_idx);
-        }
-
-        // EnsureSherdCoverage(replacement);
-
-        // RepairChromosome(replacement);
-        replacement.fitness = EvaluateFitness(replacement);
-        return replacement;
-    }
-
     //-----------------------------------------------------------------------------------------------------------------//
-
-    void EnforceDiversity()
-    {
-        if (population_.empty()) return;
-        int chromosome_length = static_cast<int>(population_.front().genes.size());
-        if (chromosome_length == 0) return;
-
-        int kDiversityK = chromosome_length / 3;
-
-        for (size_t i = kElitismCount; i < population_.size(); ++i) {
-            for (size_t j = i + 1; j < population_.size(); ++j) {
-                int hamming_distance = 0;
-                for (int g = 0; g < chromosome_length; ++g) {
-                    if (population_[i].genes[g] != population_[j].genes[g]) {
-                        hamming_distance++;
-                        if (hamming_distance >= kDiversityK) {
-                            break;
-                        }
-                    }
-                }
-
-                if (hamming_distance < kDiversityK) {
-                    population_[j] = GenerateBiasedReplacement(population_[i]);
-                }
-            }
-        }
-    }
 
     //-----------------------------------------------------------------------------------------------------------------//
 
     int SampleGroupChoice(size_t group_idx) const
     {
         if (group_idx >= pair_groups_.size()) {
-            return 0;
-        }
-
-        std::uniform_real_distribution<double> dist(0.0, 1.0);
-
-        if (dist(rng_) < kInitialPairInactiveRate) {
             return 0;
         }
 
@@ -3269,6 +3258,7 @@ private:
             return choice_dist(rng_);
         }
 
+        std::uniform_real_distribution<double> dist(0.0, 1.0);
         double r = dist(rng_) * total_weight;
         for (size_t rank = 0; rank < cumulative.size(); ++rank) {
             if (r <= cumulative[rank]) {
@@ -3713,15 +3703,13 @@ private:
 
     static constexpr int kPopulationSize = 1000;
     static constexpr int kMaxGenerations = 100;
-    static constexpr int kElitismCount = 100;
+    static constexpr int kElitismCount = 10;
     static constexpr int kNumSeeds = 1;
     static constexpr double kBaseMutationRate = 0.15;       // Base mutation rate (allows convergence)
     static constexpr double kHyperMutationRate = 0.40;      // Hyper-mutation rate (escapes local traps)
     static constexpr int kStagnationThreshold = 15;         // Generations without improvement to trigger hyper-mutation
     static constexpr int kEarlyTerminationThreshold = 120;   // Generations without improvement to exit early
-    static constexpr double kBiasInheritRatio = 0.4;
-    static constexpr double kRootMutationRate = 0.15;
-    static constexpr double kInitialPairInactiveRate = 0.05;
+    // static constexpr double kInitialPairInactiveRate = 0.05;
     static constexpr double kEdgeResidualThreshold = 5.0;
     static constexpr double kEdgeResidualPenalty = 2.0;
     static constexpr double kEdgeRotResidualThreshold = 0.2;
@@ -3738,15 +3726,11 @@ private:
 
     // Consensus Support parameters
     static constexpr bool use_consensus_reward = true;
-    static constexpr double kInlierScale = 6.0;             // Multiplier for log-inlier reward
+    static constexpr double kInlierScale = 1.0;             // Multiplier for log-inlier reward
     static constexpr double kConsensusWeight = 20.0;         // Flat reward per supporting match
-    static constexpr double kProxyWeight = 4.0;              // Heuristic weight multiplier for proxy predictions
+// static constexpr double kProxyWeight = 4.0;              // Heuristic weight multiplier for proxy predictions
     static constexpr double kConsensusRotThreshold = 0.22;   // ~12.6 degrees rotation error limit
     static constexpr double kConsensusTransThreshold = 12.0; // 12.0 mm translation error limit
-
-    static constexpr double kProxyRotThreshold = 0.30;       // ~17.2 degrees rotation error limit for proxy
-    static constexpr double kProxyTransThreshold = 20.0;     // 20.0 mm translation error limit for proxy
-
     static constexpr int kSnapshotInterval = 25;
     static constexpr bool kEnableSnapshots = true;
     static constexpr bool kEnableConvergenceLog = true;
@@ -3844,7 +3828,6 @@ private:
     int num_shards_;
 
     vector<Chromosome> population_;
-    vector<Chromosome> seeded_elites_;
 
     vector<Trans> transforms_;
     MatrixXd graph_;
@@ -3869,7 +3852,7 @@ private:
     int valid_shard_count_ = 0;
     int valid_group_count_ = 0;
     vector<int> sherd_consensus_counts_; // Per-sherd consensus match count from best individual
-    vector<int> local_consensus_score_; // Precomputed triangle consensus count for each candidate match
+// vector<int> local_consensus_score_; // Precomputed triangle consensus count for each candidate match
     double current_mutation_rate_ = kBaseMutationRate;
 
     const double kCosConsensusRotThreshold = cos(kConsensusRotThreshold);

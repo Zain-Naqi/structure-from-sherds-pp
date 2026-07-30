@@ -325,8 +325,6 @@ int main(int argc, char** argv)
 		if (shard_on_off[i]) active_shard_count++;
 	}
 	const int kMaxGAIterations = 1;
-	const double kConvergenceThreshold = 5.0;	// minimum fitness improvement to continue
-	const int kMaxPatience = 5;
 
 	vector<Trans> T_ga;
 	MatrixXd graph_ga = MatrixXd::Zero(SHARD_NUMBER, SHARD_NUMBER);
