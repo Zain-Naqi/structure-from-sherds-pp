@@ -609,11 +609,11 @@ private:
     // Maximum Spanning Forest (MST) Repair Operator (Lamarckian): Prune active edges
     // that form cycles, prioritizing keeping the highest-density matches (based on inliers and scores).
     // This makes the genotype honest about what the phenotype (assembly) actually uses.
-    inline double ComputeEdgeDensity(const LCSIndex& lcs, int group_idx = -1) const {
+    inline double ComputeEdgeDensity(const LCSIndex& lcs, int group_idx = -1, bool include_pheromone = true) const {
         double score_weight = 1.0 / (1.0 + lcs.score_);
         double base_density = kInlierScale * std::log(static_cast<double>(lcs.inliner_) + 1.0) * score_weight;
         double pheromone = 0.0;
-        if (group_idx >= 0 && group_idx < static_cast<int>(group_pheromone_.size())) {
+        if (include_pheromone && group_idx >= 0 && group_idx < static_cast<int>(group_pheromone_.size())) {
             pheromone = group_pheromone_[group_idx];
         }
         return base_density + pheromone;
@@ -758,7 +758,7 @@ private:
             // Invert score so both terms pull in the same direction
             double selected_density = 0.0;
             if (use_inlier_score) {
-                selected_density = ComputeEdgeDensity(lcs, static_cast<int>(group_idx));
+                selected_density = ComputeEdgeDensity(lcs, static_cast<int>(group_idx), false);
                 fitness += selected_density;
                 if (breakdown != nullptr) {
                     breakdown->inlier_reward += selected_density;
