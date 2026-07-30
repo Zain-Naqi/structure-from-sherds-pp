@@ -1409,6 +1409,168 @@ private:
 
     //-----------------------------------------------------------------------------------------------------------------//
 
+    int TriangleBuilderMutate(Chromosome& chromosome, const vector<int>& active_groups) const
+    {
+        vector<int> shuffled_active = active_groups;
+        std::shuffle(shuffled_active.begin(), shuffled_active.end(), rng_);
+
+        for (int g_AB : shuffled_active) {
+            int A = group_rep_x_[g_AB];
+            int B = group_rep_y_[g_AB];
+
+            int current_AB_choice = chromosome.genes[g_AB];
+            if (current_AB_choice <= 0) continue;
+
+            const LCSIndex& lcs_AB = matches_[pair_groups_[g_AB][current_AB_choice - 1]];
+            Matrix4d T_AB = Matrix4d::Identity();
+            lcs_AB.trans_.Output(T_AB);
+            Matrix4d T_A_to_B = (lcs_AB.shard_x_ - 1 == A) ? T_AB : T_AB.inverse().eval();
+
+            // Find an offline node C
+            vector<int> candidate_Cs;
+            for (int C = 0; C < num_shards_; ++C) {
+                if (C == A || C == B || !IsShardValidAndOn(C)) continue;
+                
+                int g_BC = PairGroupIndex(B, C);
+                int g_AC = PairGroupIndex(A, C);
+                
+                if (g_BC >= 0 && g_AC >= 0 && chromosome.genes[g_BC] <= 0) {
+                    candidate_Cs.push_back(C);
+                }
+            }
+            std::shuffle(candidate_Cs.begin(), candidate_Cs.end(), rng_);
+
+            for (int C : candidate_Cs) {
+                int g_BC = PairGroupIndex(B, C);
+                int g_AC = PairGroupIndex(A, C);
+                
+                const vector<size_t>& group_BC = pair_groups_[g_BC];
+                const vector<size_t>& group_AC = pair_groups_[g_AC];
+                
+                bool found_triangle = false;
+                int best_c_BC = -1;
+                
+                for (size_t c_BC = 0; c_BC < group_BC.size(); ++c_BC) {
+                    const LCSIndex& lcs_BC = matches_[group_BC[c_BC]];
+                    Matrix4d T_BC_cand = Matrix4d::Identity();
+                    lcs_BC.trans_.Output(T_BC_cand);
+                    Matrix4d T_B_to_C = (lcs_BC.shard_x_ - 1 == B) ? T_BC_cand : T_BC_cand.inverse().eval();
+                    
+                    Matrix4d T_A_to_C_expected = T_B_to_C * T_A_to_B;
+                    
+                    for (size_t c_AC = 0; c_AC < group_AC.size(); ++c_AC) {
+                        const LCSIndex& lcs_AC = matches_[group_AC[c_AC]];
+                        Matrix4d T_AC_cand = Matrix4d::Identity();
+                        lcs_AC.trans_.Output(T_AC_cand);
+                        Matrix4d T_A_to_C_actual = (lcs_AC.shard_x_ - 1 == A) ? T_AC_cand : T_AC_cand.inverse().eval();
+                        
+                        Matrix4d T_diff = T_A_to_C_expected * T_A_to_C_actual.inverse();
+                        
+                        Vector3d t_diff(T_diff(0, 3), T_diff(1, 3), T_diff(2, 3));
+                        double t_err_sq = t_diff.squaredNorm();
+                        if (t_err_sq >= kConsensusTransThreshold * kConsensusTransThreshold) continue;
+
+                        double trace = T_diff(0, 0) + T_diff(1, 1) + T_diff(2, 2);
+                        if (trace > 2.0 * kCosConsensusRotThreshold + 1.0) {
+                            found_triangle = true;
+                            best_c_BC = static_cast<int>(c_BC) + 1;
+                            break;
+                        }
+                    }
+                    if (found_triangle) break;
+                }
+                
+                if (found_triangle) {
+                    // 1. Run BFS from B to C on currently active edges to find the path
+                    vector<int> parent_edge(num_shards_, -1);
+                    vector<int> parent_node(num_shards_, -1);
+                    queue<int> q;
+                    vector<bool> vis(num_shards_, false);
+                    
+                    q.push(B);
+                    vis[B] = true;
+                    
+                    // Build adjacency for BFS
+                    vector<vector<pair<int, int>>> adj(num_shards_);
+                    for (int g : active_groups) {
+                        int u = group_rep_x_[g];
+                        int v = group_rep_y_[g];
+                        if (u >= 0 && v >= 0) {
+                            adj[u].push_back(make_pair(v, g));
+                            adj[v].push_back(make_pair(u, g));
+                        }
+                    }
+                    
+                    while (!q.empty()) {
+                        int curr = q.front();
+                        q.pop();
+                        
+                        if (curr == C) break;
+                        
+                        for (size_t i = 0; i < adj[curr].size(); ++i) {
+                            int nxt = adj[curr][i].first;
+                            int g = adj[curr][i].second;
+                            if (!vis[nxt]) {
+                                vis[nxt] = true;
+                                parent_edge[nxt] = g;
+                                parent_node[nxt] = curr;
+                                q.push(nxt);
+                            }
+                        }
+                    }
+                    
+                    // If C is reachable, find the path
+                    if (vis[C]) {
+                        vector<int> cycle_edges;
+                        int curr = C;
+                        while (curr != B) {
+                            cycle_edges.push_back(parent_edge[curr]);
+                            curr = parent_node[curr];
+                        }
+                        
+                        int edge_to_remove = -1;
+                        
+                        // Rule 1: Always remove g_AC if it's on the path
+                        for (size_t i = 0; i < cycle_edges.size(); ++i) {
+                            if (cycle_edges[i] == g_AC) {
+                                edge_to_remove = g_AC;
+                                break;
+                            }
+                        }
+                        
+                        // Rule 2 & 3: Weakest link (excluding g_AB)
+                        if (edge_to_remove == -1) {
+                            double min_score = 1e9;
+                            for (size_t i = 0; i < cycle_edges.size(); ++i) {
+                                int g = cycle_edges[i];
+                                if (g == g_AB) continue;
+                                
+                                int choice = chromosome.genes[g];
+                                if (choice <= 0) continue;
+                                
+                                const LCSIndex& lcs_g = matches_[pair_groups_[g][choice - 1]];
+                                double score = ComputeEdgeDensity(lcs_g, g);
+                                if (score < min_score) {
+                                    min_score = score;
+                                    edge_to_remove = g;
+                                }
+                            }
+                        }
+                        
+                        if (edge_to_remove != -1) {
+                            chromosome.genes[edge_to_remove] = 0;
+                            chromosome.genes[g_BC] = best_c_BC;
+                            return g_BC;
+                        }
+                    }
+                }
+            }
+        }
+        return -1;
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------//
+
     int NeighborhoodMutate(Chromosome& chromosome) const
     {
         std::uniform_real_distribution<double> real_dist(0.0, 1.0);
@@ -1558,8 +1720,9 @@ private:
             }
         }
 
-        // 50% Candidate Switch | 50% Pair Switch
-        if (real_dist(rng_) < 0.50) {
+        // 33% Candidate Switch | 33% Triangle-Builder | 33% Pair Switch
+        double mutation_type = real_dist(rng_);
+        if (mutation_type < 0.33) {
             // --- 1. Candidate Switch (Rank-Based) ---
             std::uniform_int_distribution<int> group_dist(0, static_cast<int>(active_groups.size()) - 1);
             int g_idx = active_groups[group_dist(rng_)];
@@ -1614,6 +1777,15 @@ private:
             chromosome.genes[g_idx] = alt_candidates[selected_idx].choice;
             return g_idx;
         } else {
+            if (mutation_type < 0.66) {
+                // --- 3. Triangle-Builder Mutation ---
+                int mutated_group = TriangleBuilderMutate(chromosome, active_groups);
+                if (mutated_group >= 0) {
+                    return mutated_group;
+                }
+                // Fallback to Pair Switch if Triangle-Builder finds no valid loops
+            }
+            
             // --- 2. Pair Switch ---
             std::uniform_int_distribution<int> group_dist(0, static_cast<int>(active_groups.size()) - 1);
             int g_idx_off = active_groups[group_dist(rng_)];
