@@ -3944,7 +3944,7 @@ private:
     static constexpr double kConsensusWeight = 20.0;         // Flat reward per supporting match
 // static constexpr double kProxyWeight = 4.0;              // Heuristic weight multiplier for proxy predictions
     static constexpr double kConsensusRotThreshold = 0.22;   // ~12.6 degrees rotation error limit
-    static constexpr double kConsensusTransThreshold = 12.0; // 12.0 mm translation error limit
+    static constexpr double kConsensusTransThreshold = 8.0; // 8.0 mm translation error limit
 
     // Pheromone feedback parameters
     static constexpr double kPheromoneBoost = 2.0;      // Pheromone added per consensus hit
