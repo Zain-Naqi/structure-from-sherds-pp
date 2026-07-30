@@ -645,8 +645,13 @@ private:
             int y = lcs.shard_y_ - 1;
             if (!IsShardValidAndOn(x) || !IsShardValidAndOn(y)) continue;
 
-            double density = ComputeEdgeDensity(lcs, static_cast<int>(group_idx));
-            double weight = density;
+            double base_density = ComputeEdgeDensity(lcs, static_cast<int>(group_idx), false);
+            double pheromone = group_pheromone_[group_idx];
+            
+            std::uniform_real_distribution<double> dist(-0.20, 0.20);
+            double noise_multiplier = 1.0 + dist(rng_);
+            
+            double weight = (base_density * noise_multiplier) + pheromone;
             active_edges.push_back({x, y, static_cast<int>(group_idx), weight});
         }
 
@@ -1075,7 +1080,8 @@ private:
 
                             double trace = T_diff(0, 0) + T_diff(1, 1) + T_diff(2, 2);
                             if (trace > 2.0 * kCosConsensusRotThreshold + 1.0) {
-                                 consensus_reward += kConsensusWeight; // Flat reward per matching pair
+                                 double cand_density = ComputeEdgeDensity(lcs, g_idx, false);
+                                 consensus_reward += (kConsensusWeight * 0.33 * cand_density); // Scaled reward
                                  if (breakdown != nullptr) {
                                      if (!breakdown->sherd_consensus_counts.empty()) {
                                          breakdown->sherd_consensus_counts[idx]++;
