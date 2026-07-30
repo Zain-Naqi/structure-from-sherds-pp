@@ -70,6 +70,7 @@ public:
         double connectivity_component_penalty = 0.0;
         double consensus_reward = 0.0;
         vector<int> sherd_consensus_counts;  // Per-sherd consensus match count
+        vector<int> consensus_group_hits;    // Per pair-group consensus hit count
         int active_pair_count = 0;
         int valid_group_count = 0;
         int largest_component = 0;
@@ -277,11 +278,22 @@ public:
                 sort(population_.begin(), population_.end(), [](const Chromosome& a, const Chromosome& b) {
                     return a.fitness > b.fitness;
                 });
-                // Cache per-sherd consensus counts from the best individual for guided mutation
+                // --- Pheromone Update (Consensus Feedback) ---
+                for (double& p : group_pheromone_) {
+                    p *= kPheromoneDecay;
+                }
                 if (!population_.empty()) {
                     FitnessBreakdown best_breakdown;
                     EvaluateFitness(population_.front(), &best_breakdown);
                     sherd_consensus_counts_ = best_breakdown.sherd_consensus_counts;
+                    if (!best_breakdown.consensus_group_hits.empty()) {
+                        for (size_t g = 0; g < group_pheromone_.size(); ++g) {
+                            if (best_breakdown.consensus_group_hits[g] > 0) {
+                                group_pheromone_[g] += kPheromoneBoost * static_cast<double>(best_breakdown.consensus_group_hits[g]);
+                                group_pheromone_[g] = std::min(group_pheromone_[g], kPheromoneMax);
+                            }
+                        }
+                    }
                 }
                 // --- Plateau Detection ---
                 if (!population_.empty()) {
@@ -328,6 +340,13 @@ public:
                 }
                 if (generation % 10 == 0 && !population_.empty()) {
                     LogBestChromosomeBreakdown(generation, population_.front());
+                    int p_active = 0;
+                    double p_total = 0.0;
+                    for (double p : group_pheromone_) {
+                        if (p > 0.01) { p_active++; p_total += p; }
+                    }
+                    cout << "[GA PHEROMONE] Active groups: " << p_active << " / " << group_pheromone_.size()
+                         << ", Total Pheromone: " << fixed << setprecision(2) << p_total << endl;
                 }
 
 
@@ -533,6 +552,7 @@ private:
     {
         population_.clear();
         population_.reserve(kPopulationSize);
+        group_pheromone_.assign(pair_groups_.size(), 0.0);
 
         for (int i = 0; i < kPopulationSize; ++i) {
             Chromosome chromosome;
@@ -589,9 +609,14 @@ private:
     // Maximum Spanning Forest (MST) Repair Operator (Lamarckian): Prune active edges
     // that form cycles, prioritizing keeping the highest-density matches (based on inliers and scores).
     // This makes the genotype honest about what the phenotype (assembly) actually uses.
-    inline double ComputeEdgeDensity(const LCSIndex& lcs) const {
+    inline double ComputeEdgeDensity(const LCSIndex& lcs, int group_idx = -1) const {
         double score_weight = 1.0 / (1.0 + lcs.score_);
-        return kInlierScale * std::log(static_cast<double>(lcs.inliner_) + 1.0) * score_weight;
+        double base_density = kInlierScale * std::log(static_cast<double>(lcs.inliner_) + 1.0) * score_weight;
+        double pheromone = 0.0;
+        if (group_idx >= 0 && group_idx < static_cast<int>(group_pheromone_.size())) {
+            pheromone = group_pheromone_[group_idx];
+        }
+        return base_density + pheromone;
     }
 
     void RepairChromosome(Chromosome& chromosome) const
@@ -620,7 +645,7 @@ private:
             int y = lcs.shard_y_ - 1;
             if (!IsShardValidAndOn(x) || !IsShardValidAndOn(y)) continue;
 
-            double density = ComputeEdgeDensity(lcs);
+            double density = ComputeEdgeDensity(lcs, static_cast<int>(group_idx));
             double weight = density;
             active_edges.push_back({x, y, static_cast<int>(group_idx), weight});
         }
@@ -683,6 +708,7 @@ private:
         if (breakdown != nullptr) {
             *breakdown = FitnessBreakdown();
             breakdown->sherd_consensus_counts.assign(num_shards_, 0);
+            breakdown->consensus_group_hits.assign(pair_groups_.size(), 0);
         }
 
         const int kMaxNeighbors = max_neighbors_cap_;
@@ -732,9 +758,7 @@ private:
             // Invert score so both terms pull in the same direction
             double selected_density = 0.0;
             if (use_inlier_score) {
-                double score_weight = 1.0 / (1.0 + lcs.score_);
-                // Apply logarithmic scaling to compress inlier count differences
-                selected_density = kInlierScale * static_cast<double>(lcs.inliner_) * score_weight;
+                selected_density = ComputeEdgeDensity(lcs, static_cast<int>(group_idx));
                 fitness += selected_density;
                 if (breakdown != nullptr) {
                     breakdown->inlier_reward += selected_density;
@@ -1052,8 +1076,20 @@ private:
                             double trace = T_diff(0, 0) + T_diff(1, 1) + T_diff(2, 2);
                             if (trace > 2.0 * kCosConsensusRotThreshold + 1.0) {
                                  consensus_reward += kConsensusWeight; // Flat reward per matching pair
-                                 if (breakdown != nullptr && !breakdown->sherd_consensus_counts.empty()) {
-                                     breakdown->sherd_consensus_counts[idx]++;
+                                 if (breakdown != nullptr) {
+                                     if (!breakdown->sherd_consensus_counts.empty()) {
+                                         breakdown->sherd_consensus_counts[idx]++;
+                                     }
+                                     if (!breakdown->consensus_group_hits.empty()) {
+                                         for (int tree_g : active_groups) {
+                                             if (!group_active[tree_g]) continue;
+                                             int gx = group_rep_x_[tree_g];
+                                             int gy = group_rep_y_[tree_g];
+                                             if (gx == idx || gy == idx || gx == placed_shard || gy == placed_shard) {
+                                                 breakdown->consensus_group_hits[tree_g]++;
+                                             }
+                                         }
+                                     }
                                  }
                                  break; // Max one supporting candidate per alternative pair
                              }
@@ -1313,7 +1349,7 @@ private:
                     for (size_t c = 0; c < group.size(); ++c) {
                         size_t match_idx = group[c];
                         const LCSIndex& lcs = matches_[match_idx];
-                        double density = ComputeEdgeDensity(lcs);
+                        double density = ComputeEdgeDensity(lcs, static_cast<int>(g));
                         double score = density;
                         if (score > max_score) {
                             max_score = score;
@@ -1464,7 +1500,7 @@ private:
                             for (size_t c = 0; c < group.size(); ++c) {
                                 size_t match_idx = group[c];
                                 const LCSIndex& lcs = matches_[match_idx];
-                                double density = ComputeEdgeDensity(lcs);
+                                double density = ComputeEdgeDensity(lcs, static_cast<int>(g));
                                 double score = density;
                                 if (score > max_score) {
                                     max_score = score;
@@ -1546,7 +1582,7 @@ private:
 
                 size_t match_idx = group[c];
                 const LCSIndex& lcs = matches_[match_idx];
-                double density = ComputeEdgeDensity(lcs);
+                double density = ComputeEdgeDensity(lcs, g_idx);
                 double score = density;
                 alt_candidates.push_back({choice_val, score});
             }
@@ -1640,7 +1676,7 @@ private:
                     for (size_t c = 0; c < group.size(); ++c) {
                         size_t match_idx = group[c];
                         const LCSIndex& lcs = matches_[match_idx];
-                        double density = ComputeEdgeDensity(lcs);
+                        double density = ComputeEdgeDensity(lcs, static_cast<int>(g));
                         double score = density;
                         if (score > max_score) {
                             max_score = score;
@@ -1962,6 +1998,7 @@ private:
         max_neighbors_cap_ = min(max_neighbors_cap_, max(0, num_shards_ - 1));
 
         group_best_density_.assign(pair_groups_.size(), 0.0);
+        group_pheromone_.assign(pair_groups_.size(), 0.0);
         group_rep_x_.assign(pair_groups_.size(), -1);
         group_rep_y_.assign(pair_groups_.size(), -1);
         valid_group_count_ = 0;
@@ -1991,7 +2028,7 @@ private:
             double best_density = 0.0;
             for (size_t local_idx = 0; local_idx < group.size(); ++local_idx) {
                 const LCSIndex& lcs = matches_[group[local_idx]];
-                double density = ComputeEdgeDensity(lcs);
+                double density = ComputeEdgeDensity(lcs, static_cast<int>(group_idx));
                 if (density > best_density) {
                     best_density = density;
                 }
@@ -3232,8 +3269,7 @@ private:
 
         for (size_t i = 0; i < group.size(); ++i) {
             const LCSIndex& lcs = matches_[group[i]];
-            // density = inliner / (1 + score)
-            double density = ComputeEdgeDensity(lcs);
+            double density = ComputeEdgeDensity(lcs, static_cast<int>(group_idx));
             ranked_candidates.push_back(make_pair(density, static_cast<int>(i)));
         }
 
@@ -3731,6 +3767,11 @@ private:
 // static constexpr double kProxyWeight = 4.0;              // Heuristic weight multiplier for proxy predictions
     static constexpr double kConsensusRotThreshold = 0.22;   // ~12.6 degrees rotation error limit
     static constexpr double kConsensusTransThreshold = 12.0; // 12.0 mm translation error limit
+
+    // Pheromone feedback parameters
+    static constexpr double kPheromoneBoost = 2.0;      // Pheromone added per consensus hit
+    static constexpr double kPheromoneDecay = 0.85;     // Multiplicative decay per generation (evaporation)
+    static constexpr double kPheromoneMax = 20.0;       // Cap to prevent runaway dominance
     static constexpr int kSnapshotInterval = 25;
     static constexpr bool kEnableSnapshots = true;
     static constexpr bool kEnableConvergenceLog = true;
@@ -3852,6 +3893,7 @@ private:
     int valid_shard_count_ = 0;
     int valid_group_count_ = 0;
     vector<int> sherd_consensus_counts_; // Per-sherd consensus match count from best individual
+    vector<double> group_pheromone_;     // Per pair-group pheromone score (consensus feedback)
 // vector<int> local_consensus_score_; // Precomputed triangle consensus count for each candidate match
     double current_mutation_rate_ = kBaseMutationRate;
 
