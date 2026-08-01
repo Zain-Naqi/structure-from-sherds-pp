@@ -631,6 +631,13 @@ private:
         vector<ActiveEdge> active_edges;
         active_edges.reserve(chromosome.genes.size());
 
+        size_t chromosome_hash = 0;
+        for (int g : chromosome.genes) {
+            chromosome_hash ^= std::hash<int>()(g) + 0x9e3779b9 + (chromosome_hash << 6) + (chromosome_hash >> 2);
+        }
+        std::mt19937 local_rng(rng_seed_ + chromosome_hash);
+        std::uniform_real_distribution<double> dist(-0.20, 0.20);
+
         // Step 1: Collect active edges and compute their density weights
         for (size_t group_idx = 0; group_idx < chromosome.genes.size(); ++group_idx) {
             int choice = chromosome.genes[group_idx];
@@ -648,8 +655,7 @@ private:
             double base_density = ComputeEdgeDensity(lcs, static_cast<int>(group_idx), false);
             double pheromone = group_pheromone_[group_idx];
             
-            std::uniform_real_distribution<double> dist(-0.20, 0.20);
-            double noise_multiplier = 1.0 + dist(rng_);
+            double noise_multiplier = 1.0 + dist(local_rng);
             
             double weight = (base_density * noise_multiplier) + pheromone;
             active_edges.push_back({x, y, static_cast<int>(group_idx), weight});
