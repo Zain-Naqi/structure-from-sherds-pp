@@ -611,7 +611,7 @@ private:
     // This makes the genotype honest about what the phenotype (assembly) actually uses.
     inline double ComputeEdgeDensity(const LCSIndex& lcs, int group_idx = -1, bool include_pheromone = true) const {
         double score_weight = 1.0 / (1.0 + lcs.score_);
-        double base_density = kInlierScale * std::log(static_cast<double>(lcs.inliner_) + 1.0) * score_weight;
+        double base_density = kInlierScale * static_cast<double>(lcs.inliner_) * score_weight;
         double pheromone = 0.0;
         if (include_pheromone && group_idx >= 0 && group_idx < static_cast<int>(group_pheromone_.size())) {
             pheromone = group_pheromone_[group_idx];
@@ -1081,7 +1081,7 @@ private:
                             double trace = T_diff(0, 0) + T_diff(1, 1) + T_diff(2, 2);
                             if (trace > 2.0 * kCosConsensusRotThreshold + 1.0) {
                                  double cand_density = ComputeEdgeDensity(lcs, g_idx, false);
-                                 consensus_reward += (kConsensusWeight * 0.33 * cand_density); // Scaled reward
+                                 consensus_reward += (kConsensusWeight * 0.015 * cand_density); // Scaled reward
                                  if (breakdown != nullptr) {
                                      if (!breakdown->sherd_consensus_counts.empty()) {
                                          breakdown->sherd_consensus_counts[idx]++;
@@ -1368,24 +1368,26 @@ private:
 
             if (valid_bridges.empty()) break; // Fully connected or impossible to connect
 
-            std::sort(valid_bridges.begin(), valid_bridges.end(), [](const ValidBridge& a, const ValidBridge& b) {
-                return a.score < b.score;
-            });
-
             int N = static_cast<int>(valid_bridges.size());
-            double denom = static_cast<double>(N * (N + 1));
-            std::uniform_real_distribution<double> dist_unit(0.0, 1.0);
-            double r = dist_unit(rng_);
-            double cum_prob = 0.0;
-            int selected_idx = N - 1;
+            double total_bridge_weight = 0.0;
+            for (const auto& b : valid_bridges) {
+                total_bridge_weight += std::max(b.score, 0.0);
+            }
 
-            for (int k = 0; k < N; ++k) {
-                int rank = k + 1;
-                double p_i = (2.0 * static_cast<double>(rank)) / denom;
-                cum_prob += p_i;
-                if (r <= cum_prob) {
-                    selected_idx = k;
-                    break;
+            int selected_idx = N - 1;
+            if (total_bridge_weight <= 0.0) {
+                std::uniform_int_distribution<int> uni(0, N - 1);
+                selected_idx = uni(rng_);
+            } else {
+                std::uniform_real_distribution<double> dist_unit(0.0, total_bridge_weight);
+                double r = dist_unit(rng_);
+                double cum = 0.0;
+                for (int k = 0; k < N; ++k) {
+                    cum += std::max(valid_bridges[k].score, 0.0);
+                    if (r <= cum) {
+                        selected_idx = k;
+                        break;
+                    }
                 }
             }
 
@@ -1871,27 +1873,26 @@ private:
                 return -1;
             }
 
-            // Sort in ASCENDING order of score (worst = index 0, best = index N-1)
-            std::sort(valid_bridges.begin(), valid_bridges.end(), [](const ValidBridge& a, const ValidBridge& b) {
-                return a.score < b.score;
-            });
-
-            // Rank-Based Selection: P(i) = 2*i / (N*(N+1)) for 1-based rank i in 1..N
             int N = static_cast<int>(valid_bridges.size());
-            double denom = static_cast<double>(N * (N + 1));
+            double total_bridge_weight = 0.0;
+            for (const auto& b : valid_bridges) {
+                total_bridge_weight += std::max(b.score, 0.0);
+            }
 
-            std::uniform_real_distribution<double> dist_unit(0.0, 1.0);
-            double r = dist_unit(rng_);
-            double cum_prob = 0.0;
             int selected_idx = N - 1;
-
-            for (int k = 0; k < N; ++k) {
-                int rank = k + 1;
-                double p_i = (2.0 * static_cast<double>(rank)) / denom;
-                cum_prob += p_i;
-                if (r <= cum_prob) {
-                    selected_idx = k;
-                    break;
+            if (total_bridge_weight <= 0.0) {
+                std::uniform_int_distribution<int> uni(0, N - 1);
+                selected_idx = uni(rng_);
+            } else {
+                std::uniform_real_distribution<double> dist_unit(0.0, total_bridge_weight);
+                double r = dist_unit(rng_);
+                double cum = 0.0;
+                for (int k = 0; k < N; ++k) {
+                    cum += std::max(valid_bridges[k].score, 0.0);
+                    if (r <= cum) {
+                        selected_idx = k;
+                        break;
+                    }
                 }
             }
 
@@ -3441,30 +3442,17 @@ private:
             return 0;
         }
 
-        // --- Rank-Based Selection (ranks assigned by density score) ---
-        vector<pair<double, int>> ranked_candidates;
-        ranked_candidates.reserve(group.size());
+        // --- Weighted Roulette-Wheel Selection (using density score) ---
+        vector<double> weights;
+        weights.reserve(group.size());
+        double total_weight = 0.0;
 
         for (size_t i = 0; i < group.size(); ++i) {
             const LCSIndex& lcs = matches_[group[i]];
             double density = ComputeEdgeDensity(lcs, static_cast<int>(group_idx));
-            ranked_candidates.push_back(make_pair(density, static_cast<int>(i)));
-        }
-
-        std::stable_sort(ranked_candidates.begin(), ranked_candidates.end(),
-            [](const pair<double, int>& a, const pair<double, int>& b) {
-                return a.first > b.first;
-            });
-
-        double total_weight = 0.0;
-        vector<double> cumulative;
-        cumulative.reserve(ranked_candidates.size());
-        const int rank_count = static_cast<int>(ranked_candidates.size());
-        for (int rank = 0; rank < rank_count; ++rank) {
-            // Linear rank weighting: best rank gets the largest weight.
-            double w = static_cast<double>(rank_count - rank);
+            double w = std::max(density, 0.0); // Clamp negatives to 0
+            weights.push_back(w);
             total_weight += w;
-            cumulative.push_back(total_weight);
         }
 
         if (total_weight <= 0.0) {
@@ -3472,15 +3460,17 @@ private:
             return choice_dist(rng_);
         }
 
-        std::uniform_real_distribution<double> dist(0.0, 1.0);
-        double r = dist(rng_) * total_weight;
-        for (size_t rank = 0; rank < cumulative.size(); ++rank) {
-            if (r <= cumulative[rank]) {
-                return ranked_candidates[rank].second + 1;
+        std::uniform_real_distribution<double> dist(0.0, total_weight);
+        double r = dist(rng_);
+        double cum = 0.0;
+        for (size_t i = 0; i < weights.size(); ++i) {
+            cum += weights[i];
+            if (r <= cum) {
+                return static_cast<int>(i) + 1;
             }
         }
 
-        return ranked_candidates.front().second + 1;
+        return static_cast<int>(weights.size());
     }
 
     void AuditGroundTruthCandidates(const MatrixXd& GT_graph, const vector<Trans>& GT_trans, const vector<Trans>& T_axis)
@@ -3940,7 +3930,7 @@ private:
 
     // Consensus Support parameters
     static constexpr bool use_consensus_reward = true;
-    static constexpr double kInlierScale = 1.0;             // Multiplier for log-inlier reward
+    static constexpr double kInlierScale = 1.0;             // Multiplier for linear-inlier reward
     static constexpr double kConsensusWeight = 20.0;         // Flat reward per supporting match
 // static constexpr double kProxyWeight = 4.0;              // Heuristic weight multiplier for proxy predictions
     static constexpr double kConsensusRotThreshold = 0.22;   // ~12.6 degrees rotation error limit
