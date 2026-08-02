@@ -227,7 +227,7 @@ public:
         int best_seed_generations = 0;
 
         for (int seed_idx = 0; seed_idx < kNumSeeds; ++seed_idx) {
-            std::mt19937::result_type seed = static_cast<std::mt19937::result_type>(42 + seed_idx * 7);
+            std::mt19937::result_type seed = static_cast<std::mt19937::result_type>(43 + seed_idx * 7);
             rng_.seed(seed);
             cout << "[GA] === Seed " << seed_idx + 1 << " / " << kNumSeeds << " (seed=" << seed << ") ===" << endl;
 
@@ -654,9 +654,9 @@ private:
 
             double base_density = ComputeEdgeDensity(lcs, static_cast<int>(group_idx), false);
             double pheromone = group_pheromone_[group_idx];
-            
+
             double noise_multiplier = 1.0 + dist(local_rng);
-            
+
             double weight = (base_density * noise_multiplier) + pheromone;
             active_edges.push_back({x, y, static_cast<int>(group_idx), weight});
         }
@@ -1087,7 +1087,7 @@ private:
                             double trace = T_diff(0, 0) + T_diff(1, 1) + T_diff(2, 2);
                             if (trace > 2.0 * kCosConsensusRotThreshold + 1.0) {
                                  double cand_density = ComputeEdgeDensity(lcs, g_idx, false);
-                                 consensus_reward += (kConsensusWeight * 0.015 * cand_density); // Scaled reward
+                                 consensus_reward += (kConsensusWeight * 0.06 * cand_density); // Scaled reward
                                  if (breakdown != nullptr) {
                                      if (!breakdown->sherd_consensus_counts.empty()) {
                                          breakdown->sherd_consensus_counts[idx]++;
@@ -1444,10 +1444,10 @@ private:
             vector<int> candidate_Cs;
             for (int C = 0; C < num_shards_; ++C) {
                 if (C == A || C == B || !IsShardValidAndOn(C)) continue;
-                
+
                 int g_BC = PairGroupIndex(B, C);
                 int g_AC = PairGroupIndex(A, C);
-                
+
                 if (g_BC >= 0 && g_AC >= 0 && chromosome.genes[g_BC] <= 0) {
                     candidate_Cs.push_back(C);
                 }
@@ -1457,29 +1457,29 @@ private:
             for (int C : candidate_Cs) {
                 int g_BC = PairGroupIndex(B, C);
                 int g_AC = PairGroupIndex(A, C);
-                
+
                 const vector<size_t>& group_BC = pair_groups_[g_BC];
                 const vector<size_t>& group_AC = pair_groups_[g_AC];
-                
+
                 bool found_triangle = false;
                 int best_c_BC = -1;
-                
+
                 for (size_t c_BC = 0; c_BC < group_BC.size(); ++c_BC) {
                     const LCSIndex& lcs_BC = matches_[group_BC[c_BC]];
                     Matrix4d T_BC_cand = Matrix4d::Identity();
                     lcs_BC.trans_.Output(T_BC_cand);
                     Matrix4d T_B_to_C = (lcs_BC.shard_x_ - 1 == B) ? T_BC_cand : T_BC_cand.inverse().eval();
-                    
+
                     Matrix4d T_A_to_C_expected = T_B_to_C * T_A_to_B;
-                    
+
                     for (size_t c_AC = 0; c_AC < group_AC.size(); ++c_AC) {
                         const LCSIndex& lcs_AC = matches_[group_AC[c_AC]];
                         Matrix4d T_AC_cand = Matrix4d::Identity();
                         lcs_AC.trans_.Output(T_AC_cand);
                         Matrix4d T_A_to_C_actual = (lcs_AC.shard_x_ - 1 == A) ? T_AC_cand : T_AC_cand.inverse().eval();
-                        
+
                         Matrix4d T_diff = T_A_to_C_expected * T_A_to_C_actual.inverse();
-                        
+
                         Vector3d t_diff(T_diff(0, 3), T_diff(1, 3), T_diff(2, 3));
                         double t_err_sq = t_diff.squaredNorm();
                         if (t_err_sq >= kConsensusTransThreshold * kConsensusTransThreshold) continue;
@@ -1493,17 +1493,17 @@ private:
                     }
                     if (found_triangle) break;
                 }
-                
+
                 if (found_triangle) {
                     // 1. Run BFS from B to C on currently active edges to find the path
                     vector<int> parent_edge(num_shards_, -1);
                     vector<int> parent_node(num_shards_, -1);
                     queue<int> q;
                     vector<bool> vis(num_shards_, false);
-                    
+
                     q.push(B);
                     vis[B] = true;
-                    
+
                     // Build adjacency for BFS
                     vector<vector<pair<int, int>>> adj(num_shards_);
                     for (int g : active_groups) {
@@ -1514,13 +1514,13 @@ private:
                             adj[v].push_back(make_pair(u, g));
                         }
                     }
-                    
+
                     while (!q.empty()) {
                         int curr = q.front();
                         q.pop();
-                        
+
                         if (curr == C) break;
-                        
+
                         for (size_t i = 0; i < adj[curr].size(); ++i) {
                             int nxt = adj[curr][i].first;
                             int g = adj[curr][i].second;
@@ -1532,7 +1532,7 @@ private:
                             }
                         }
                     }
-                    
+
                     // If C is reachable, find the path
                     if (vis[C]) {
                         vector<int> cycle_edges;
@@ -1541,9 +1541,9 @@ private:
                             cycle_edges.push_back(parent_edge[curr]);
                             curr = parent_node[curr];
                         }
-                        
+
                         int edge_to_remove = -1;
-                        
+
                         // Rule 1: Always remove g_AC if it's on the path
                         for (size_t i = 0; i < cycle_edges.size(); ++i) {
                             if (cycle_edges[i] == g_AC) {
@@ -1551,17 +1551,17 @@ private:
                                 break;
                             }
                         }
-                        
+
                         // Rule 2 & 3: Weakest link (excluding g_AB)
                         if (edge_to_remove == -1) {
                             double min_score = 1e9;
                             for (size_t i = 0; i < cycle_edges.size(); ++i) {
                                 int g = cycle_edges[i];
                                 if (g == g_AB) continue;
-                                
+
                                 int choice = chromosome.genes[g];
                                 if (choice <= 0) continue;
-                                
+
                                 const LCSIndex& lcs_g = matches_[pair_groups_[g][choice - 1]];
                                 double score = ComputeEdgeDensity(lcs_g, g);
                                 if (score < min_score) {
@@ -1570,7 +1570,7 @@ private:
                                 }
                             }
                         }
-                        
+
                         if (edge_to_remove != -1) {
                             chromosome.genes[edge_to_remove] = 0;
                             chromosome.genes[g_BC] = best_c_BC;
@@ -1799,7 +1799,7 @@ private:
                 }
                 // Fallback to Pair Switch if Triangle-Builder finds no valid loops
             }
-            
+
             // --- 2. Pair Switch ---
             std::uniform_int_distribution<int> group_dist(0, static_cast<int>(active_groups.size()) - 1);
             int g_idx_off = active_groups[group_dist(rng_)];
@@ -3914,7 +3914,7 @@ private:
     static constexpr int kPopulationSize = 1000;
     static constexpr int kMaxGenerations = 100;
     static constexpr int kElitismCount = 10;
-    static constexpr int kNumSeeds = 1;
+    static constexpr int kNumSeeds = 5;
     static constexpr double kBaseMutationRate = 0.15;       // Base mutation rate (allows convergence)
     static constexpr double kHyperMutationRate = 0.40;      // Hyper-mutation rate (escapes local traps)
     static constexpr int kStagnationThreshold = 15;         // Generations without improvement to trigger hyper-mutation
@@ -4076,7 +4076,7 @@ private:
     int max_edges_ = -1;
 
     // std::mt19937::result_type rng_seed_ = CreateSeed();
-    std::mt19937::result_type rng_seed_ = 42;
+    std::mt19937::result_type rng_seed_ = 43;
     mutable std::mt19937 rng_{rng_seed_};
 };
 
