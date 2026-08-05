@@ -1,0 +1,2893 @@
+[ICP MODE] compare (flags: --icp-mode=global|incremental|compare)
+#################### Pottery Data load ####################
+Attempting to read file: /Dataset/SfS_pp/Axes/Pot_H_Piece_01_Axis.xyz
+File opened successfully
+Successfully read 1 points
+Attempting to read PCD file: /Dataset/SfS_pp/Breaklines/Pot_H_Piece_01_Breakline_0.pcd
+File opened successfully
+Found 4 segments, 218 total points
+Processing 218 points
+Found 218 unique points
+Successfully processed PCD file
+Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_H_Piece_01_Surface_0.xyz
+Found 16002 total points, reading 16002 points
+Successfully read 16002 points
+Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_H_Piece_01_Surface_1.xyz
+Found 9322 total points, reading 9322 points
+Successfully read 9322 points
+Attempting to read PCD file: /Dataset/SfS_pp/Surfaces/Pot_H_Piece_01_Surface_F.pcd
+Error: Could not open file /Dataset/SfS_pp/Surfaces/Pot_H_Piece_01_Surface_F.pcd
+Attempting to read file: /Dataset/SfS_pp/Axes/Pot_H_Piece_02_Axis.xyz
+File opened successfully
+Successfully read 1 points
+Attempting to read PCD file: /Dataset/SfS_pp/Breaklines/Pot_H_Piece_02_Breakline_0.pcd
+File opened successfully
+Found 4 segments, 156 total points
+Processing 156 points
+Found 156 unique points
+Successfully processed PCD file
+Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_H_Piece_02_Surface_0.xyz
+Found 10351 total points, reading 10351 points
+Successfully read 10351 points
+Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_H_Piece_02_Surface_1.xyz
+Found 8187 total points, reading 8187 points
+Successfully read 8187 points
+Attempting to read PCD file: /Dataset/SfS_pp/Surfaces/Pot_H_Piece_02_Surface_F.pcd
+Error: Could not open file /Dataset/SfS_pp/Surfaces/Pot_H_Piece_02_Surface_F.pcd
+Attempting to read file: /Dataset/SfS_pp/Axes/Pot_H_Piece_03_Axis.xyz
+File opened successfully
+Successfully read 1 points
+Attempting to read PCD file: /Dataset/SfS_pp/Breaklines/Pot_H_Piece_03_Breakline_0.pcd
+File opened successfully
+Found 3 segments, 133 total points
+Processing 133 points
+Found 133 unique points
+Successfully processed PCD file
+Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_H_Piece_03_Surface_0.xyz
+Found 7968 total points, reading 7968 points
+Successfully read 7968 points
+Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_H_Piece_03_Surface_1.xyz
+Found 3686 total points, reading 3686 points
+Successfully read 3686 points
+Attempting to read PCD file: /Dataset/SfS_pp/Surfaces/Pot_H_Piece_03_Surface_F.pcd
+Error: Could not open file /Dataset/SfS_pp/Surfaces/Pot_H_Piece_03_Surface_F.pcd
+Attempting to read file: /Dataset/SfS_pp/Axes/Pot_H_Piece_04_Axis.xyz
+File opened successfully
+Successfully read 1 points
+Attempting to read PCD file: /Dataset/SfS_pp/Breaklines/Pot_H_Piece_04_Breakline_0.pcd
+File opened successfully
+Found 4 segments, 128 total points
+Processing 128 points
+Found 128 unique points
+Successfully processed PCD file
+Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_H_Piece_04_Surface_0.xyz
+Found 6710 total points, reading 6710 points
+Successfully read 6710 points
+Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_H_Piece_04_Surface_1.xyz
+Found 6149 total points, reading 6149 points
+Successfully read 6149 points
+Attempting to read PCD file: /Dataset/SfS_pp/Surfaces/Pot_H_Piece_04_Surface_F.pcd
+Error: Could not open file /Dataset/SfS_pp/Surfaces/Pot_H_Piece_04_Surface_F.pcd
+Attempting to read file: /Dataset/SfS_pp/Axes/Pot_H_Piece_05_Axis.xyz
+File opened successfully
+Successfully read 2 points
+Attempting to read PCD file: /Dataset/SfS_pp/Breaklines/Pot_H_Piece_05_Breakline_0.pcd
+File opened successfully
+Found 2 segments, 141 total points
+Processing 141 points
+Found 141 unique points
+Successfully processed PCD file
+Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_H_Piece_05_Surface_0.xyz
+Found 5529 total points, reading 5529 points
+Successfully read 5529 points
+Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_H_Piece_05_Surface_1.xyz
+Found 6026 total points, reading 6026 points
+Successfully read 6026 points
+Attempting to read PCD file: /Dataset/SfS_pp/Surfaces/Pot_H_Piece_05_Surface_F.pcd
+Error: Could not open file /Dataset/SfS_pp/Surfaces/Pot_H_Piece_05_Surface_F.pcd
+Attempting to read file: /Dataset/SfS_pp/Axes/Pot_H_Piece_06_Axis.xyz
+File opened successfully
+Successfully read 3 points
+Attempting to read PCD file: /Dataset/SfS_pp/Breaklines/Pot_H_Piece_06_Breakline_0.pcd
+File opened successfully
+Found 2 segments, 130 total points
+Processing 130 points
+Found 130 unique points
+Successfully processed PCD file
+Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_H_Piece_06_Surface_0.xyz
+Found 4587 total points, reading 4587 points
+Successfully read 4587 points
+Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_H_Piece_06_Surface_1.xyz
+Found 4839 total points, reading 4839 points
+Successfully read 4839 points
+Attempting to read PCD file: /Dataset/SfS_pp/Surfaces/Pot_H_Piece_06_Surface_F.pcd
+Error: Could not open file /Dataset/SfS_pp/Surfaces/Pot_H_Piece_06_Surface_F.pcd
+Attempting to read file: /Dataset/SfS_pp/Axes/Pot_H_Piece_07_Axis.xyz
+File opened successfully
+Successfully read 2 points
+Attempting to read PCD file: /Dataset/SfS_pp/Breaklines/Pot_H_Piece_07_Breakline_0.pcd
+File opened successfully
+Found 3 segments, 118 total points
+Processing 118 points
+Found 118 unique points
+Successfully processed PCD file
+Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_H_Piece_07_Surface_0.xyz
+Found 5265 total points, reading 5265 points
+Successfully read 5265 points
+Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_H_Piece_07_Surface_1.xyz
+Found 5815 total points, reading 5815 points
+Successfully read 5815 points
+Attempting to read PCD file: /Dataset/SfS_pp/Surfaces/Pot_H_Piece_07_Surface_F.pcd
+Error: Could not open file /Dataset/SfS_pp/Surfaces/Pot_H_Piece_07_Surface_F.pcd
+Attempting to read file: /Dataset/SfS_pp/Axes/Pot_H_Piece_08_Axis.xyz
+File opened successfully
+Successfully read 3 points
+Attempting to read PCD file: /Dataset/SfS_pp/Breaklines/Pot_H_Piece_08_Breakline_0.pcd
+File opened successfully
+Found 3 segments, 99 total points
+Processing 99 points
+Found 99 unique points
+Successfully processed PCD file
+Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_H_Piece_08_Surface_0.xyz
+Found 4346 total points, reading 4346 points
+Successfully read 4346 points
+Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_H_Piece_08_Surface_1.xyz
+Found 4615 total points, reading 4615 points
+Successfully read 4615 points
+Attempting to read PCD file: /Dataset/SfS_pp/Surfaces/Pot_H_Piece_08_Surface_F.pcd
+Error: Could not open file /Dataset/SfS_pp/Surfaces/Pot_H_Piece_08_Surface_F.pcd
+Attempting to read file: /Dataset/SfS_pp/Axes/Pot_H_Piece_09_Axis.xyz
+File opened successfully
+Successfully read 6 points
+Attempting to read PCD file: /Dataset/SfS_pp/Breaklines/Pot_H_Piece_09_Breakline_0.pcd
+File opened successfully
+Found 4 segments, 95 total points
+Processing 95 points
+Found 95 unique points
+Successfully processed PCD file
+Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_H_Piece_09_Surface_0.xyz
+Found 4020 total points, reading 4020 points
+Successfully read 4020 points
+Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_H_Piece_09_Surface_1.xyz
+Found 4452 total points, reading 4452 points
+Successfully read 4452 points
+Attempting to read PCD file: /Dataset/SfS_pp/Surfaces/Pot_H_Piece_09_Surface_F.pcd
+Error: Could not open file /Dataset/SfS_pp/Surfaces/Pot_H_Piece_09_Surface_F.pcd
+Attempting to read file: /Dataset/SfS_pp/Axes/Pot_H_Piece_10_Axis.xyz
+File opened successfully
+Successfully read 1 points
+Attempting to read PCD file: /Dataset/SfS_pp/Breaklines/Pot_H_Piece_10_Breakline_0.pcd
+File opened successfully
+Found 3 segments, 101 total points
+Processing 101 points
+Found 101 unique points
+Successfully processed PCD file
+Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_H_Piece_10_Surface_0.xyz
+Found 3036 total points, reading 3036 points
+Successfully read 3036 points
+Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_H_Piece_10_Surface_1.xyz
+Found 2371 total points, reading 2371 points
+Successfully read 2371 points
+Attempting to read PCD file: /Dataset/SfS_pp/Surfaces/Pot_H_Piece_10_Surface_F.pcd
+Error: Could not open file /Dataset/SfS_pp/Surfaces/Pot_H_Piece_10_Surface_F.pcd
+Attempting to read file: /Dataset/SfS_pp/Axes/Pot_H_Piece_11_Axis.xyz
+File opened successfully
+Successfully read 3 points
+Attempting to read PCD file: /Dataset/SfS_pp/Breaklines/Pot_H_Piece_11_Breakline_0.pcd
+File opened successfully
+Found 3 segments, 73 total points
+Processing 73 points
+Found 73 unique points
+Successfully processed PCD file
+Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_H_Piece_11_Surface_0.xyz
+Found 2175 total points, reading 2175 points
+Successfully read 2175 points
+Attempting to read XYZ file: /Dataset/SfS_pp/Surfaces/Pot_H_Piece_11_Surface_1.xyz
+Found 2364 total points, reading 2364 points
+Successfully read 2364 points
+Attempting to read PCD file: /Dataset/SfS_pp/Surfaces/Pot_H_Piece_11_Surface_F.pcd
+Error: Could not open file /Dataset/SfS_pp/Surfaces/Pot_H_Piece_11_Surface_F.pcd
+#################### Ground Truth data load ####################
+0 1 1 1 1 1 0 0 0 0 0
+1 0 0 1 0 1 0 0 0 0 1
+1 0 0 1 1 0 1 0 0 0 0
+1 1 1 0 0 0 0 0 1 1 0
+1 0 1 0 0 0 0 0 0 0 0
+1 1 0 0 0 0 0 0 0 0 0
+0 0 1 0 0 0 0 1 0 0 0
+0 0 0 0 0 0 1 0 0 1 0
+0 0 0 1 0 0 0 0 0 1 1
+0 0 0 1 0 0 0 1 1 0 0
+0 1 0 0 0 0 0 0 1 0 0
+#################### Save initial state ####################
+#################### Change Axis symmetrix to z axis ####################
+#################### Feature matching ####################
+Total Number : 485
+#################### Pairwise pruning ####################
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+W0803 07:57:13.280032    19 levenberg_marquardt_strategy.cc:114] Linear solver failure. Failed to compute a step: CXSparse Failure : Numeric factorization failed.
+W0803 07:57:13.280870    19 levenberg_marquardt_strategy.cc:114] Linear solver failure. Failed to compute a step: CXSparse Failure : Numeric factorization failed.
+W0803 07:57:13.281750    19 levenberg_marquardt_strategy.cc:114] Linear solver failure. Failed to compute a step: CXSparse Failure : Numeric factorization failed.
+W0803 07:57:13.281843    19 levenberg_marquardt_strategy.cc:114] Linear solver failure. Failed to compute a step: CXSparse Failure : Numeric factorization failed.
+W0803 07:57:13.283337    19 levenberg_marquardt_strategy.cc:114] Linear solver failure. Failed to compute a step: CXSparse Failure : Numeric factorization failed.
+W0803 07:57:13.283448    19 levenberg_marquardt_strategy.cc:114] Linear solver failure. Failed to compute a step: CXSparse Failure : Numeric factorization failed.
+W0803 07:57:13.284008    19 levenberg_marquardt_strategy.cc:114] Linear solver failure. Failed to compute a step: CXSparse Failure : Numeric factorization failed.
+W0803 07:57:13.284355    19 levenberg_marquardt_strategy.cc:114] Linear solver failure. Failed to compute a step: CXSparse Failure : Numeric factorization failed.
+W0803 07:57:13.503355    19 levenberg_marquardt_strategy.cc:114] Linear solver failure. Failed to compute a step: CXSparse Failure : Numeric factorization failed.
+W0803 07:57:13.503474    19 levenberg_marquardt_strategy.cc:114] Linear solver failure. Failed to compute a step: CXSparse Failure : Numeric factorization failed.
+W0803 07:57:15.225313    19 levenberg_marquardt_strategy.cc:114] Linear solver failure. Failed to compute a step: CXSparse Failure : Numeric factorization failed.
+W0803 07:57:15.225667    19 levenberg_marquardt_strategy.cc:114] Linear solver failure. Failed to compute a step: CXSparse Failure : Numeric factorization failed.
+W0803 07:57:15.225816    19 levenberg_marquardt_strategy.cc:114] Linear solver failure. Failed to compute a step: CXSparse Failure : Numeric factorization failed.
+W0803 07:57:15.318118    19 levenberg_marquardt_strategy.cc:114] Linear solver failure. Failed to compute a step: CXSparse Failure : Numeric factorization failed.
+W0803 07:57:15.318234    19 levenberg_marquardt_strategy.cc:114] Linear solver failure. Failed to compute a step: CXSparse Failure : Numeric factorization failed.
+W0803 07:57:15.319118    19 levenberg_marquardt_strategy.cc:114] Linear solver failure. Failed to compute a step: CXSparse Failure : Numeric factorization failed.
+W0803 07:57:15.319218    19 levenberg_marquardt_strategy.cc:114] Linear solver failure. Failed to compute a step: CXSparse Failure : Numeric factorization failed.
+W0803 07:57:15.319530    19 levenberg_marquardt_strategy.cc:114] Linear solver failure. Failed to compute a step: CXSparse Failure : Numeric factorization failed.
+W0803 07:57:15.319860    19 levenberg_marquardt_strategy.cc:114] Linear solver failure. Failed to compute a step: CXSparse Failure : Numeric factorization failed.
+W0803 07:57:15.320204    19 levenberg_marquardt_strategy.cc:114] Linear solver failure. Failed to compute a step: CXSparse Failure : Numeric factorization failed.
+W0803 07:57:15.320309    19 levenberg_marquardt_strategy.cc:114] Linear solver failure. Failed to compute a step: CXSparse Failure : Numeric factorization failed.
+W0803 07:57:15.596026    19 levenberg_marquardt_strategy.cc:114] Linear solver failure. Failed to compute a step: CXSparse Failure : Numeric factorization failed.
+Pruned match count: 233
+#################### Genetic Algorithm search ####################
+=== GA Iteration 1 / 1 ===
+#################### GROUND TRUTH CANDIDATE AUDIT ####################
+[GT AUDIT] Edge 1-2 (GT=1) Candidates: 5
+  Choice 1: inliner= 30 score=0.579 density=18.999 rad=0.2428 trans=51.85
+  Choice 2: inliner= 70 score=0.430 density=48.950 rad=0.0456 trans=3.25 [INV] [VALID GT MATCH]
+  Choice 3: inliner= 36 score=0.739 density=20.703 rad=0.1081 trans=60.55 [INV]
+  Choice 4: inliner= 44 score=0.636 density=26.898 rad=0.1526 trans=38.66 [INV] [VALID GT MATCH]
+  Choice 5: inliner= 59 score=0.481 density=39.831 rad=1.5696 trans=22.59
+  -> Best GT Match: Choice 2 (rad=0.0456 trans=3.25 VALID) [INV]
+[GT AUDIT] Edge 1-3 (GT=1) Candidates: 9
+  Choice 1: inliner= 28 score=0.631 density=17.166 rad=0.8009 trans=84.47
+  Choice 2: inliner= 34 score=0.506 density=22.573 rad=1.2723 trans=94.53 [INV]
+  Choice 3: inliner= 53 score=0.451 density=36.516 rad=0.7323 trans=89.79
+  Choice 4: inliner= 72 score=0.389 density=51.832 rad=1.0435 trans=112.84
+  Choice 5: inliner= 38 score=0.505 density=25.241 rad=1.0379 trans=111.90
+  Choice 6: inliner= 48 score=0.558 density=30.803 rad=0.0972 trans=33.72 [VALID GT MATCH]
+  Choice 7: inliner= 50 score=0.410 density=35.469 rad=1.6365 trans=9.55
+  Choice 8: inliner= 55 score=0.469 density=37.444 rad=0.0599 trans=17.81 [INV] [VALID GT MATCH]
+  Choice 9: inliner= 77 score=0.247 density=61.753 rad=0.0270 trans=4.01 [INV] [VALID GT MATCH]
+  -> Best GT Match: Choice 9 (rad=0.0270 trans=4.01 VALID) [INV]
+[GT AUDIT] Edge 1-4 (GT=1) Candidates: 4
+  Choice 1: inliner= 32 score=0.628 density=19.660 rad=1.0972 trans=115.29 [INV]
+  Choice 2: inliner= 67 score=0.511 density=44.355 rad=0.9786 trans=119.60 [INV]
+  Choice 3: inliner= 72 score=0.431 density=50.310 rad=1.1670 trans=23.06 [INV]
+  Choice 4: inliner= 63 score=0.327 density=47.484 rad=0.6003 trans=10.70
+  -> Best GT Match: Choice 4 (rad=0.6003 trans=10.70 INVALID)
+[GT AUDIT] Edge 1-5 (GT=1) Candidates: 4
+  Choice 1: inliner= 76 score=0.326 density=57.333 rad=0.0313 trans=5.89 [INV] [VALID GT MATCH]
+  Choice 2: inliner= 65 score=0.482 density=43.857 rad=1.4491 trans=143.01
+  Choice 3: inliner= 76 score=0.550 density=49.030 rad=2.1400 trans=57.38 [INV]
+  Choice 4: inliner= 26 score=0.999 density=13.006 rad=2.2989 trans=108.56 [INV]
+  -> Best GT Match: Choice 1 (rad=0.0313 trans=5.89 VALID) [INV]
+[GT AUDIT] Edge 2-4 (GT=1) Candidates: 5
+  Choice 1: inliner= 12 score=0.595 density=7.522 rad=0.9343 trans=72.96 [INV]
+  Choice 2: inliner= 32 score=0.674 density=19.119 rad=1.0107 trans=85.88 [INV]
+  Choice 3: inliner= 20 score=0.961 density=10.199 rad=0.1761 trans=29.01 [INV] [VALID GT MATCH]
+  Choice 4: inliner= 24 score=0.455 density=16.492 rad=1.1877 trans=31.19 [INV]
+  Choice 5: inliner= 58 score=0.478 density=39.253 rad=1.2067 trans=44.91
+  -> Best GT Match: Choice 3 (rad=0.1761 trans=29.01 VALID) [INV]
+[GT AUDIT] Edge 2-11 (GT=1) Candidates: 4
+  Choice 1: inliner= 30 score=0.611 density=18.624 rad=0.6470 trans=99.40
+  Choice 2: inliner= 30 score=0.486 density=20.194 rad=1.1350 trans=63.04 [INV]
+  Choice 3: inliner=  8 score=1.030 density=3.940 rad=2.0502 trans=81.81
+  Choice 4: inliner=  0 score=11.000 density=0.000 rad=2.0883 trans=121.84
+  -> Best GT Match: Choice 1 (rad=0.6470 trans=99.40 INVALID)
+[GT AUDIT] Edge 3-4 (GT=1) Candidates: 4
+  Choice 1: inliner= 50 score=0.554 density=32.179 rad=0.8066 trans=109.84
+  Choice 2: inliner= 34 score=0.564 density=21.732 rad=1.9801 trans=73.84
+  Choice 3: inliner= 56 score=0.374 density=40.763 rad=2.1113 trans=54.99
+  Choice 4: inliner= 34 score=0.306 density=26.034 rad=0.1289 trans=58.95 [INV]
+  -> Best GT Match: Choice 4 (rad=0.1289 trans=58.95 INVALID) [INV]
+[GT AUDIT] Edge 3-5 (GT=1) Candidates: 8
+  Choice 1: inliner= 48 score=0.388 density=34.578 rad=2.7497 trans=74.26 [INV]
+  Choice 2: inliner= 28 score=0.506 density=18.589 rad=1.9793 trans=84.92 [INV]
+  Choice 3: inliner= 36 score=0.678 density=21.458 rad=1.6866 trans=75.05
+  Choice 4: inliner= 30 score=0.670 density=17.963 rad=1.5492 trans=48.19 [INV]
+  Choice 5: inliner= 30 score=0.697 density=17.677 rad=1.8358 trans=63.24 [INV]
+  Choice 6: inliner= 36 score=0.574 density=22.878 rad=0.0474 trans=3.72 [INV] [VALID GT MATCH]
+  Choice 7: inliner= 56 score=0.563 density=35.827 rad=1.1190 trans=40.99 [INV]
+  Choice 8: inliner= 64 score=0.464 density=43.721 rad=0.9900 trans=12.42 [INV]
+  -> Best GT Match: Choice 6 (rad=0.0474 trans=3.72 VALID) [INV]
+[GT AUDIT] Edge 3-7 (GT=1) Candidates: 3
+  Choice 1: inliner= 64 score=0.494 density=42.825 rad=1.7334 trans=58.17 [INV]
+  Choice 2: inliner= 40 score=0.650 density=24.236 rad=1.7456 trans=51.37
+  Choice 3: inliner= 86 score=0.235 density=69.659 rad=0.0153 trans=2.95 [INV] [VALID GT MATCH]
+  -> Best GT Match: Choice 3 (rad=0.0153 trans=2.95 VALID) [INV]
+[GT AUDIT] Edge 4-9 (GT=1) Candidates: 8
+  Choice 1: inliner= 42 score=0.529 density=27.466 rad=0.6566 trans=75.72 [INV]
+  Choice 2: inliner= 20 score=0.228 density=16.291 rad=1.4780 trans=26.99 [INV]
+  Choice 3: inliner= 32 score=0.538 density=20.811 rad=0.6748 trans=94.13
+  Choice 4: inliner= 38 score=0.488 density=25.538 rad=2.5446 trans=178.58
+  Choice 5: inliner=  0 score=11.000 density=0.000 rad=0.7103 trans=24.74
+  Choice 6: inliner= 36 score=0.652 density=21.798 rad=0.8224 trans=65.54 [INV]
+  Choice 7: inliner= 22 score=0.509 density=14.579 rad=0.5135 trans=42.88 [INV]
+  Choice 8: inliner= 28 score=0.325 density=21.137 rad=0.1257 trans=8.13 [INV] [VALID GT MATCH]
+  -> Best GT Match: Choice 8 (rad=0.1257 trans=8.13 VALID) [INV]
+[GT AUDIT] Edge 4-10 (GT=1) Candidates: 2
+  Choice 1: inliner= 28 score=0.510 density=18.540 rad=1.2240 trans=83.68 [INV]
+  Choice 2: inliner= 26 score=0.539 density=16.895 rad=2.2018 trans=99.25
+  -> Best GT Match: Choice 1 (rad=1.2240 trans=83.68 INVALID) [INV]
+[GT AUDIT] Edge 7-8 (GT=1) Candidates: 5
+  Choice 1: inliner= 28 score=0.368 density=20.466 rad=1.9718 trans=76.38 [INV]
+  Choice 2: inliner= 32 score=0.423 density=22.491 rad=1.8272 trans=116.63
+  Choice 3: inliner= 24 score=0.415 density=16.960 rad=1.6133 trans=107.74 [INV]
+  Choice 4: inliner= 42 score=0.392 density=30.179 rad=0.1662 trans=13.30 [INV] [VALID GT MATCH]
+  Choice 5: inliner= 47 score=0.316 density=35.712 rad=1.5579 trans=70.95
+  -> Best GT Match: Choice 4 (rad=0.1662 trans=13.30 VALID) [INV]
+[GT AUDIT] Edge 8-10 (GT=1) Candidates: 3
+  Choice 1: inliner= 40 score=0.411 density=28.348 rad=0.2631 trans=54.72 [INV]
+  Choice 2: inliner= 20 score=0.355 density=14.762 rad=0.8446 trans=44.79 [INV]
+  Choice 3: inliner= 44 score=0.304 density=33.752 rad=2.3536 trans=21.02
+  -> Best GT Match: Choice 1 (rad=0.2631 trans=54.72 INVALID) [INV]
+[GT AUDIT] Edge 9-10 (GT=1) Candidates: 8
+  Choice 1: inliner= 26 score=0.308 density=19.883 rad=2.0652 trans=54.80 [INV]
+  Choice 2: inliner=  0 score=11.000 density=0.000 rad=0.9880 trans=109.39
+  Choice 3: inliner= 56 score=0.313 density=42.650 rad=0.1024 trans=6.21 [INV] [VALID GT MATCH]
+  Choice 4: inliner= 28 score=0.327 density=21.101 rad=2.1293 trans=18.48 [INV]
+  Choice 5: inliner= 26 score=0.263 density=20.581 rad=1.7960 trans=108.45
+  Choice 6: inliner= 26 score=0.508 density=17.247 rad=0.7867 trans=68.93 [INV]
+  Choice 7: inliner= 24 score=0.677 density=14.310 rad=2.5878 trans=109.90
+  Choice 8: inliner= 34 score=0.342 density=25.344 rad=0.3750 trans=29.76 [INV]
+  -> Best GT Match: Choice 3 (rad=0.1024 trans=6.21 VALID) [INV]
+[GT AUDIT] Edge 9-11 (GT=1) Candidates: 4
+  Choice 1: inliner=  6 score=0.482 density=4.049 rad=2.6776 trans=81.82 [INV]
+  Choice 2: inliner=  0 score=11.000 density=0.000 rad=0.4062 trans=125.14
+  Choice 3: inliner= 22 score=0.431 density=15.375 rad=0.6551 trans=64.52 [INV]
+  Choice 4: inliner= 26 score=0.448 density=17.951 rad=2.2591 trans=41.21 [INV]
+  -> Best GT Match: Choice 2 (rad=0.4062 trans=125.14 INVALID)
+
+--- GT CANDIDATE SUMMARY ---
+    Edge  Cands   Best       Rad     Trans  Inv?      Status
+   1-2      5      2    0.0456      3.25     Y       VALID
+   1-3      9      9    0.0270      4.01     Y       VALID
+   1-4      4      4    0.6003     10.70     N     INVALID
+   1-5      4      1    0.0313      5.89     Y       VALID
+   2-4      5      3    0.1761     29.01     Y       VALID
+   2-11      4      1    0.6470     99.40     N     INVALID
+   3-4      4      4    0.1289     58.95     Y     INVALID
+   3-5      8      6    0.0474      3.72     Y       VALID
+   3-7      3      3    0.0153      2.95     Y       VALID
+   4-9      8      8    0.1257      8.13     Y       VALID
+   4-10      2      1    1.2240     83.68     Y     INVALID
+   7-8      5      4    0.1662     13.30     Y       VALID
+   8-10      3      1    0.2631     54.72     Y     INVALID
+   9-10      8      3    0.1024      6.21     Y       VALID
+   9-11      4      2    0.4062    125.14     N     INVALID
+Total GT edges: 15 | Valid GT Matches: 9 | Missing/Invalid: 6
+######################################################################
+
+--- SELECTED GT SPANNING TREE EDGES ---
+
+=== COMPUTING MAXIMUM SPANNING TREE FOR POT E GT ===
+  Spanning Tree Edge: Shard 3 - Shard 7 (Choice 3) [HARDCODED]
+  Spanning Tree Edge: Shard 1 - Shard 3 (Choice 9) [HARDCODED]
+  Spanning Tree Edge: Shard 1 - Shard 5 (Choice 1) [HARDCODED]
+  Spanning Tree Edge: Shard 1 - Shard 2 (Choice 2) [HARDCODED]
+  Spanning Tree Edge: Shard 9 - Shard 10 (Choice 3) [HARDCODED]
+  Spanning Tree Edge: Shard 7 - Shard 8 (Choice 4) [HARDCODED]
+  Spanning Tree Edge: Shard 4 - Shard 9 (Choice 8) [HARDCODED]
+  Spanning Tree Edge: Shard 2 - Shard 4 (Choice 3) [HARDCODED]
+Maximum Spanning Tree completed with 8 edges.
+====================================================
+
+---------------------------------------
+
+==============================================
+       GROUND TRUTH GA FITNESS AUDIT
+==============================================
+  Total Fitness Score:         -603.24
+  Inlier Reward (+):           341.86
+  Connectivity Reward (+):     0.00
+  Consensus Reward (+):        54.91
+  Cycle Penalty (-):           0.00
+  Overlap Penalty (-):         0.00
+  Edge Residual Penalty (-):   0.00
+  Edge Rot Residual Penalty (-): 0.00
+  Component Penalty (-):       1000.00
+  Active Pairs (Edges):        8
+==============================================
+
+--- COLLISION AUDIT [GROUND TRUTH] ---
+  Fitness overlap penalty: 0.0000
+  Recomputed indexed overlap sum: 0.0000 (delta=0.0000)
+  Pair counts: total=47 same_comp=28 broad_reject=21 narrow_checked=28 active=0
+  Pair (0,3): center_dist=59.227 broad_radius=97.546 min_nn=6.646 hits=0/875 hit_ratio=0.000 avg_depth=0.000 pair_pen=0.000 [OK] NARROW-PHASE CLEAR
+  Pair (0,6): center_dist=119.182 broad_radius=102.868 [OK] BROAD-PHASE SEPARATED
+  Pair (0,7): center_dist=140.329 broad_radius=94.808 [OK] BROAD-PHASE SEPARATED
+  Pair (0,8): center_dist=101.651 broad_radius=91.972 [OK] BROAD-PHASE SEPARATED
+  Pair (0,9): center_dist=90.614 broad_radius=86.666 [OK] BROAD-PHASE SEPARATED
+  Pair (1,2): center_dist=127.098 broad_radius=78.699 [OK] BROAD-PHASE SEPARATED
+  Pair (1,4): center_dist=151.017 broad_radius=81.481 [OK] BROAD-PHASE SEPARATED
+  Pair (1,6): center_dist=138.564 broad_radius=80.258 [OK] BROAD-PHASE SEPARATED
+  Pair (1,7): center_dist=128.585 broad_radius=72.199 [OK] BROAD-PHASE SEPARATED
+  Pair (1,8): center_dist=67.346 broad_radius=69.362 min_nn=22.191 hits=0/740 hit_ratio=0.000 avg_depth=0.000 pair_pen=0.000 [OK] NARROW-PHASE CLEAR
+  Pair (1,9): center_dist=86.533 broad_radius=64.057 [OK] BROAD-PHASE SEPARATED
+  Pair (2,3): center_dist=45.597 broad_radius=63.673 min_nn=2.001 hits=0/336 hit_ratio=0.000 avg_depth=0.000 pair_pen=0.000 [OK] NARROW-PHASE CLEAR
+  Pair (2,4): center_dist=54.828 broad_radius=70.218 min_nn=16.400 hits=0/336 hit_ratio=0.000 avg_depth=0.000 pair_pen=0.000 [OK] NARROW-PHASE CLEAR
+  Pair (2,7): center_dist=82.479 broad_radius=60.935 [OK] BROAD-PHASE SEPARATED
+  Pair (2,8): center_dist=87.287 broad_radius=58.099 [OK] BROAD-PHASE SEPARATED
+  Pair (2,9): center_dist=57.188 broad_radius=52.793 [OK] BROAD-PHASE SEPARATED
+  Pair (3,4): center_dist=80.032 broad_radius=66.455 [OK] BROAD-PHASE SEPARATED
+  Pair (3,6): center_dist=65.783 broad_radius=65.233 min_nn=18.053 hits=0/353 hit_ratio=0.000 avg_depth=0.000 pair_pen=0.000 [OK] NARROW-PHASE CLEAR
+  Pair (3,7): center_dist=81.234 broad_radius=57.173 [OK] BROAD-PHASE SEPARATED
+  Pair (3,9): center_dist=32.497 broad_radius=49.031 min_nn=7.395 hits=0/353 hit_ratio=0.000 avg_depth=0.000 pair_pen=0.000 [OK] NARROW-PHASE CLEAR
+  Pair (4,6): center_dist=95.034 broad_radius=71.777 [OK] BROAD-PHASE SEPARATED
+  Pair (4,7): center_dist=136.913 broad_radius=63.717 [OK] BROAD-PHASE SEPARATED
+  Pair (4,8): center_dist=131.810 broad_radius=60.881 [OK] BROAD-PHASE SEPARATED
+  Pair (4,9): center_dist=105.225 broad_radius=55.575 [OK] BROAD-PHASE SEPARATED
+  Pair (6,8): center_dist=80.691 broad_radius=59.658 [OK] BROAD-PHASE SEPARATED
+  Pair (6,9): center_dist=53.369 broad_radius=54.352 min_nn=8.212 hits=0/296 hit_ratio=0.000 avg_depth=0.000 pair_pen=0.000 [OK] NARROW-PHASE CLEAR
+  Pair (7,8): center_dist=61.448 broad_radius=51.598 [OK] BROAD-PHASE SEPARATED
+  Pair (7,9): center_dist=51.873 broad_radius=46.293 [OK] BROAD-PHASE SEPARATED
+  No active cloud collisions detected.
+
+=== CONSENSUS SUPPORT DIAGNOSTICS [GROUND TRUTH] ===
+  Active Spanning Tree Component: 9 shards.
+  Shard 1 (Root Shard):
+    Alternative Pair with Shard 2 (ACTIVE IN TREE) [SKIPPED]
+    Alternative Pair with Shard 3 (ACTIVE IN TREE) [SKIPPED]
+    Alternative Pair with Shard 5 (ACTIVE IN TREE) [SKIPPED]
+    Alternative Pair with Shard 4 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=32 | RotErr = 0.8839 rad (50.6414 deg) | TransErr = 97.16 mm [FAILS]
+      Candidate choice=2 inlier=67 | RotErr = 0.7618 rad (43.6478 deg) | TransErr = 94.10 mm [FAILS]
+      Candidate choice=3 inlier=72 | RotErr = 0.9598 rad (54.9935 deg) | TransErr = 29.66 mm [FAILS]
+      Candidate choice=4 inlier=63 | RotErr = 1.6230 rad (92.9914 deg) | TransErr = 21.01 mm [FAILS]
+    Alternative Pair with Shard 7 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=0 | RotErr = 1.7402 rad (99.7069 deg) | TransErr = 124.22 mm [FAILS]
+      Candidate choice=2 inlier=8 | RotErr = 2.3118 rad (132.4549 deg) | TransErr = 4.70 mm [FAILS]
+      Candidate choice=3 inlier=61 | RotErr = 0.3921 rad (22.4671 deg) | TransErr = 65.57 mm [FAILS]
+    Alternative Pair with Shard 9 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=24 | RotErr = 1.3366 rad (76.5800 deg) | TransErr = 112.00 mm [FAILS]
+      Candidate choice=2 inlier=40 | RotErr = 1.8738 rad (107.3592 deg) | TransErr = 74.14 mm [FAILS]
+      Candidate choice=3 inlier=0 | RotErr = 3.1383 rad (179.8121 deg) | TransErr = 127.09 mm [FAILS]
+      Candidate choice=4 inlier=14 | RotErr = 2.5793 rad (147.7827 deg) | TransErr = 44.84 mm [FAILS]
+      Candidate choice=5 inlier=24 | RotErr = 1.9640 rad (112.5295 deg) | TransErr = 54.57 mm [FAILS]
+      Candidate choice=6 inlier=0 | RotErr = 1.0764 rad (61.6747 deg) | TransErr = 40.42 mm [FAILS]
+      Candidate choice=7 inlier=47 | RotErr = 1.5992 rad (91.6279 deg) | TransErr = 41.86 mm [FAILS]
+      Candidate choice=8 inlier=36 | RotErr = 2.7695 rad (158.6779 deg) | TransErr = 85.20 mm [FAILS]
+      Candidate choice=9 inlier=40 | RotErr = 2.6717 rad (153.0798 deg) | TransErr = 73.44 mm [FAILS]
+      Candidate choice=10 inlier=0 | RotErr = 0.8261 rad (47.3325 deg) | TransErr = 79.17 mm [FAILS]
+    Alternative Pair with Shard 8 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=10 | RotErr = 2.4375 rad (139.6613 deg) | TransErr = 148.93 mm [FAILS]
+      Candidate choice=2 inlier=36 | RotErr = 2.6880 rad (154.0131 deg) | TransErr = 112.97 mm [FAILS]
+      Candidate choice=3 inlier=32 | RotErr = 2.8216 rad (161.6640 deg) | TransErr = 101.34 mm [FAILS]
+      Candidate choice=4 inlier=0 | RotErr = 1.5144 rad (86.7701 deg) | TransErr = 105.35 mm [FAILS]
+      Candidate choice=5 inlier=32 | RotErr = 0.8365 rad (47.9290 deg) | TransErr = 133.66 mm [FAILS]
+      Candidate choice=6 inlier=53 | RotErr = 3.0029 rad (172.0528 deg) | TransErr = 106.83 mm [FAILS]
+      Candidate choice=7 inlier=44 | RotErr = 0.9318 rad (53.3898 deg) | TransErr = 79.50 mm [FAILS]
+      Candidate choice=8 inlier=40 | RotErr = 1.1132 rad (63.7835 deg) | TransErr = 37.45 mm [FAILS]
+    Alternative Pair with Shard 10 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=32 | RotErr = 2.0070 rad (114.9926 deg) | TransErr = 35.39 mm [FAILS]
+      Candidate choice=2 inlier=40 | RotErr = 0.0570 rad (3.2660 deg) | TransErr = 39.75 mm [FAILS]
+  Shard 2 (placed by parent 1):
+    Alternative Pair with Shard 1 (ACTIVE IN TREE) [SKIPPED]
+    Alternative Pair with Shard 3 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=62 | RotErr = 0.9399 rad (53.8547 deg) | TransErr = 33.99 mm [FAILS]
+      Candidate choice=2 inlier=24 | RotErr = 1.3310 rad (76.2630 deg) | TransErr = 8.48 mm [FAILS]
+      Candidate choice=3 inlier=48 | RotErr = 2.7002 rad (154.7088 deg) | TransErr = 31.74 mm [FAILS]
+      Candidate choice=4 inlier=22 | RotErr = 1.0593 rad (60.6945 deg) | TransErr = 29.51 mm [FAILS]
+      Candidate choice=5 inlier=32 | RotErr = 2.7845 rad (159.5382 deg) | TransErr = 23.96 mm [FAILS]
+      Candidate choice=6 inlier=53 | RotErr = 2.9424 rad (168.5845 deg) | TransErr = 46.39 mm [FAILS]
+    Alternative Pair with Shard 5 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=30 | RotErr = 1.3655 rad (78.2362 deg) | TransErr = 83.77 mm [FAILS]
+    Alternative Pair with Shard 4 (ACTIVE IN TREE) [SKIPPED]
+    Alternative Pair with Shard 7 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=32 | RotErr = 2.5912 rad (148.4648 deg) | TransErr = 45.45 mm [FAILS]
+      Candidate choice=2 inlier=66 | RotErr = 2.6923 rad (154.2572 deg) | TransErr = 55.61 mm [FAILS]
+    Alternative Pair with Shard 9 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=22 | RotErr = 0.9606 rad (55.0386 deg) | TransErr = 61.15 mm [FAILS]
+      Candidate choice=2 inlier=45 | RotErr = 0.2679 rad (15.3469 deg) | TransErr = 22.98 mm [FAILS]
+      Candidate choice=3 inlier=47 | RotErr = 1.7782 rad (101.8811 deg) | TransErr = 26.01 mm [FAILS]
+      Candidate choice=4 inlier=22 | RotErr = 1.4020 rad (80.3258 deg) | TransErr = 63.03 mm [FAILS]
+      Candidate choice=5 inlier=40 | RotErr = 1.8549 rad (106.2776 deg) | TransErr = 76.40 mm [FAILS]
+      Candidate choice=6 inlier=38 | RotErr = 1.6811 rad (96.3197 deg) | TransErr = 5.01 mm [FAILS]
+    Alternative Pair with Shard 8 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=30 | RotErr = 2.1654 rad (124.0708 deg) | TransErr = 89.66 mm [FAILS]
+      Candidate choice=2 inlier=32 | RotErr = 0.8455 rad (48.4443 deg) | TransErr = 117.55 mm [FAILS]
+      Candidate choice=3 inlier=22 | RotErr = 0.8188 rad (46.9142 deg) | TransErr = 17.82 mm [FAILS]
+      Candidate choice=4 inlier=36 | RotErr = 0.2273 rad (13.0239 deg) | TransErr = 85.05 mm [FAILS]
+      Candidate choice=5 inlier=28 | RotErr = 2.4590 rad (140.8900 deg) | TransErr = 20.50 mm [FAILS]
+    Alternative Pair with Shard 10 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=44 | RotErr = 1.5984 rad (91.5834 deg) | TransErr = 64.02 mm [FAILS]
+      Candidate choice=2 inlier=42 | RotErr = 0.7043 rad (40.3554 deg) | TransErr = 30.21 mm [FAILS]
+      Candidate choice=3 inlier=36 | RotErr = 1.1501 rad (65.8933 deg) | TransErr = 56.46 mm [FAILS]
+      Candidate choice=4 inlier=34 | RotErr = 2.8860 rad (165.3543 deg) | TransErr = 46.31 mm [FAILS]
+  Shard 3 (placed by parent 1):
+    Alternative Pair with Shard 1 (ACTIVE IN TREE) [SKIPPED]
+    Alternative Pair with Shard 2 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=62 | RotErr = 0.9399 rad (53.8547 deg) | TransErr = 33.99 mm [FAILS]
+      Candidate choice=2 inlier=24 | RotErr = 1.3310 rad (76.2630 deg) | TransErr = 8.48 mm [FAILS]
+      Candidate choice=3 inlier=48 | RotErr = 2.7002 rad (154.7088 deg) | TransErr = 31.74 mm [FAILS]
+      Candidate choice=4 inlier=22 | RotErr = 1.0593 rad (60.6945 deg) | TransErr = 29.51 mm [FAILS]
+      Candidate choice=5 inlier=32 | RotErr = 2.7845 rad (159.5382 deg) | TransErr = 23.96 mm [FAILS]
+      Candidate choice=6 inlier=53 | RotErr = 2.9424 rad (168.5845 deg) | TransErr = 46.39 mm [FAILS]
+    Alternative Pair with Shard 5 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=48 | RotErr = 2.7536 rad (157.7697 deg) | TransErr = 61.83 mm [FAILS]
+      Candidate choice=2 inlier=28 | RotErr = 1.9753 rad (113.1782 deg) | TransErr = 137.28 mm [FAILS]
+      Candidate choice=3 inlier=36 | RotErr = 1.8314 rad (104.9305 deg) | TransErr = 11.74 mm [FAILS]
+      Candidate choice=4 inlier=30 | RotErr = 1.5411 rad (88.3012 deg) | TransErr = 137.45 mm [FAILS]
+      Candidate choice=5 inlier=30 | RotErr = 1.8295 rad (104.8214 deg) | TransErr = 136.33 mm [FAILS]
+      Candidate choice=6 inlier=36 | RotErr = 0.0585 rad (3.3525 deg) | TransErr = 4.90 mm [PASSES] -> Reward: +20.00
+      Candidate choice=7 inlier=56 | RotErr = 1.1150 rad (63.8866 deg) | TransErr = 51.51 mm [FAILS]
+      Candidate choice=8 inlier=64 | RotErr = 0.9875 rad (56.5793 deg) | TransErr = 52.96 mm [FAILS]
+    Alternative Pair with Shard 4 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=50 | RotErr = 2.5128 rad (143.9704 deg) | TransErr = 88.81 mm [FAILS]
+      Candidate choice=2 inlier=34 | RotErr = 2.5328 rad (145.1185 deg) | TransErr = 23.77 mm [FAILS]
+      Candidate choice=3 inlier=56 | RotErr = 2.3968 rad (137.3254 deg) | TransErr = 51.21 mm [FAILS]
+      Candidate choice=4 inlier=34 | RotErr = 0.1814 rad (10.3957 deg) | TransErr = 46.52 mm [FAILS]
+    Alternative Pair with Shard 7 (ACTIVE IN TREE) [SKIPPED]
+    Alternative Pair with Shard 9 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=22 | RotErr = 2.2676 rad (129.9226 deg) | TransErr = 79.14 mm [FAILS]
+      Candidate choice=2 inlier=18 | RotErr = 2.4850 rad (142.3822 deg) | TransErr = 62.13 mm [FAILS]
+      Candidate choice=3 inlier=10 | RotErr = 2.3605 rad (135.2478 deg) | TransErr = 52.34 mm [FAILS]
+      Candidate choice=4 inlier=38 | RotErr = 0.1742 rad (9.9797 deg) | TransErr = 30.76 mm [FAILS]
+      Candidate choice=5 inlier=18 | RotErr = 1.1591 rad (66.4107 deg) | TransErr = 63.38 mm [FAILS]
+      Candidate choice=6 inlier=30 | RotErr = 2.1435 rad (122.8120 deg) | TransErr = 132.71 mm [FAILS]
+      Candidate choice=7 inlier=30 | RotErr = 1.8130 rad (103.8797 deg) | TransErr = 30.93 mm [FAILS]
+      Candidate choice=8 inlier=14 | RotErr = 2.2098 rad (126.6107 deg) | TransErr = 34.56 mm [FAILS]
+      Candidate choice=9 inlier=45 | RotErr = 0.6943 rad (39.7813 deg) | TransErr = 94.40 mm [FAILS]
+      Candidate choice=10 inlier=22 | RotErr = 2.5145 rad (144.0697 deg) | TransErr = 80.39 mm [FAILS]
+      Candidate choice=11 inlier=0 | RotErr = 1.3526 rad (77.5001 deg) | TransErr = 118.05 mm [FAILS]
+      Candidate choice=12 inlier=51 | RotErr = 0.8068 rad (46.2270 deg) | TransErr = 95.88 mm [FAILS]
+      Candidate choice=13 inlier=22 | RotErr = 2.7918 rad (159.9578 deg) | TransErr = 26.77 mm [FAILS]
+    Alternative Pair with Shard 8 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=34 | RotErr = 1.8049 rad (103.4111 deg) | TransErr = 108.79 mm [FAILS]
+      Candidate choice=2 inlier=28 | RotErr = 1.3125 rad (75.1984 deg) | TransErr = 127.41 mm [FAILS]
+      Candidate choice=3 inlier=38 | RotErr = 0.4086 rad (23.4115 deg) | TransErr = 124.01 mm [FAILS]
+      Candidate choice=4 inlier=0 | RotErr = 1.7525 rad (100.4114 deg) | TransErr = 93.29 mm [FAILS]
+      Candidate choice=5 inlier=28 | RotErr = 1.4473 rad (82.9243 deg) | TransErr = 108.61 mm [FAILS]
+      Candidate choice=6 inlier=32 | RotErr = 2.1663 rad (124.1210 deg) | TransErr = 80.89 mm [FAILS]
+      Candidate choice=7 inlier=22 | RotErr = 0.5526 rad (31.6598 deg) | TransErr = 42.73 mm [FAILS]
+      Candidate choice=8 inlier=47 | RotErr = 2.3649 rad (135.5000 deg) | TransErr = 54.19 mm [FAILS]
+    Alternative Pair with Shard 10 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=38 | RotErr = 2.9825 rad (170.8820 deg) | TransErr = 54.54 mm [FAILS]
+      Candidate choice=2 inlier=47 | RotErr = 1.3348 rad (76.4802 deg) | TransErr = 32.78 mm [FAILS]
+      Candidate choice=3 inlier=0 | RotErr = 0.4748 rad (27.2061 deg) | TransErr = 15.32 mm [FAILS]
+      Candidate choice=4 inlier=42 | RotErr = 0.4226 rad (24.2146 deg) | TransErr = 34.25 mm [FAILS]
+      Candidate choice=5 inlier=14 | RotErr = 1.2052 rad (69.0526 deg) | TransErr = 102.27 mm [FAILS]
+      Candidate choice=6 inlier=47 | RotErr = 1.5572 rad (89.2237 deg) | TransErr = 38.68 mm [FAILS]
+      Candidate choice=7 inlier=38 | RotErr = 2.9800 rad (170.7406 deg) | TransErr = 26.28 mm [FAILS]
+      Candidate choice=8 inlier=44 | RotErr = 0.7461 rad (42.7479 deg) | TransErr = 67.46 mm [FAILS]
+  Shard 5 (placed by parent 1):
+    Alternative Pair with Shard 1 (ACTIVE IN TREE) [SKIPPED]
+    Alternative Pair with Shard 2 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=30 | RotErr = 1.3655 rad (78.2362 deg) | TransErr = 83.77 mm [FAILS]
+    Alternative Pair with Shard 3 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=48 | RotErr = 2.7536 rad (157.7697 deg) | TransErr = 61.83 mm [FAILS]
+      Candidate choice=2 inlier=28 | RotErr = 1.9753 rad (113.1782 deg) | TransErr = 137.28 mm [FAILS]
+      Candidate choice=3 inlier=36 | RotErr = 1.8314 rad (104.9305 deg) | TransErr = 11.74 mm [FAILS]
+      Candidate choice=4 inlier=30 | RotErr = 1.5411 rad (88.3012 deg) | TransErr = 137.45 mm [FAILS]
+      Candidate choice=5 inlier=30 | RotErr = 1.8295 rad (104.8214 deg) | TransErr = 136.33 mm [FAILS]
+      Candidate choice=6 inlier=36 | RotErr = 0.0585 rad (3.3525 deg) | TransErr = 4.90 mm [PASSES] -> Reward: +20.00
+      Candidate choice=7 inlier=56 | RotErr = 1.1150 rad (63.8866 deg) | TransErr = 51.51 mm [FAILS]
+      Candidate choice=8 inlier=64 | RotErr = 0.9875 rad (56.5793 deg) | TransErr = 52.96 mm [FAILS]
+    Alternative Pair with Shard 4 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=70 | RotErr = 2.3760 rad (136.1375 deg) | TransErr = 32.19 mm [FAILS]
+      Candidate choice=2 inlier=77 | RotErr = 2.3994 rad (137.4769 deg) | TransErr = 26.96 mm [FAILS]
+    Alternative Pair with Shard 7 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=6 | RotErr = 2.3885 rad (136.8486 deg) | TransErr = 174.72 mm [FAILS]
+      Candidate choice=2 inlier=16 | RotErr = 1.8326 rad (104.9993 deg) | TransErr = 177.31 mm [FAILS]
+      Candidate choice=3 inlier=0 | RotErr = 1.9707 rad (112.9101 deg) | TransErr = 168.92 mm [FAILS]
+      Candidate choice=4 inlier=58 | RotErr = 1.3962 rad (79.9985 deg) | TransErr = 109.64 mm [FAILS]
+      Candidate choice=5 inlier=0 | RotErr = 2.3321 rad (133.6175 deg) | TransErr = 176.14 mm [FAILS]
+      Candidate choice=6 inlier=2 | RotErr = 2.1240 rad (121.6991 deg) | TransErr = 176.81 mm [FAILS]
+    Alternative Pair with Shard 9 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=38 | RotErr = 0.6535 rad (37.4407 deg) | TransErr = 84.66 mm [FAILS]
+      Candidate choice=2 inlier=0 | RotErr = 0.3413 rad (19.5529 deg) | TransErr = 85.36 mm [FAILS]
+      Candidate choice=3 inlier=32 | RotErr = 0.6193 rad (35.4852 deg) | TransErr = 103.83 mm [FAILS]
+      Candidate choice=4 inlier=0 | RotErr = 1.0837 rad (62.0923 deg) | TransErr = 161.98 mm [FAILS]
+      Candidate choice=5 inlier=22 | RotErr = 0.7476 rad (42.8340 deg) | TransErr = 95.67 mm [FAILS]
+    Alternative Pair with Shard 8 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=30 | RotErr = 0.3039 rad (17.4148 deg) | TransErr = 112.36 mm [FAILS]
+      Candidate choice=2 inlier=36 | RotErr = 0.2617 rad (14.9922 deg) | TransErr = 96.58 mm [FAILS]
+      Candidate choice=3 inlier=0 | RotErr = 2.5785 rad (147.7388 deg) | TransErr = 140.32 mm [FAILS]
+    Alternative Pair with Shard 10 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=26 | RotErr = 0.7715 rad (44.2043 deg) | TransErr = 126.02 mm [FAILS]
+      Candidate choice=2 inlier=28 | RotErr = 3.1269 rad (179.1605 deg) | TransErr = 51.66 mm [FAILS]
+      Candidate choice=3 inlier=51 | RotErr = 0.9162 rad (52.4917 deg) | TransErr = 88.89 mm [FAILS]
+  Shard 4 (placed by parent 2):
+    Alternative Pair with Shard 1 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=32 | RotErr = 0.8839 rad (50.6414 deg) | TransErr = 97.16 mm [FAILS]
+      Candidate choice=2 inlier=67 | RotErr = 0.7618 rad (43.6478 deg) | TransErr = 94.10 mm [FAILS]
+      Candidate choice=3 inlier=72 | RotErr = 0.9598 rad (54.9935 deg) | TransErr = 29.66 mm [FAILS]
+      Candidate choice=4 inlier=63 | RotErr = 1.6230 rad (92.9914 deg) | TransErr = 21.01 mm [FAILS]
+    Alternative Pair with Shard 2 (ACTIVE IN TREE) [SKIPPED]
+    Alternative Pair with Shard 3 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=50 | RotErr = 2.5128 rad (143.9704 deg) | TransErr = 88.81 mm [FAILS]
+      Candidate choice=2 inlier=34 | RotErr = 2.5328 rad (145.1185 deg) | TransErr = 23.77 mm [FAILS]
+      Candidate choice=3 inlier=56 | RotErr = 2.3968 rad (137.3254 deg) | TransErr = 51.21 mm [FAILS]
+      Candidate choice=4 inlier=34 | RotErr = 0.1814 rad (10.3957 deg) | TransErr = 46.52 mm [FAILS]
+    Alternative Pair with Shard 5 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=70 | RotErr = 2.3760 rad (136.1375 deg) | TransErr = 32.19 mm [FAILS]
+      Candidate choice=2 inlier=77 | RotErr = 2.3994 rad (137.4769 deg) | TransErr = 26.96 mm [FAILS]
+    Alternative Pair with Shard 7 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=36 | RotErr = 0.6123 rad (35.0807 deg) | TransErr = 72.76 mm [FAILS]
+    Alternative Pair with Shard 9 (ACTIVE IN TREE) [SKIPPED]
+    Alternative Pair with Shard 8 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=0 | RotErr = 1.0487 rad (60.0855 deg) | TransErr = 84.55 mm [FAILS]
+      Candidate choice=2 inlier=47 | RotErr = 2.6387 rad (151.1872 deg) | TransErr = 100.22 mm [FAILS]
+      Candidate choice=3 inlier=14 | RotErr = 2.2655 rad (129.8025 deg) | TransErr = 74.88 mm [FAILS]
+      Candidate choice=4 inlier=36 | RotErr = 1.6032 rad (91.8567 deg) | TransErr = 53.90 mm [FAILS]
+      Candidate choice=5 inlier=36 | RotErr = 1.0981 rad (62.9168 deg) | TransErr = 35.14 mm [FAILS]
+    Alternative Pair with Shard 10 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=28 | RotErr = 1.3450 rad (77.0623 deg) | TransErr = 78.23 mm [FAILS]
+      Candidate choice=2 inlier=26 | RotErr = 2.3339 rad (133.7217 deg) | TransErr = 26.40 mm [FAILS]
+  Shard 7 (placed by parent 3):
+    Alternative Pair with Shard 1 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=0 | RotErr = 1.7402 rad (99.7069 deg) | TransErr = 124.22 mm [FAILS]
+      Candidate choice=2 inlier=8 | RotErr = 2.3118 rad (132.4549 deg) | TransErr = 4.70 mm [FAILS]
+      Candidate choice=3 inlier=61 | RotErr = 0.3921 rad (22.4671 deg) | TransErr = 65.57 mm [FAILS]
+    Alternative Pair with Shard 2 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=32 | RotErr = 2.5912 rad (148.4648 deg) | TransErr = 45.45 mm [FAILS]
+      Candidate choice=2 inlier=66 | RotErr = 2.6923 rad (154.2572 deg) | TransErr = 55.61 mm [FAILS]
+    Alternative Pair with Shard 3 (ACTIVE IN TREE) [SKIPPED]
+    Alternative Pair with Shard 5 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=6 | RotErr = 2.3885 rad (136.8486 deg) | TransErr = 174.72 mm [FAILS]
+      Candidate choice=2 inlier=16 | RotErr = 1.8326 rad (104.9993 deg) | TransErr = 177.31 mm [FAILS]
+      Candidate choice=3 inlier=0 | RotErr = 1.9707 rad (112.9101 deg) | TransErr = 168.92 mm [FAILS]
+      Candidate choice=4 inlier=58 | RotErr = 1.3962 rad (79.9985 deg) | TransErr = 109.64 mm [FAILS]
+      Candidate choice=5 inlier=0 | RotErr = 2.3321 rad (133.6175 deg) | TransErr = 176.14 mm [FAILS]
+      Candidate choice=6 inlier=2 | RotErr = 2.1240 rad (121.6991 deg) | TransErr = 176.81 mm [FAILS]
+    Alternative Pair with Shard 4 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=36 | RotErr = 0.6123 rad (35.0807 deg) | TransErr = 72.76 mm [FAILS]
+    Alternative Pair with Shard 9 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=24 | RotErr = 1.6406 rad (93.9970 deg) | TransErr = 168.45 mm [FAILS]
+      Candidate choice=2 inlier=0 | RotErr = 2.6123 rad (149.6757 deg) | TransErr = 46.46 mm [FAILS]
+      Candidate choice=3 inlier=28 | RotErr = 2.5572 rad (146.5146 deg) | TransErr = 85.60 mm [FAILS]
+    Alternative Pair with Shard 8 (ACTIVE IN TREE) [SKIPPED]
+    Alternative Pair with Shard 10 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=52 | RotErr = 1.8168 rad (104.0928 deg) | TransErr = 34.42 mm [FAILS]
+  Shard 9 (placed by parent 4):
+    Alternative Pair with Shard 1 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=24 | RotErr = 1.3366 rad (76.5800 deg) | TransErr = 112.00 mm [FAILS]
+      Candidate choice=2 inlier=40 | RotErr = 1.8738 rad (107.3592 deg) | TransErr = 74.14 mm [FAILS]
+      Candidate choice=3 inlier=0 | RotErr = 3.1383 rad (179.8121 deg) | TransErr = 127.09 mm [FAILS]
+      Candidate choice=4 inlier=14 | RotErr = 2.5793 rad (147.7827 deg) | TransErr = 44.84 mm [FAILS]
+      Candidate choice=5 inlier=24 | RotErr = 1.9640 rad (112.5295 deg) | TransErr = 54.57 mm [FAILS]
+      Candidate choice=6 inlier=0 | RotErr = 1.0764 rad (61.6747 deg) | TransErr = 40.42 mm [FAILS]
+      Candidate choice=7 inlier=47 | RotErr = 1.5992 rad (91.6279 deg) | TransErr = 41.86 mm [FAILS]
+      Candidate choice=8 inlier=36 | RotErr = 2.7695 rad (158.6779 deg) | TransErr = 85.20 mm [FAILS]
+      Candidate choice=9 inlier=40 | RotErr = 2.6717 rad (153.0798 deg) | TransErr = 73.44 mm [FAILS]
+      Candidate choice=10 inlier=0 | RotErr = 0.8261 rad (47.3325 deg) | TransErr = 79.17 mm [FAILS]
+    Alternative Pair with Shard 2 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=22 | RotErr = 0.9606 rad (55.0386 deg) | TransErr = 61.15 mm [FAILS]
+      Candidate choice=2 inlier=45 | RotErr = 0.2679 rad (15.3469 deg) | TransErr = 22.98 mm [FAILS]
+      Candidate choice=3 inlier=47 | RotErr = 1.7782 rad (101.8811 deg) | TransErr = 26.01 mm [FAILS]
+      Candidate choice=4 inlier=22 | RotErr = 1.4020 rad (80.3258 deg) | TransErr = 63.03 mm [FAILS]
+      Candidate choice=5 inlier=40 | RotErr = 1.8549 rad (106.2776 deg) | TransErr = 76.40 mm [FAILS]
+      Candidate choice=6 inlier=38 | RotErr = 1.6811 rad (96.3197 deg) | TransErr = 5.01 mm [FAILS]
+    Alternative Pair with Shard 3 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=22 | RotErr = 2.2676 rad (129.9226 deg) | TransErr = 79.14 mm [FAILS]
+      Candidate choice=2 inlier=18 | RotErr = 2.4850 rad (142.3822 deg) | TransErr = 62.13 mm [FAILS]
+      Candidate choice=3 inlier=10 | RotErr = 2.3605 rad (135.2478 deg) | TransErr = 52.34 mm [FAILS]
+      Candidate choice=4 inlier=38 | RotErr = 0.1742 rad (9.9797 deg) | TransErr = 30.76 mm [FAILS]
+      Candidate choice=5 inlier=18 | RotErr = 1.1591 rad (66.4107 deg) | TransErr = 63.38 mm [FAILS]
+      Candidate choice=6 inlier=30 | RotErr = 2.1435 rad (122.8120 deg) | TransErr = 132.71 mm [FAILS]
+      Candidate choice=7 inlier=30 | RotErr = 1.8130 rad (103.8797 deg) | TransErr = 30.93 mm [FAILS]
+      Candidate choice=8 inlier=14 | RotErr = 2.2098 rad (126.6107 deg) | TransErr = 34.56 mm [FAILS]
+      Candidate choice=9 inlier=45 | RotErr = 0.6943 rad (39.7813 deg) | TransErr = 94.40 mm [FAILS]
+      Candidate choice=10 inlier=22 | RotErr = 2.5145 rad (144.0697 deg) | TransErr = 80.39 mm [FAILS]
+      Candidate choice=11 inlier=0 | RotErr = 1.3526 rad (77.5001 deg) | TransErr = 118.05 mm [FAILS]
+      Candidate choice=12 inlier=51 | RotErr = 0.8068 rad (46.2270 deg) | TransErr = 95.88 mm [FAILS]
+      Candidate choice=13 inlier=22 | RotErr = 2.7918 rad (159.9578 deg) | TransErr = 26.77 mm [FAILS]
+    Alternative Pair with Shard 5 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=38 | RotErr = 0.6535 rad (37.4407 deg) | TransErr = 84.66 mm [FAILS]
+      Candidate choice=2 inlier=0 | RotErr = 0.3413 rad (19.5529 deg) | TransErr = 85.36 mm [FAILS]
+      Candidate choice=3 inlier=32 | RotErr = 0.6193 rad (35.4852 deg) | TransErr = 103.83 mm [FAILS]
+      Candidate choice=4 inlier=0 | RotErr = 1.0837 rad (62.0923 deg) | TransErr = 161.98 mm [FAILS]
+      Candidate choice=5 inlier=22 | RotErr = 0.7476 rad (42.8340 deg) | TransErr = 95.67 mm [FAILS]
+    Alternative Pair with Shard 4 (ACTIVE IN TREE) [SKIPPED]
+    Alternative Pair with Shard 7 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=24 | RotErr = 1.6406 rad (93.9970 deg) | TransErr = 168.45 mm [FAILS]
+      Candidate choice=2 inlier=0 | RotErr = 2.6123 rad (149.6757 deg) | TransErr = 46.46 mm [FAILS]
+      Candidate choice=3 inlier=28 | RotErr = 2.5572 rad (146.5146 deg) | TransErr = 85.60 mm [FAILS]
+    Alternative Pair with Shard 8 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=32 | RotErr = 1.4247 rad (81.6287 deg) | TransErr = 15.63 mm [FAILS]
+      Candidate choice=2 inlier=0 | RotErr = 2.1947 rad (125.7442 deg) | TransErr = 160.92 mm [FAILS]
+      Candidate choice=3 inlier=34 | RotErr = 2.5071 rad (143.6474 deg) | TransErr = 189.34 mm [FAILS]
+      Candidate choice=4 inlier=0 | RotErr = 0.5460 rad (31.2853 deg) | TransErr = 52.00 mm [FAILS]
+      Candidate choice=5 inlier=22 | RotErr = 2.3904 rad (136.9604 deg) | TransErr = 187.44 mm [FAILS]
+      Candidate choice=6 inlier=45 | RotErr = 1.2094 rad (69.2908 deg) | TransErr = 16.19 mm [FAILS]
+      Candidate choice=7 inlier=28 | RotErr = 0.9109 rad (52.1912 deg) | TransErr = 76.17 mm [FAILS]
+      Candidate choice=8 inlier=38 | RotErr = 1.6483 rad (94.4431 deg) | TransErr = 108.92 mm [FAILS]
+      Candidate choice=9 inlier=36 | RotErr = 1.1088 rad (63.5298 deg) | TransErr = 23.54 mm [FAILS]
+      Candidate choice=10 inlier=32 | RotErr = 2.7346 rad (156.6808 deg) | TransErr = 150.67 mm [FAILS]
+      Candidate choice=11 inlier=2 | RotErr = 1.8039 rad (103.3581 deg) | TransErr = 102.42 mm [FAILS]
+      Candidate choice=12 inlier=56 | RotErr = 2.6771 rad (153.3883 deg) | TransErr = 139.56 mm [FAILS]
+    Alternative Pair with Shard 10 (ACTIVE IN TREE) [SKIPPED]
+  Shard 8 (placed by parent 7):
+    Alternative Pair with Shard 1 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=10 | RotErr = 2.4375 rad (139.6613 deg) | TransErr = 148.93 mm [FAILS]
+      Candidate choice=2 inlier=36 | RotErr = 2.6880 rad (154.0131 deg) | TransErr = 112.97 mm [FAILS]
+      Candidate choice=3 inlier=32 | RotErr = 2.8216 rad (161.6640 deg) | TransErr = 101.34 mm [FAILS]
+      Candidate choice=4 inlier=0 | RotErr = 1.5144 rad (86.7701 deg) | TransErr = 105.35 mm [FAILS]
+      Candidate choice=5 inlier=32 | RotErr = 0.8365 rad (47.9290 deg) | TransErr = 133.66 mm [FAILS]
+      Candidate choice=6 inlier=53 | RotErr = 3.0029 rad (172.0528 deg) | TransErr = 106.83 mm [FAILS]
+      Candidate choice=7 inlier=44 | RotErr = 0.9318 rad (53.3898 deg) | TransErr = 79.50 mm [FAILS]
+      Candidate choice=8 inlier=40 | RotErr = 1.1132 rad (63.7835 deg) | TransErr = 37.45 mm [FAILS]
+    Alternative Pair with Shard 2 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=30 | RotErr = 2.1654 rad (124.0708 deg) | TransErr = 89.66 mm [FAILS]
+      Candidate choice=2 inlier=32 | RotErr = 0.8455 rad (48.4443 deg) | TransErr = 117.55 mm [FAILS]
+      Candidate choice=3 inlier=22 | RotErr = 0.8188 rad (46.9142 deg) | TransErr = 17.82 mm [FAILS]
+      Candidate choice=4 inlier=36 | RotErr = 0.2273 rad (13.0239 deg) | TransErr = 85.05 mm [FAILS]
+      Candidate choice=5 inlier=28 | RotErr = 2.4590 rad (140.8900 deg) | TransErr = 20.50 mm [FAILS]
+    Alternative Pair with Shard 3 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=34 | RotErr = 1.8049 rad (103.4111 deg) | TransErr = 108.79 mm [FAILS]
+      Candidate choice=2 inlier=28 | RotErr = 1.3125 rad (75.1984 deg) | TransErr = 127.41 mm [FAILS]
+      Candidate choice=3 inlier=38 | RotErr = 0.4086 rad (23.4115 deg) | TransErr = 124.01 mm [FAILS]
+      Candidate choice=4 inlier=0 | RotErr = 1.7525 rad (100.4114 deg) | TransErr = 93.29 mm [FAILS]
+      Candidate choice=5 inlier=28 | RotErr = 1.4473 rad (82.9243 deg) | TransErr = 108.61 mm [FAILS]
+      Candidate choice=6 inlier=32 | RotErr = 2.1663 rad (124.1210 deg) | TransErr = 80.89 mm [FAILS]
+      Candidate choice=7 inlier=22 | RotErr = 0.5526 rad (31.6598 deg) | TransErr = 42.73 mm [FAILS]
+      Candidate choice=8 inlier=47 | RotErr = 2.3649 rad (135.5000 deg) | TransErr = 54.19 mm [FAILS]
+    Alternative Pair with Shard 5 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=30 | RotErr = 0.3039 rad (17.4148 deg) | TransErr = 112.36 mm [FAILS]
+      Candidate choice=2 inlier=36 | RotErr = 0.2617 rad (14.9922 deg) | TransErr = 96.58 mm [FAILS]
+      Candidate choice=3 inlier=0 | RotErr = 2.5785 rad (147.7388 deg) | TransErr = 140.32 mm [FAILS]
+    Alternative Pair with Shard 4 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=0 | RotErr = 1.0487 rad (60.0855 deg) | TransErr = 84.55 mm [FAILS]
+      Candidate choice=2 inlier=47 | RotErr = 2.6387 rad (151.1872 deg) | TransErr = 100.22 mm [FAILS]
+      Candidate choice=3 inlier=14 | RotErr = 2.2655 rad (129.8025 deg) | TransErr = 74.88 mm [FAILS]
+      Candidate choice=4 inlier=36 | RotErr = 1.6032 rad (91.8567 deg) | TransErr = 53.90 mm [FAILS]
+      Candidate choice=5 inlier=36 | RotErr = 1.0981 rad (62.9168 deg) | TransErr = 35.14 mm [FAILS]
+    Alternative Pair with Shard 7 (ACTIVE IN TREE) [SKIPPED]
+    Alternative Pair with Shard 9 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=32 | RotErr = 1.4247 rad (81.6287 deg) | TransErr = 15.63 mm [FAILS]
+      Candidate choice=2 inlier=0 | RotErr = 2.1947 rad (125.7442 deg) | TransErr = 160.92 mm [FAILS]
+      Candidate choice=3 inlier=34 | RotErr = 2.5071 rad (143.6474 deg) | TransErr = 189.34 mm [FAILS]
+      Candidate choice=4 inlier=0 | RotErr = 0.5460 rad (31.2853 deg) | TransErr = 52.00 mm [FAILS]
+      Candidate choice=5 inlier=22 | RotErr = 2.3904 rad (136.9604 deg) | TransErr = 187.44 mm [FAILS]
+      Candidate choice=6 inlier=45 | RotErr = 1.2094 rad (69.2908 deg) | TransErr = 16.19 mm [FAILS]
+      Candidate choice=7 inlier=28 | RotErr = 0.9109 rad (52.1912 deg) | TransErr = 76.17 mm [FAILS]
+      Candidate choice=8 inlier=38 | RotErr = 1.6483 rad (94.4431 deg) | TransErr = 108.92 mm [FAILS]
+      Candidate choice=9 inlier=36 | RotErr = 1.1088 rad (63.5298 deg) | TransErr = 23.54 mm [FAILS]
+      Candidate choice=10 inlier=32 | RotErr = 2.7346 rad (156.6808 deg) | TransErr = 150.67 mm [FAILS]
+      Candidate choice=11 inlier=2 | RotErr = 1.8039 rad (103.3581 deg) | TransErr = 102.42 mm [FAILS]
+      Candidate choice=12 inlier=56 | RotErr = 2.6771 rad (153.3883 deg) | TransErr = 139.56 mm [FAILS]
+    Alternative Pair with Shard 10 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=40 | RotErr = 0.3856 rad (22.0945 deg) | TransErr = 83.22 mm [FAILS]
+      Candidate choice=2 inlier=20 | RotErr = 0.8308 rad (47.5998 deg) | TransErr = 18.56 mm [FAILS]
+      Candidate choice=3 inlier=44 | RotErr = 2.3909 rad (136.9879 deg) | TransErr = 96.11 mm [FAILS]
+  Shard 10 (placed by parent 9):
+    Alternative Pair with Shard 1 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=32 | RotErr = 2.0070 rad (114.9926 deg) | TransErr = 35.39 mm [FAILS]
+      Candidate choice=2 inlier=40 | RotErr = 0.0570 rad (3.2660 deg) | TransErr = 39.75 mm [FAILS]
+    Alternative Pair with Shard 2 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=44 | RotErr = 1.5984 rad (91.5834 deg) | TransErr = 64.02 mm [FAILS]
+      Candidate choice=2 inlier=42 | RotErr = 0.7043 rad (40.3554 deg) | TransErr = 30.21 mm [FAILS]
+      Candidate choice=3 inlier=36 | RotErr = 1.1501 rad (65.8933 deg) | TransErr = 56.46 mm [FAILS]
+      Candidate choice=4 inlier=34 | RotErr = 2.8860 rad (165.3543 deg) | TransErr = 46.31 mm [FAILS]
+    Alternative Pair with Shard 3 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=38 | RotErr = 2.9825 rad (170.8820 deg) | TransErr = 54.54 mm [FAILS]
+      Candidate choice=2 inlier=47 | RotErr = 1.3348 rad (76.4802 deg) | TransErr = 32.78 mm [FAILS]
+      Candidate choice=3 inlier=0 | RotErr = 0.4748 rad (27.2061 deg) | TransErr = 15.32 mm [FAILS]
+      Candidate choice=4 inlier=42 | RotErr = 0.4226 rad (24.2146 deg) | TransErr = 34.25 mm [FAILS]
+      Candidate choice=5 inlier=14 | RotErr = 1.2052 rad (69.0526 deg) | TransErr = 102.27 mm [FAILS]
+      Candidate choice=6 inlier=47 | RotErr = 1.5572 rad (89.2237 deg) | TransErr = 38.68 mm [FAILS]
+      Candidate choice=7 inlier=38 | RotErr = 2.9800 rad (170.7406 deg) | TransErr = 26.28 mm [FAILS]
+      Candidate choice=8 inlier=44 | RotErr = 0.7461 rad (42.7479 deg) | TransErr = 67.46 mm [FAILS]
+    Alternative Pair with Shard 5 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=26 | RotErr = 0.7715 rad (44.2043 deg) | TransErr = 126.02 mm [FAILS]
+      Candidate choice=2 inlier=28 | RotErr = 3.1269 rad (179.1605 deg) | TransErr = 51.66 mm [FAILS]
+      Candidate choice=3 inlier=51 | RotErr = 0.9162 rad (52.4917 deg) | TransErr = 88.89 mm [FAILS]
+    Alternative Pair with Shard 4 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=28 | RotErr = 1.3450 rad (77.0623 deg) | TransErr = 78.23 mm [FAILS]
+      Candidate choice=2 inlier=26 | RotErr = 2.3339 rad (133.7217 deg) | TransErr = 26.40 mm [FAILS]
+    Alternative Pair with Shard 7 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=52 | RotErr = 1.8168 rad (104.0928 deg) | TransErr = 34.42 mm [FAILS]
+    Alternative Pair with Shard 9 (ACTIVE IN TREE) [SKIPPED]
+    Alternative Pair with Shard 8 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=40 | RotErr = 0.3856 rad (22.0945 deg) | TransErr = 83.22 mm [FAILS]
+      Candidate choice=2 inlier=20 | RotErr = 0.8308 rad (47.5998 deg) | TransErr = 18.56 mm [FAILS]
+      Candidate choice=3 inlier=44 | RotErr = 2.3909 rad (136.9879 deg) | TransErr = 96.11 mm [FAILS]
+  Total Logged Consensus Reward: 40.00
+=========================================================
+[GA] === Seed 1 / 5 (seed=43) ===
+[GA] Generation 0 best fitness: 439.63
+[GA PHEROMONE] Active groups: 0 / 47, Total Pheromone: 0.00
+[GA] Generation 1 best fitness: 439.63
+[GA] Generation 2 best fitness: 439.63
+[GA] Generation 3 best fitness: 528.83
+[GA] Generation 4 best fitness: 528.83
+[GA] Generation 5 best fitness: 528.83
+[GA] Generation 6 best fitness: 528.83
+[GA] Generation 7 best fitness: 528.83
+[GA] Generation 8 best fitness: 528.83
+[GA] Generation 9 best fitness: 528.83
+[GA] Generation 10 best fitness: 528.83
+[GA PHEROMONE] Active groups: 7 / 47, Total Pheromone: 140.00
+[GA] Generation 11 best fitness: 528.83
+[GA] Generation 12 best fitness: 528.83
+[GA] Generation 13 best fitness: 541.83
+[GA] Generation 14 best fitness: 541.83
+[GA] Generation 15 best fitness: 541.83
+[GA] Generation 16 best fitness: 541.83
+[GA] Generation 17 best fitness: 551.16
+[GA] Generation 18 best fitness: 551.16
+[GA] Generation 19 best fitness: 551.16
+[GA] Generation 20 best fitness: 551.16
+[GA PHEROMONE] Active groups: 10 / 47, Total Pheromone: 179.47
+[GA] Generation 21 best fitness: 551.16
+[GA] Generation 22 best fitness: 551.16
+[GA] Generation 23 best fitness: 551.16
+[GA] Generation 24 best fitness: 551.16
+[GA] Generation 25 best fitness: 551.16
+[GA] Generation 26 best fitness: 551.16
+[GA] Generation 27 best fitness: 551.16
+[GA] Generation 28 best fitness: 551.16
+[GA] Generation 29 best fitness: 551.16
+[GA] Generation 30 best fitness: 551.16
+[GA PHEROMONE] Active groups: 10 / 47, Total Pheromone: 180.91
+[GA] Generation 31 best fitness: 551.16
+[GA] Generation 32 best fitness: 596.70
+[GA] Generation 33 best fitness: 596.70
+[GA] Generation 34 best fitness: 596.70
+[GA] Generation 35 best fitness: 596.70
+[GA] Generation 36 best fitness: 596.70
+[GA] Generation 37 best fitness: 596.70
+[GA] Generation 38 best fitness: 596.70
+[GA] Generation 39 best fitness: 596.70
+[GA] Generation 40 best fitness: 596.70
+[GA PHEROMONE] Active groups: 14 / 47, Total Pheromone: 195.93
+[GA] Generation 41 best fitness: 596.70
+[GA] Generation 42 best fitness: 596.70
+[GA] Generation 43 best fitness: 596.70
+[GA] Generation 44 best fitness: 596.70
+[GA] Generation 45 best fitness: 596.70
+[GA] Generation 46 best fitness: 596.70
+[GA] Stagnation detected (15 generations). Triggering Mass Extinction!
+[GA] Raising mutation rate to 0.40
+[GA] Generation 47 best fitness: 596.70
+[GA] Generation 48 best fitness: 596.70
+[GA] Generation 49 best fitness: 596.70
+[GA] Generation 50 best fitness: 596.70
+[GA PHEROMONE] Active groups: 14 / 47, Total Pheromone: 183.14
+[GA] Generation 51 best fitness: 596.70
+[GA] Generation 52 best fitness: 596.70
+[GA] Generation 53 best fitness: 596.70
+[GA] Generation 54 best fitness: 596.70
+[GA] Generation 55 best fitness: 596.70
+[GA] Generation 56 best fitness: 596.70
+[GA] Generation 57 best fitness: 596.70
+[GA] Generation 58 best fitness: 596.70
+[GA] Generation 59 best fitness: 596.70
+[GA] Generation 60 best fitness: 596.70
+[GA PHEROMONE] Active groups: 13 / 47, Total Pheromone: 180.61
+[GA] Generation 61 best fitness: 596.70
+[GA] Stagnation detected (30 generations). Triggering Mass Extinction!
+[GA] Generation 62 best fitness: 596.70
+[GA] Generation 63 best fitness: 596.70
+[GA] Generation 64 best fitness: 596.70
+[GA] Generation 65 best fitness: 596.70
+[GA] Generation 66 best fitness: 596.70
+[GA] Generation 67 best fitness: 596.70
+[GA] Generation 68 best fitness: 596.70
+[GA] Generation 69 best fitness: 596.70
+[GA] Generation 70 best fitness: 596.70
+[GA PHEROMONE] Active groups: 13 / 47, Total Pheromone: 180.12
+[GA] Generation 71 best fitness: 596.70
+[GA] Generation 72 best fitness: 596.70
+[GA] Generation 73 best fitness: 596.70
+[GA] Generation 74 best fitness: 596.70
+[GA] Generation 75 best fitness: 596.70
+[GA] Generation 76 best fitness: 596.70
+[GA] Stagnation detected (45 generations). Triggering Mass Extinction!
+[GA] Generation 77 best fitness: 596.70
+[GA] Generation 78 best fitness: 596.70
+[GA] Generation 79 best fitness: 596.70
+[GA] Generation 80 best fitness: 596.70
+[GA PHEROMONE] Active groups: 9 / 47, Total Pheromone: 180.00
+[GA] Generation 81 best fitness: 596.70
+[GA] Generation 82 best fitness: 596.70
+[GA] Generation 83 best fitness: 596.70
+[GA] Generation 84 best fitness: 596.70
+[GA] Generation 85 best fitness: 596.70
+[GA] Generation 86 best fitness: 596.70
+[GA] Generation 87 best fitness: 596.70
+[GA] Generation 88 best fitness: 596.70
+[GA] Generation 89 best fitness: 596.70
+[GA] Generation 90 best fitness: 596.70
+[GA PHEROMONE] Active groups: 9 / 47, Total Pheromone: 180.00
+[GA] Generation 91 best fitness: 596.70
+[GA] Stagnation detected (60 generations). Triggering Mass Extinction!
+[GA] Generation 92 best fitness: 596.70
+[GA] Generation 93 best fitness: 596.70
+[GA] Generation 94 best fitness: 596.70
+[GA] Generation 95 best fitness: 596.70
+[GA] Generation 96 best fitness: 596.70
+[GA] Generation 97 best fitness: 596.70
+[GA] Generation 98 best fitness: 596.70
+[GA] Generation 99 best fitness: 596.70
+[GA] Generation 100 best fitness: 596.70
+[GA PHEROMONE] Active groups: 9 / 47, Total Pheromone: 180.00
+[GA] Generation 101 best fitness: 596.70
+[GA] Generation 102 best fitness: 596.70
+[GA] Generation 103 best fitness: 596.70
+[GA] Generation 104 best fitness: 596.70
+[GA] Generation 105 best fitness: 596.70
+[GA] Generation 106 best fitness: 596.70
+[GA] Stagnation detected (75 generations). Triggering Mass Extinction!
+[GA] Generation 107 best fitness: 596.70
+[GA] Generation 108 best fitness: 596.70
+[GA] Generation 109 best fitness: 596.70
+[GA] Generation 110 best fitness: 596.70
+[GA PHEROMONE] Active groups: 9 / 47, Total Pheromone: 180.00
+[GA] Generation 111 best fitness: 596.70
+[GA] Generation 112 best fitness: 596.70
+[GA] Generation 113 best fitness: 596.70
+[GA] Generation 114 best fitness: 596.70
+[GA] Generation 115 best fitness: 596.70
+[GA] Generation 116 best fitness: 596.70
+[GA] Generation 117 best fitness: 596.70
+[GA] Generation 118 best fitness: 596.70
+[GA] Generation 119 best fitness: 596.70
+[GA] Generation 120 best fitness: 596.70
+[GA PHEROMONE] Active groups: 9 / 47, Total Pheromone: 180.00
+[GA] Generation 121 best fitness: 596.70
+[GA] Stagnation detected (90 generations). Triggering Mass Extinction!
+[GA] Generation 122 best fitness: 596.70
+[GA] Generation 123 best fitness: 596.70
+[GA] Generation 124 best fitness: 596.70
+[GA] Generation 125 best fitness: 596.70
+[GA] Generation 126 best fitness: 596.70
+[GA] Generation 127 best fitness: 596.70
+[GA] Generation 128 best fitness: 596.70
+[GA] Generation 129 best fitness: 596.70
+[GA] Generation 130 best fitness: 596.70
+[GA PHEROMONE] Active groups: 9 / 47, Total Pheromone: 180.00
+[GA] Generation 131 best fitness: 596.70
+[GA] Generation 132 best fitness: 596.70
+[GA] Generation 133 best fitness: 596.70
+[GA] Generation 134 best fitness: 596.70
+[GA] Generation 135 best fitness: 596.70
+[GA] Generation 136 best fitness: 596.70
+[GA] Stagnation detected (105 generations). Triggering Mass Extinction!
+[GA] Generation 137 best fitness: 596.70
+[GA] Generation 138 best fitness: 596.70
+[GA] Generation 139 best fitness: 596.70
+[GA] Generation 140 best fitness: 596.70
+[GA PHEROMONE] Active groups: 9 / 47, Total Pheromone: 180.00
+[GA] Generation 141 best fitness: 596.70
+[GA] Generation 142 best fitness: 596.70
+[GA] Generation 143 best fitness: 596.70
+[GA] Generation 144 best fitness: 596.70
+[GA] Generation 145 best fitness: 596.70
+[GA] Generation 146 best fitness: 596.70
+[GA] Generation 147 best fitness: 596.70
+[GA] Generation 148 best fitness: 596.70
+[GA] Generation 149 best fitness: 596.70
+[GA] Generation 150 best fitness: 596.70
+[GA PHEROMONE] Active groups: 9 / 47, Total Pheromone: 180.00
+[GA] Generation 151 best fitness: 596.70
+[GA] Stagnation detected (120 generations). Triggering Mass Extinction!
+[GA] Hard stagnation detected (120 generations). Early termination at generation 151
+[GA] Seed 1 final best fitness: 596.70
+[GA] === Seed 2 / 5 (seed=50) ===
+[GA] Generation 0 best fitness: 97.38
+[GA PHEROMONE] Active groups: 0 / 47, Total Pheromone: 0.00
+[GA] Generation 1 best fitness: 361.31
+[GA] Generation 2 best fitness: 361.31
+[GA] Generation 3 best fitness: 461.40
+[GA] Generation 4 best fitness: 461.40
+[GA] Generation 5 best fitness: 461.40
+[GA] Generation 6 best fitness: 477.52
+[GA] Generation 7 best fitness: 485.88
+[GA] Generation 8 best fitness: 490.55
+[GA] Generation 9 best fitness: 504.02
+[GA] Generation 10 best fitness: 514.44
+[GA PHEROMONE] Active groups: 10 / 47, Total Pheromone: 91.17
+[GA] Generation 11 best fitness: 514.44
+[GA] Generation 12 best fitness: 514.44
+[GA] Generation 13 best fitness: 514.44
+[GA] Generation 14 best fitness: 515.06
+[GA] Generation 15 best fitness: 515.06
+[GA] Generation 16 best fitness: 522.59
+[GA] Generation 17 best fitness: 522.59
+[GA] Generation 18 best fitness: 522.59
+[GA] Generation 19 best fitness: 548.36
+[GA] Generation 20 best fitness: 586.46
+[GA PHEROMONE] Active groups: 13 / 47, Total Pheromone: 149.84
+[GA] Generation 21 best fitness: 586.46
+[GA] Generation 22 best fitness: 586.46
+[GA] Generation 23 best fitness: 586.46
+[GA] Generation 24 best fitness: 586.46
+[GA] Generation 25 best fitness: 586.46
+[GA] Generation 26 best fitness: 586.46
+[GA] Generation 27 best fitness: 593.18
+[GA] Generation 28 best fitness: 593.18
+[GA] Generation 29 best fitness: 593.18
+[GA] Generation 30 best fitness: 593.18
+[GA PHEROMONE] Active groups: 13 / 47, Total Pheromone: 190.07
+[GA] Generation 31 best fitness: 593.18
+[GA] Generation 32 best fitness: 593.18
+[GA] Generation 33 best fitness: 596.70
+[GA] Generation 34 best fitness: 596.70
+[GA] Generation 35 best fitness: 596.70
+[GA] Generation 36 best fitness: 596.70
+[GA] Generation 37 best fitness: 596.70
+[GA] Generation 38 best fitness: 596.70
+[GA] Generation 39 best fitness: 596.70
+[GA] Generation 40 best fitness: 596.70
+[GA PHEROMONE] Active groups: 13 / 47, Total Pheromone: 182.46
+[GA] Generation 41 best fitness: 596.70
+[GA] Generation 42 best fitness: 596.70
+[GA] Generation 43 best fitness: 596.70
+[GA] Generation 44 best fitness: 596.70
+[GA] Generation 45 best fitness: 596.70
+[GA] Generation 46 best fitness: 596.70
+[GA] Generation 47 best fitness: 596.70
+[GA] Stagnation detected (15 generations). Triggering Mass Extinction!
+[GA] Raising mutation rate to 0.40
+[GA] Generation 48 best fitness: 596.70
+[GA] Generation 49 best fitness: 596.70
+[GA] Generation 50 best fitness: 596.70
+[GA PHEROMONE] Active groups: 13 / 47, Total Pheromone: 180.48
+[GA] Generation 51 best fitness: 596.70
+[GA] Generation 52 best fitness: 596.70
+[GA] Generation 53 best fitness: 596.70
+[GA] Generation 54 best fitness: 596.70
+[GA] Generation 55 best fitness: 596.70
+[GA] Generation 56 best fitness: 596.70
+[GA] Generation 57 best fitness: 596.70
+[GA] Generation 58 best fitness: 596.70
+[GA] Generation 59 best fitness: 596.70
+[GA] Generation 60 best fitness: 596.70
+[GA PHEROMONE] Active groups: 11 / 47, Total Pheromone: 180.09
+[GA] Generation 61 best fitness: 596.70
+[GA] Generation 62 best fitness: 596.70
+[GA] Stagnation detected (30 generations). Triggering Mass Extinction!
+[GA] Generation 63 best fitness: 596.70
+[GA] Generation 64 best fitness: 596.70
+[GA] Generation 65 best fitness: 596.70
+[GA] Generation 66 best fitness: 596.70
+[GA] Generation 67 best fitness: 596.70
+[GA] Generation 68 best fitness: 596.70
+[GA] Generation 69 best fitness: 596.70
+[GA] Generation 70 best fitness: 596.70
+[GA PHEROMONE] Active groups: 10 / 47, Total Pheromone: 180.01
+[GA] Generation 71 best fitness: 596.70
+[GA] Generation 72 best fitness: 596.70
+[GA] Generation 73 best fitness: 596.70
+[GA] Generation 74 best fitness: 596.70
+[GA] Generation 75 best fitness: 596.70
+[GA] Generation 76 best fitness: 596.70
+[GA] Generation 77 best fitness: 596.70
+[GA] Stagnation detected (45 generations). Triggering Mass Extinction!
+[GA] Generation 78 best fitness: 596.70
+[GA] Generation 79 best fitness: 596.70
+[GA] Generation 80 best fitness: 596.70
+[GA PHEROMONE] Active groups: 9 / 47, Total Pheromone: 180.00
+[GA] Generation 81 best fitness: 596.70
+[GA] Generation 82 best fitness: 596.70
+[GA] Generation 83 best fitness: 596.70
+[GA] Generation 84 best fitness: 596.70
+[GA] Generation 85 best fitness: 596.70
+[GA] Generation 86 best fitness: 596.70
+[GA] Generation 87 best fitness: 596.70
+[GA] Generation 88 best fitness: 596.70
+[GA] Generation 89 best fitness: 596.70
+[GA] Generation 90 best fitness: 596.70
+[GA PHEROMONE] Active groups: 9 / 47, Total Pheromone: 180.00
+[GA] Generation 91 best fitness: 596.70
+[GA] Generation 92 best fitness: 596.70
+[GA] Stagnation detected (60 generations). Triggering Mass Extinction!
+[GA] Generation 93 best fitness: 596.70
+[GA] Generation 94 best fitness: 596.70
+[GA] Generation 95 best fitness: 596.70
+[GA] Generation 96 best fitness: 596.70
+[GA] Generation 97 best fitness: 596.70
+[GA] Generation 98 best fitness: 596.70
+[GA] Generation 99 best fitness: 596.70
+[GA] Generation 100 best fitness: 596.70
+[GA PHEROMONE] Active groups: 9 / 47, Total Pheromone: 180.00
+[GA] Generation 101 best fitness: 596.70
+[GA] Generation 102 best fitness: 596.70
+[GA] Generation 103 best fitness: 596.70
+[GA] Generation 104 best fitness: 596.70
+[GA] Generation 105 best fitness: 596.70
+[GA] Generation 106 best fitness: 596.70
+[GA] Generation 107 best fitness: 596.70
+[GA] Stagnation detected (75 generations). Triggering Mass Extinction!
+[GA] Generation 108 best fitness: 596.70
+[GA] Generation 109 best fitness: 596.70
+[GA] Generation 110 best fitness: 596.70
+[GA PHEROMONE] Active groups: 9 / 47, Total Pheromone: 180.00
+[GA] Generation 111 best fitness: 596.70
+[GA] Generation 112 best fitness: 596.70
+[GA] Generation 113 best fitness: 596.70
+[GA] Generation 114 best fitness: 596.70
+[GA] Generation 115 best fitness: 596.70
+[GA] Generation 116 best fitness: 596.70
+[GA] Generation 117 best fitness: 596.70
+[GA] Generation 118 best fitness: 596.70
+[GA] Generation 119 best fitness: 596.70
+[GA] Generation 120 best fitness: 596.70
+[GA PHEROMONE] Active groups: 9 / 47, Total Pheromone: 180.00
+[GA] Generation 121 best fitness: 596.70
+[GA] Generation 122 best fitness: 596.70
+[GA] Stagnation detected (90 generations). Triggering Mass Extinction!
+[GA] Generation 123 best fitness: 596.70
+[GA] Generation 124 best fitness: 596.70
+[GA] Generation 125 best fitness: 596.70
+[GA] Generation 126 best fitness: 596.70
+[GA] Generation 127 best fitness: 596.70
+[GA] Generation 128 best fitness: 596.70
+[GA] Generation 129 best fitness: 596.70
+[GA] Generation 130 best fitness: 596.70
+[GA PHEROMONE] Active groups: 9 / 47, Total Pheromone: 180.00
+[GA] Generation 131 best fitness: 596.70
+[GA] Generation 132 best fitness: 596.70
+[GA] Generation 133 best fitness: 596.70
+[GA] Generation 134 best fitness: 596.70
+[GA] Best fitness improved to 658.87. Resetting mutation rate to 0.15
+[GA] Generation 135 best fitness: 658.87
+[GA] Generation 136 best fitness: 658.87
+[GA] Generation 137 best fitness: 658.87
+[GA] Generation 138 best fitness: 658.87
+[GA] Generation 139 best fitness: 658.87
+[GA] Generation 140 best fitness: 658.87
+[GA PHEROMONE] Active groups: 12 / 47, Total Pheromone: 195.47
+[GA] Generation 141 best fitness: 658.87
+[GA] Generation 142 best fitness: 658.87
+[GA] Generation 143 best fitness: 658.87
+[GA] Generation 144 best fitness: 658.87
+[GA] Generation 145 best fitness: 658.87
+[GA] Generation 146 best fitness: 658.87
+[GA] Generation 147 best fitness: 658.87
+[GA] Generation 148 best fitness: 658.87
+[GA] Generation 149 best fitness: 658.87
+[GA] Stagnation detected (15 generations). Triggering Mass Extinction!
+[GA] Raising mutation rate to 0.40
+[GA] Generation 150 best fitness: 658.87
+[GA PHEROMONE] Active groups: 12 / 47, Total Pheromone: 183.79
+[GA] Generation 151 best fitness: 658.87
+[GA] Generation 152 best fitness: 658.87
+[GA] Generation 153 best fitness: 658.87
+[GA] Generation 154 best fitness: 658.87
+[GA] Generation 155 best fitness: 658.87
+[GA] Generation 156 best fitness: 658.87
+[GA] Generation 157 best fitness: 658.87
+[GA] Generation 158 best fitness: 658.87
+[GA] Generation 159 best fitness: 658.87
+[GA] Generation 160 best fitness: 658.87
+[GA PHEROMONE] Active groups: 12 / 47, Total Pheromone: 180.75
+[GA] Generation 161 best fitness: 658.87
+[GA] Generation 162 best fitness: 658.87
+[GA] Generation 163 best fitness: 658.87
+[GA] Generation 164 best fitness: 658.87
+[GA] Stagnation detected (30 generations). Triggering Mass Extinction!
+[GA] Generation 165 best fitness: 658.87
+[GA] Generation 166 best fitness: 658.87
+[GA] Generation 167 best fitness: 658.87
+[GA] Generation 168 best fitness: 658.87
+[GA] Generation 169 best fitness: 658.87
+[GA] Generation 170 best fitness: 658.87
+[GA PHEROMONE] Active groups: 12 / 47, Total Pheromone: 180.15
+[GA] Generation 171 best fitness: 658.87
+[GA] Generation 172 best fitness: 658.87
+[GA] Generation 173 best fitness: 658.87
+[GA] Generation 174 best fitness: 658.87
+[GA] Generation 175 best fitness: 658.87
+[GA] Generation 176 best fitness: 658.87
+[GA] Generation 177 best fitness: 658.87
+[GA] Generation 178 best fitness: 658.87
+[GA] Generation 179 best fitness: 658.87
+[GA] Stagnation detected (45 generations). Triggering Mass Extinction!
+[GA] Generation 180 best fitness: 658.87
+[GA PHEROMONE] Active groups: 9 / 47, Total Pheromone: 180.00
+[GA] Generation 181 best fitness: 658.87
+[GA] Generation 182 best fitness: 658.87
+[GA] Generation 183 best fitness: 658.87
+[GA] Generation 184 best fitness: 658.87
+[GA] Generation 185 best fitness: 658.87
+[GA] Generation 186 best fitness: 658.87
+[GA] Generation 187 best fitness: 658.87
+[GA] Generation 188 best fitness: 658.87
+[GA] Generation 189 best fitness: 658.87
+[GA] Generation 190 best fitness: 658.87
+[GA PHEROMONE] Active groups: 9 / 47, Total Pheromone: 180.00
+[GA] Generation 191 best fitness: 658.87
+[GA] Generation 192 best fitness: 658.87
+[GA] Generation 193 best fitness: 658.87
+[GA] Generation 194 best fitness: 658.87
+[GA] Stagnation detected (60 generations). Triggering Mass Extinction!
+[GA] Generation 195 best fitness: 658.87
+[GA] Generation 196 best fitness: 658.87
+[GA] Generation 197 best fitness: 658.87
+[GA] Generation 198 best fitness: 658.87
+[GA] Generation 199 best fitness: 658.87
+[GA] Generation 200 best fitness: 658.87
+[GA PHEROMONE] Active groups: 9 / 47, Total Pheromone: 180.00
+[GA] Generation 201 best fitness: 658.87
+[GA] Generation 202 best fitness: 658.87
+[GA] Generation 203 best fitness: 658.87
+[GA] Generation 204 best fitness: 658.87
+[GA] Generation 205 best fitness: 658.87
+[GA] Generation 206 best fitness: 658.87
+[GA] Generation 207 best fitness: 658.87
+[GA] Generation 208 best fitness: 658.87
+[GA] Best fitness improved to 692.51. Resetting mutation rate to 0.15
+[GA] Generation 209 best fitness: 692.51
+[GA] Generation 210 best fitness: 692.51
+[GA PHEROMONE] Active groups: 10 / 47, Total Pheromone: 200.00
+[GA] Generation 211 best fitness: 692.51
+[GA] Generation 212 best fitness: 692.51
+[GA] Generation 213 best fitness: 692.51
+[GA] Generation 214 best fitness: 692.51
+[GA] Generation 215 best fitness: 692.51
+[GA] Generation 216 best fitness: 692.51
+[GA] Generation 217 best fitness: 692.51
+[GA] Generation 218 best fitness: 692.51
+[GA] Generation 219 best fitness: 692.51
+[GA] Generation 220 best fitness: 692.51
+[GA PHEROMONE] Active groups: 10 / 47, Total Pheromone: 200.00
+[GA] Generation 221 best fitness: 692.51
+[GA] Generation 222 best fitness: 692.51
+[GA] Generation 223 best fitness: 692.51
+[GA] Stagnation detected (15 generations). Triggering Mass Extinction!
+[GA] Raising mutation rate to 0.40
+[GA] Generation 224 best fitness: 692.51
+[GA] Generation 225 best fitness: 692.51
+[GA] Generation 226 best fitness: 692.51
+[GA] Generation 227 best fitness: 692.51
+[GA] Generation 228 best fitness: 692.51
+[GA] Generation 229 best fitness: 692.51
+[GA] Generation 230 best fitness: 692.51
+[GA PHEROMONE] Active groups: 10 / 47, Total Pheromone: 200.00
+[GA] Generation 231 best fitness: 692.51
+[GA] Best fitness improved to 703.28. Resetting mutation rate to 0.15
+[GA] Generation 232 best fitness: 703.28
+[GA] Generation 233 best fitness: 703.28
+[GA] Generation 234 best fitness: 703.28
+[GA] Generation 235 best fitness: 703.28
+[GA] Generation 236 best fitness: 703.28
+[GA] Generation 237 best fitness: 703.28
+[GA] Generation 238 best fitness: 703.28
+[GA] Generation 239 best fitness: 703.28
+[GA] Generation 240 best fitness: 703.28
+[GA PHEROMONE] Active groups: 11 / 47, Total Pheromone: 203.94
+[GA] Generation 241 best fitness: 703.28
+[GA] Generation 242 best fitness: 703.28
+[GA] Generation 243 best fitness: 703.28
+[GA] Generation 244 best fitness: 703.28
+[GA] Generation 245 best fitness: 703.28
+[GA] Generation 246 best fitness: 703.28
+[GA] Stagnation detected (15 generations). Triggering Mass Extinction!
+[GA] Raising mutation rate to 0.40
+[GA] Generation 247 best fitness: 703.28
+[GA] Generation 248 best fitness: 703.28
+[GA] Generation 249 best fitness: 703.28
+[GA] Generation 250 best fitness: 703.28
+[GA PHEROMONE] Active groups: 11 / 47, Total Pheromone: 200.78
+[GA] Generation 251 best fitness: 703.28
+[GA] Generation 252 best fitness: 703.28
+[GA] Generation 253 best fitness: 703.28
+[GA] Generation 254 best fitness: 703.28
+[GA] Generation 255 best fitness: 703.28
+[GA] Generation 256 best fitness: 703.28
+[GA] Generation 257 best fitness: 703.28
+[GA] Generation 258 best fitness: 703.28
+[GA] Generation 259 best fitness: 703.28
+[GA] Generation 260 best fitness: 703.28
+[GA PHEROMONE] Active groups: 11 / 47, Total Pheromone: 200.15
+[GA] Generation 261 best fitness: 703.28
+[GA] Stagnation detected (30 generations). Triggering Mass Extinction!
+[GA] Generation 262 best fitness: 703.28
+[GA] Generation 263 best fitness: 703.28
+[GA] Generation 264 best fitness: 703.28
+[GA] Generation 265 best fitness: 703.28
+[GA] Generation 266 best fitness: 703.28
+[GA] Generation 267 best fitness: 703.28
+[GA] Generation 268 best fitness: 703.28
+[GA] Generation 269 best fitness: 703.28
+[GA] Generation 270 best fitness: 703.28
+[GA PHEROMONE] Active groups: 11 / 47, Total Pheromone: 200.03
+[GA] Generation 271 best fitness: 703.28
+[GA] Generation 272 best fitness: 703.28
+[GA] Generation 273 best fitness: 703.28
+[GA] Generation 274 best fitness: 703.28
+[GA] Generation 275 best fitness: 703.28
+[GA] Generation 276 best fitness: 703.28
+[GA] Stagnation detected (45 generations). Triggering Mass Extinction!
+[GA] Generation 277 best fitness: 703.28
+[GA] Generation 278 best fitness: 703.28
+[GA] Generation 279 best fitness: 703.28
+[GA] Generation 280 best fitness: 703.28
+[GA PHEROMONE] Active groups: 10 / 47, Total Pheromone: 200.00
+[GA] Generation 281 best fitness: 703.28
+[GA] Generation 282 best fitness: 703.28
+[GA] Generation 283 best fitness: 703.28
+[GA] Generation 284 best fitness: 703.28
+[GA] Generation 285 best fitness: 703.28
+[GA] Generation 286 best fitness: 703.28
+[GA] Generation 287 best fitness: 703.28
+[GA] Generation 288 best fitness: 703.28
+[GA] Generation 289 best fitness: 703.28
+[GA] Generation 290 best fitness: 703.28
+[GA PHEROMONE] Active groups: 10 / 47, Total Pheromone: 200.00
+[GA] Generation 291 best fitness: 703.28
+[GA] Stagnation detected (60 generations). Triggering Mass Extinction!
+[GA] Generation 292 best fitness: 703.28
+[GA] Generation 293 best fitness: 703.28
+[GA] Generation 294 best fitness: 703.28
+[GA] Generation 295 best fitness: 703.28
+[GA] Generation 296 best fitness: 703.28
+[GA] Generation 297 best fitness: 703.28
+[GA] Generation 298 best fitness: 703.28
+[GA] Generation 299 best fitness: 703.28
+[GA] Generation 300 best fitness: 703.28
+[GA PHEROMONE] Active groups: 10 / 47, Total Pheromone: 200.00
+[GA] Generation 301 best fitness: 703.28
+[GA] Generation 302 best fitness: 703.28
+[GA] Generation 303 best fitness: 703.28
+[GA] Generation 304 best fitness: 703.28
+[GA] Generation 305 best fitness: 703.28
+[GA] Generation 306 best fitness: 703.28
+[GA] Stagnation detected (75 generations). Triggering Mass Extinction!
+[GA] Generation 307 best fitness: 703.28
+[GA] Generation 308 best fitness: 703.28
+[GA] Generation 309 best fitness: 703.28
+[GA] Generation 310 best fitness: 703.28
+[GA PHEROMONE] Active groups: 10 / 47, Total Pheromone: 200.00
+[GA] Generation 311 best fitness: 703.28
+[GA] Generation 312 best fitness: 703.28
+[GA] Generation 313 best fitness: 703.28
+[GA] Generation 314 best fitness: 703.28
+[GA] Generation 315 best fitness: 703.28
+[GA] Generation 316 best fitness: 703.28
+[GA] Generation 317 best fitness: 703.28
+[GA] Generation 318 best fitness: 703.28
+[GA] Generation 319 best fitness: 703.28
+[GA] Generation 320 best fitness: 703.28
+[GA PHEROMONE] Active groups: 10 / 47, Total Pheromone: 200.00
+[GA] Generation 321 best fitness: 703.28
+[GA] Stagnation detected (90 generations). Triggering Mass Extinction!
+[GA] Generation 322 best fitness: 703.28
+[GA] Generation 323 best fitness: 703.28
+[GA] Generation 324 best fitness: 703.28
+[GA] Generation 325 best fitness: 703.28
+[GA] Generation 326 best fitness: 703.28
+[GA] Generation 327 best fitness: 703.28
+[GA] Generation 328 best fitness: 703.28
+[GA] Generation 329 best fitness: 703.28
+[GA] Generation 330 best fitness: 703.28
+[GA PHEROMONE] Active groups: 10 / 47, Total Pheromone: 200.00
+[GA] Generation 331 best fitness: 703.28
+[GA] Generation 332 best fitness: 703.28
+[GA] Generation 333 best fitness: 703.28
+[GA] Generation 334 best fitness: 703.28
+[GA] Generation 335 best fitness: 703.28
+[GA] Generation 336 best fitness: 703.28
+[GA] Stagnation detected (105 generations). Triggering Mass Extinction!
+[GA] Generation 337 best fitness: 703.28
+[GA] Generation 338 best fitness: 703.28
+[GA] Generation 339 best fitness: 703.28
+[GA] Generation 340 best fitness: 703.28
+[GA PHEROMONE] Active groups: 10 / 47, Total Pheromone: 200.00
+[GA] Generation 341 best fitness: 703.28
+[GA] Generation 342 best fitness: 703.28
+[GA] Generation 343 best fitness: 703.28
+[GA] Generation 344 best fitness: 703.28
+[GA] Generation 345 best fitness: 703.28
+[GA] Generation 346 best fitness: 703.28
+[GA] Generation 347 best fitness: 703.28
+[GA] Generation 348 best fitness: 703.28
+[GA] Generation 349 best fitness: 703.28
+[GA] Generation 350 best fitness: 703.28
+[GA PHEROMONE] Active groups: 10 / 47, Total Pheromone: 200.00
+[GA] Generation 351 best fitness: 703.28
+[GA] Stagnation detected (120 generations). Triggering Mass Extinction!
+[GA] Hard stagnation detected (120 generations). Early termination at generation 351
+[GA] Seed 2 final best fitness: 703.28
+[GA] === Seed 3 / 5 (seed=57) ===
+[GA] Generation 0 best fitness: 188.62
+[GA PHEROMONE] Active groups: 0 / 47, Total Pheromone: 0.00
+[GA] Generation 1 best fitness: 188.62
+[GA] Generation 2 best fitness: 402.55
+[GA] Generation 3 best fitness: 458.13
+[GA] Generation 4 best fitness: 487.51
+[GA] Generation 5 best fitness: 487.51
+[GA] Generation 6 best fitness: 487.51
+[GA] Generation 7 best fitness: 487.51
+[GA] Generation 8 best fitness: 509.22
+[GA] Generation 9 best fitness: 509.22
+[GA] Generation 10 best fitness: 509.22
+[GA PHEROMONE] Active groups: 6 / 47, Total Pheromone: 52.11
+[GA] Generation 11 best fitness: 509.22
+[GA] Generation 12 best fitness: 509.22
+[GA] Generation 13 best fitness: 509.22
+[GA] Generation 14 best fitness: 509.22
+[GA] Generation 15 best fitness: 509.22
+[GA] Generation 16 best fitness: 509.22
+[GA] Generation 17 best fitness: 509.22
+[GA] Generation 18 best fitness: 509.22
+[GA] Generation 19 best fitness: 509.22
+[GA] Generation 20 best fitness: 509.22
+[GA PHEROMONE] Active groups: 6 / 47, Total Pheromone: 45.24
+[GA] Generation 21 best fitness: 509.22
+[GA] Generation 22 best fitness: 509.22
+[GA] Generation 23 best fitness: 517.97
+[GA] Generation 24 best fitness: 517.97
+[GA] Generation 25 best fitness: 520.55
+[GA] Generation 26 best fitness: 520.55
+[GA] Generation 27 best fitness: 521.31
+[GA] Generation 28 best fitness: 521.31
+[GA] Generation 29 best fitness: 521.31
+[GA] Generation 30 best fitness: 521.31
+[GA PHEROMONE] Active groups: 7 / 47, Total Pheromone: 55.87
+[GA] Generation 31 best fitness: 521.31
+[GA] Generation 32 best fitness: 521.31
+[GA] Generation 33 best fitness: 521.31
+[GA] Generation 34 best fitness: 521.31
+[GA] Generation 35 best fitness: 521.31
+[GA] Generation 36 best fitness: 525.32
+[GA] Generation 37 best fitness: 525.32
+[GA] Generation 38 best fitness: 525.32
+[GA] Generation 39 best fitness: 525.32
+[GA] Generation 40 best fitness: 525.32
+[GA PHEROMONE] Active groups: 7 / 47, Total Pheromone: 47.75
+[GA] Generation 41 best fitness: 525.32
+[GA] Generation 42 best fitness: 525.32
+[GA] Generation 43 best fitness: 525.32
+[GA] Generation 44 best fitness: 525.32
+[GA] Generation 45 best fitness: 525.32
+[GA] Generation 46 best fitness: 525.32
+[GA] Generation 47 best fitness: 525.32
+[GA] Generation 48 best fitness: 525.32
+[GA] Generation 49 best fitness: 525.32
+[GA] Generation 50 best fitness: 525.32
+[GA] Stagnation detected (15 generations). Triggering Mass Extinction!
+[GA] Raising mutation rate to 0.40
+[GA PHEROMONE] Active groups: 3 / 47, Total Pheromone: 41.49
+[GA] Generation 51 best fitness: 525.32
+[GA] Generation 52 best fitness: 525.32
+[GA] Generation 53 best fitness: 525.32
+[GA] Generation 54 best fitness: 525.32
+[GA] Best fitness improved to 545.74. Resetting mutation rate to 0.15
+[GA] Generation 55 best fitness: 545.74
+[GA] Generation 56 best fitness: 545.74
+[GA] Generation 57 best fitness: 548.09
+[GA] Generation 58 best fitness: 548.09
+[GA] Generation 59 best fitness: 548.09
+[GA] Generation 60 best fitness: 548.09
+[GA PHEROMONE] Active groups: 11 / 47, Total Pheromone: 87.63
+[GA] Generation 61 best fitness: 548.09
+[GA] Generation 62 best fitness: 548.09
+[GA] Generation 63 best fitness: 548.09
+[GA] Generation 64 best fitness: 548.09
+[GA] Generation 65 best fitness: 548.09
+[GA] Generation 66 best fitness: 548.36
+[GA] Generation 67 best fitness: 564.04
+[GA] Generation 68 best fitness: 564.04
+[GA] Generation 69 best fitness: 578.77
+[GA] Generation 70 best fitness: 578.77
+[GA PHEROMONE] Active groups: 14 / 47, Total Pheromone: 139.89
+[GA] Generation 71 best fitness: 578.77
+[GA] Generation 72 best fitness: 578.77
+[GA] Generation 73 best fitness: 578.77
+[GA] Generation 74 best fitness: 578.77
+[GA] Generation 75 best fitness: 578.77
+[GA] Generation 76 best fitness: 578.77
+[GA] Generation 77 best fitness: 578.77
+[GA] Generation 78 best fitness: 582.43
+[GA] Generation 79 best fitness: 582.43
+[GA] Generation 80 best fitness: 582.43
+[GA PHEROMONE] Active groups: 15 / 47, Total Pheromone: 124.53
+[GA] Generation 81 best fitness: 582.43
+[GA] Generation 82 best fitness: 582.43
+[GA] Generation 83 best fitness: 582.43
+[GA] Generation 84 best fitness: 582.43
+[GA] Generation 85 best fitness: 582.43
+[GA] Generation 86 best fitness: 582.43
+[GA] Generation 87 best fitness: 582.43
+[GA] Generation 88 best fitness: 582.43
+[GA] Generation 89 best fitness: 582.43
+[GA] Generation 90 best fitness: 582.43
+[GA PHEROMONE] Active groups: 15 / 47, Total Pheromone: 106.26
+[GA] Generation 91 best fitness: 582.43
+[GA] Generation 92 best fitness: 582.43
+[GA] Stagnation detected (15 generations). Triggering Mass Extinction!
+[GA] Raising mutation rate to 0.40
+[GA] Generation 93 best fitness: 582.43
+[GA] Generation 94 best fitness: 582.43
+[GA] Generation 95 best fitness: 582.43
+[GA] Generation 96 best fitness: 582.43
+[GA] Generation 97 best fitness: 582.43
+[GA] Generation 98 best fitness: 582.43
+[GA] Generation 99 best fitness: 582.43
+[GA] Generation 100 best fitness: 582.43
+[GA PHEROMONE] Active groups: 15 / 47, Total Pheromone: 101.23
+[GA] Generation 101 best fitness: 582.43
+[GA] Generation 102 best fitness: 582.43
+[GA] Best fitness improved to 591.84. Resetting mutation rate to 0.15
+[GA] Generation 103 best fitness: 591.84
+[GA] Generation 104 best fitness: 591.84
+[GA] Generation 105 best fitness: 591.84
+[GA] Generation 106 best fitness: 591.84
+[GA] Generation 107 best fitness: 591.84
+[GA] Generation 108 best fitness: 591.84
+[GA] Generation 109 best fitness: 591.84
+[GA] Generation 110 best fitness: 591.84
+[GA PHEROMONE] Active groups: 11 / 47, Total Pheromone: 164.79
+[GA] Generation 111 best fitness: 591.84
+[GA] Generation 112 best fitness: 591.84
+[GA] Generation 113 best fitness: 591.84
+[GA] Generation 114 best fitness: 591.84
+[GA] Generation 115 best fitness: 591.84
+[GA] Generation 116 best fitness: 591.84
+[GA] Generation 117 best fitness: 597.37
+[GA] Generation 118 best fitness: 597.37
+[GA] Generation 119 best fitness: 597.37
+[GA] Generation 120 best fitness: 597.37
+[GA PHEROMONE] Active groups: 12 / 47, Total Pheromone: 174.97
+[GA] Generation 121 best fitness: 601.03
+[GA] Generation 122 best fitness: 642.90
+[GA] Generation 123 best fitness: 642.90
+[GA] Generation 124 best fitness: 646.55
+[GA] Generation 125 best fitness: 646.55
+[GA] Generation 126 best fitness: 651.18
+[GA] Generation 127 best fitness: 651.18
+[GA] Generation 128 best fitness: 651.18
+[GA] Generation 129 best fitness: 651.18
+[GA] Generation 130 best fitness: 654.84
+[GA PHEROMONE] Active groups: 12 / 47, Total Pheromone: 185.36
+[GA] Generation 131 best fitness: 654.84
+[GA] Generation 132 best fitness: 654.84
+[GA] Generation 133 best fitness: 654.84
+[GA] Generation 134 best fitness: 654.84
+[GA] Generation 135 best fitness: 654.84
+[GA] Generation 136 best fitness: 654.84
+[GA] Generation 137 best fitness: 654.84
+[GA] Generation 138 best fitness: 654.84
+[GA] Generation 139 best fitness: 654.84
+[GA] Generation 140 best fitness: 654.84
+[GA PHEROMONE] Active groups: 12 / 47, Total Pheromone: 184.67
+[GA] Generation 141 best fitness: 654.84
+[GA] Generation 142 best fitness: 654.84
+[GA] Generation 143 best fitness: 654.84
+[GA] Generation 144 best fitness: 654.84
+[GA] Stagnation detected (15 generations). Triggering Mass Extinction!
+[GA] Raising mutation rate to 0.40
+[GA] Generation 145 best fitness: 654.84
+[GA] Generation 146 best fitness: 654.84
+[GA] Generation 147 best fitness: 654.84
+[GA] Generation 148 best fitness: 654.84
+[GA] Generation 149 best fitness: 654.84
+[GA] Generation 150 best fitness: 654.84
+[GA PHEROMONE] Active groups: 12 / 47, Total Pheromone: 180.92
+[GA] Generation 151 best fitness: 654.84
+[GA] Generation 152 best fitness: 654.84
+[GA] Generation 153 best fitness: 654.84
+[GA] Generation 154 best fitness: 654.84
+[GA] Generation 155 best fitness: 654.84
+[GA] Generation 156 best fitness: 654.84
+[GA] Generation 157 best fitness: 654.84
+[GA] Generation 158 best fitness: 654.84
+[GA] Generation 159 best fitness: 654.84
+[GA] Stagnation detected (30 generations). Triggering Mass Extinction!
+[GA] Generation 160 best fitness: 654.84
+[GA PHEROMONE] Active groups: 12 / 47, Total Pheromone: 180.18
+[GA] Generation 161 best fitness: 654.84
+[GA] Generation 162 best fitness: 654.84
+[GA] Generation 163 best fitness: 654.84
+[GA] Generation 164 best fitness: 654.84
+[GA] Generation 165 best fitness: 654.84
+[GA] Generation 166 best fitness: 654.84
+[GA] Generation 167 best fitness: 654.84
+[GA] Generation 168 best fitness: 654.84
+[GA] Generation 169 best fitness: 654.84
+[GA] Generation 170 best fitness: 654.84
+[GA PHEROMONE] Active groups: 11 / 47, Total Pheromone: 180.03
+[GA] Generation 171 best fitness: 654.84
+[GA] Generation 172 best fitness: 654.84
+[GA] Generation 173 best fitness: 654.84
+[GA] Generation 174 best fitness: 654.84
+[GA] Stagnation detected (45 generations). Triggering Mass Extinction!
+[GA] Generation 175 best fitness: 654.84
+[GA] Generation 176 best fitness: 654.84
+[GA] Generation 177 best fitness: 654.84
+[GA] Generation 178 best fitness: 654.84
+[GA] Generation 179 best fitness: 654.84
+[GA] Generation 180 best fitness: 654.84
+[GA PHEROMONE] Active groups: 9 / 47, Total Pheromone: 180.00
+[GA] Generation 181 best fitness: 654.84
+[GA] Generation 182 best fitness: 654.84
+[GA] Generation 183 best fitness: 654.84
+[GA] Generation 184 best fitness: 654.84
+[GA] Generation 185 best fitness: 654.84
+[GA] Generation 186 best fitness: 654.84
+[GA] Generation 187 best fitness: 654.84
+[GA] Generation 188 best fitness: 654.84
+[GA] Generation 189 best fitness: 654.84
+[GA] Stagnation detected (60 generations). Triggering Mass Extinction!
+[GA] Generation 190 best fitness: 654.84
+[GA PHEROMONE] Active groups: 9 / 47, Total Pheromone: 180.00
+[GA] Generation 191 best fitness: 654.84
+[GA] Generation 192 best fitness: 654.84
+[GA] Generation 193 best fitness: 654.84
+[GA] Generation 194 best fitness: 654.84
+[GA] Generation 195 best fitness: 654.84
+[GA] Generation 196 best fitness: 654.84
+[GA] Generation 197 best fitness: 654.84
+[GA] Generation 198 best fitness: 654.84
+[GA] Generation 199 best fitness: 654.84
+[GA] Generation 200 best fitness: 654.84
+[GA PHEROMONE] Active groups: 9 / 47, Total Pheromone: 180.00
+[GA] Generation 201 best fitness: 654.84
+[GA] Generation 202 best fitness: 654.84
+[GA] Generation 203 best fitness: 654.84
+[GA] Generation 204 best fitness: 654.84
+[GA] Stagnation detected (75 generations). Triggering Mass Extinction!
+[GA] Generation 205 best fitness: 654.84
+[GA] Generation 206 best fitness: 654.84
+[GA] Generation 207 best fitness: 654.84
+[GA] Generation 208 best fitness: 654.84
+[GA] Generation 209 best fitness: 654.84
+[GA] Generation 210 best fitness: 654.84
+[GA PHEROMONE] Active groups: 9 / 47, Total Pheromone: 180.00
+[GA] Generation 211 best fitness: 654.84
+[GA] Generation 212 best fitness: 654.84
+[GA] Generation 213 best fitness: 654.84
+[GA] Generation 214 best fitness: 654.84
+[GA] Generation 215 best fitness: 654.84
+[GA] Generation 216 best fitness: 654.84
+[GA] Generation 217 best fitness: 654.84
+[GA] Generation 218 best fitness: 654.84
+[GA] Generation 219 best fitness: 654.84
+[GA] Stagnation detected (90 generations). Triggering Mass Extinction!
+[GA] Generation 220 best fitness: 654.84
+[GA PHEROMONE] Active groups: 9 / 47, Total Pheromone: 180.00
+[GA] Generation 221 best fitness: 654.84
+[GA] Generation 222 best fitness: 654.84
+[GA] Generation 223 best fitness: 654.84
+[GA] Generation 224 best fitness: 654.84
+[GA] Generation 225 best fitness: 654.84
+[GA] Generation 226 best fitness: 654.84
+[GA] Generation 227 best fitness: 654.84
+[GA] Generation 228 best fitness: 654.84
+[GA] Generation 229 best fitness: 654.84
+[GA] Generation 230 best fitness: 654.84
+[GA PHEROMONE] Active groups: 9 / 47, Total Pheromone: 180.00
+[GA] Generation 231 best fitness: 654.84
+[GA] Generation 232 best fitness: 654.84
+[GA] Generation 233 best fitness: 654.84
+[GA] Generation 234 best fitness: 654.84
+[GA] Stagnation detected (105 generations). Triggering Mass Extinction!
+[GA] Generation 235 best fitness: 654.84
+[GA] Generation 236 best fitness: 654.84
+[GA] Generation 237 best fitness: 654.84
+[GA] Generation 238 best fitness: 654.84
+[GA] Generation 239 best fitness: 654.84
+[GA] Generation 240 best fitness: 654.84
+[GA PHEROMONE] Active groups: 9 / 47, Total Pheromone: 180.00
+[GA] Generation 241 best fitness: 654.84
+[GA] Generation 242 best fitness: 654.84
+[GA] Generation 243 best fitness: 654.84
+[GA] Generation 244 best fitness: 654.84
+[GA] Generation 245 best fitness: 654.84
+[GA] Generation 246 best fitness: 654.84
+[GA] Generation 247 best fitness: 654.84
+[GA] Generation 248 best fitness: 654.84
+[GA] Generation 249 best fitness: 654.84
+[GA] Stagnation detected (120 generations). Triggering Mass Extinction!
+[GA] Hard stagnation detected (120 generations). Early termination at generation 249
+[GA] Seed 3 final best fitness: 654.84
+[GA] === Seed 4 / 5 (seed=64) ===
+[GA] Generation 0 best fitness: 262.51
+[GA PHEROMONE] Active groups: 0 / 47, Total Pheromone: 0.00
+[GA] Generation 1 best fitness: 420.55
+[GA] Generation 2 best fitness: 420.55
+[GA] Generation 3 best fitness: 453.83
+[GA] Generation 4 best fitness: 453.83
+[GA] Generation 5 best fitness: 453.83
+[GA] Generation 6 best fitness: 476.58
+[GA] Generation 7 best fitness: 507.07
+[GA] Generation 8 best fitness: 507.07
+[GA] Generation 9 best fitness: 507.07
+[GA] Generation 10 best fitness: 507.07
+[GA PHEROMONE] Active groups: 8 / 47, Total Pheromone: 40.32
+[GA] Generation 11 best fitness: 507.07
+[GA] Generation 12 best fitness: 508.14
+[GA] Generation 13 best fitness: 508.14
+[GA] Generation 14 best fitness: 508.14
+[GA] Generation 15 best fitness: 508.14
+[GA] Generation 16 best fitness: 511.59
+[GA] Generation 17 best fitness: 519.48
+[GA] Generation 18 best fitness: 519.48
+[GA] Generation 19 best fitness: 519.48
+[GA] Generation 20 best fitness: 519.48
+[GA PHEROMONE] Active groups: 8 / 47, Total Pheromone: 42.10
+[GA] Generation 21 best fitness: 519.48
+[GA] Generation 22 best fitness: 520.55
+[GA] Generation 23 best fitness: 520.55
+[GA] Generation 24 best fitness: 520.55
+[GA] Generation 25 best fitness: 520.55
+[GA] Generation 26 best fitness: 521.77
+[GA] Generation 27 best fitness: 521.77
+[GA] Generation 28 best fitness: 521.77
+[GA] Generation 29 best fitness: 521.77
+[GA] Generation 30 best fitness: 521.77
+[GA PHEROMONE] Active groups: 11 / 47, Total Pheromone: 94.55
+[GA] Generation 31 best fitness: 534.18
+[GA] Generation 32 best fitness: 534.18
+[GA] Generation 33 best fitness: 534.18
+[GA] Generation 34 best fitness: 534.18
+[GA] Generation 35 best fitness: 536.34
+[GA] Generation 36 best fitness: 556.71
+[GA] Generation 37 best fitness: 556.71
+[GA] Generation 38 best fitness: 556.71
+[GA] Generation 39 best fitness: 556.71
+[GA] Generation 40 best fitness: 556.71
+[GA PHEROMONE] Active groups: 13 / 47, Total Pheromone: 144.64
+[GA] Generation 41 best fitness: 562.55
+[GA] Generation 42 best fitness: 562.55
+[GA] Generation 43 best fitness: 562.55
+[GA] Generation 44 best fitness: 562.55
+[GA] Generation 45 best fitness: 562.55
+[GA] Generation 46 best fitness: 562.55
+[GA] Generation 47 best fitness: 562.55
+[GA] Generation 48 best fitness: 562.55
+[GA] Generation 49 best fitness: 562.55
+[GA] Generation 50 best fitness: 562.55
+[GA PHEROMONE] Active groups: 11 / 47, Total Pheromone: 146.81
+[GA] Generation 51 best fitness: 562.55
+[GA] Generation 52 best fitness: 562.55
+[GA] Generation 53 best fitness: 562.55
+[GA] Generation 54 best fitness: 562.55
+[GA] Generation 55 best fitness: 562.55
+[GA] Stagnation detected (15 generations). Triggering Mass Extinction!
+[GA] Raising mutation rate to 0.40
+[GA] Generation 56 best fitness: 562.55
+[GA] Generation 57 best fitness: 562.55
+[GA] Generation 58 best fitness: 562.55
+[GA] Generation 59 best fitness: 562.55
+[GA] Generation 60 best fitness: 562.55
+[GA PHEROMONE] Active groups: 11 / 47, Total Pheromone: 141.34
+[GA] Generation 61 best fitness: 562.55
+[GA] Generation 62 best fitness: 562.55
+[GA] Generation 63 best fitness: 562.55
+[GA] Generation 64 best fitness: 562.55
+[GA] Generation 65 best fitness: 562.55
+[GA] Generation 66 best fitness: 562.55
+[GA] Generation 67 best fitness: 562.55
+[GA] Generation 68 best fitness: 562.55
+[GA] Best fitness improved to 571.45. Resetting mutation rate to 0.15
+[GA] Generation 69 best fitness: 571.45
+[GA] Generation 70 best fitness: 571.45
+[GA PHEROMONE] Active groups: 11 / 47, Total Pheromone: 140.26
+[GA] Generation 71 best fitness: 571.45
+[GA] Generation 72 best fitness: 571.45
+[GA] Generation 73 best fitness: 571.45
+[GA] Generation 74 best fitness: 574.52
+[GA] Generation 75 best fitness: 574.52
+[GA] Generation 76 best fitness: 574.52
+[GA] Generation 77 best fitness: 574.52
+[GA] Generation 78 best fitness: 574.52
+[GA] Generation 79 best fitness: 574.52
+[GA] Generation 80 best fitness: 574.52
+[GA PHEROMONE] Active groups: 10 / 47, Total Pheromone: 125.50
+[GA] Generation 81 best fitness: 574.52
+[GA] Generation 82 best fitness: 574.52
+[GA] Generation 83 best fitness: 574.52
+[GA] Generation 84 best fitness: 574.52
+[GA] Generation 85 best fitness: 574.52
+[GA] Generation 86 best fitness: 574.52
+[GA] Generation 87 best fitness: 574.52
+[GA] Generation 88 best fitness: 574.52
+[GA] Stagnation detected (15 generations). Triggering Mass Extinction!
+[GA] Raising mutation rate to 0.40
+[GA] Generation 89 best fitness: 574.52
+[GA] Generation 90 best fitness: 574.52
+[GA PHEROMONE] Active groups: 7 / 47, Total Pheromone: 121.07
+[GA] Generation 91 best fitness: 574.52
+[GA] Generation 92 best fitness: 574.52
+[GA] Generation 93 best fitness: 574.52
+[GA] Generation 94 best fitness: 574.52
+[GA] Generation 95 best fitness: 574.52
+[GA] Generation 96 best fitness: 574.52
+[GA] Generation 97 best fitness: 574.52
+[GA] Generation 98 best fitness: 574.52
+[GA] Generation 99 best fitness: 574.52
+[GA] Generation 100 best fitness: 574.52
+[GA PHEROMONE] Active groups: 7 / 47, Total Pheromone: 120.21
+[GA] Generation 101 best fitness: 574.52
+[GA] Generation 102 best fitness: 574.52
+[GA] Generation 103 best fitness: 574.52
+[GA] Stagnation detected (30 generations). Triggering Mass Extinction!
+[GA] Generation 104 best fitness: 574.52
+[GA] Generation 105 best fitness: 574.52
+[GA] Generation 106 best fitness: 574.52
+[GA] Generation 107 best fitness: 574.52
+[GA] Generation 108 best fitness: 574.52
+[GA] Generation 109 best fitness: 574.52
+[GA] Generation 110 best fitness: 574.52
+[GA PHEROMONE] Active groups: 7 / 47, Total Pheromone: 120.04
+[GA] Generation 111 best fitness: 574.52
+[GA] Generation 112 best fitness: 574.52
+[GA] Generation 113 best fitness: 574.52
+[GA] Generation 114 best fitness: 574.52
+[GA] Generation 115 best fitness: 574.52
+[GA] Generation 116 best fitness: 574.52
+[GA] Generation 117 best fitness: 574.52
+[GA] Generation 118 best fitness: 574.52
+[GA] Stagnation detected (45 generations). Triggering Mass Extinction!
+[GA] Generation 119 best fitness: 574.52
+[GA] Generation 120 best fitness: 574.52
+[GA PHEROMONE] Active groups: 6 / 47, Total Pheromone: 120.00
+[GA] Generation 121 best fitness: 574.52
+[GA] Generation 122 best fitness: 574.52
+[GA] Generation 123 best fitness: 574.52
+[GA] Generation 124 best fitness: 574.52
+[GA] Generation 125 best fitness: 574.52
+[GA] Generation 126 best fitness: 574.52
+[GA] Generation 127 best fitness: 574.52
+[GA] Generation 128 best fitness: 574.52
+[GA] Generation 129 best fitness: 574.52
+[GA] Generation 130 best fitness: 574.52
+[GA PHEROMONE] Active groups: 6 / 47, Total Pheromone: 120.00
+[GA] Generation 131 best fitness: 574.52
+[GA] Generation 132 best fitness: 574.52
+[GA] Generation 133 best fitness: 574.52
+[GA] Stagnation detected (60 generations). Triggering Mass Extinction!
+[GA] Generation 134 best fitness: 574.52
+[GA] Generation 135 best fitness: 574.52
+[GA] Generation 136 best fitness: 574.52
+[GA] Generation 137 best fitness: 574.52
+[GA] Generation 138 best fitness: 574.52
+[GA] Generation 139 best fitness: 574.52
+[GA] Generation 140 best fitness: 574.52
+[GA PHEROMONE] Active groups: 6 / 47, Total Pheromone: 120.00
+[GA] Generation 141 best fitness: 574.52
+[GA] Generation 142 best fitness: 574.52
+[GA] Generation 143 best fitness: 574.52
+[GA] Generation 144 best fitness: 574.52
+[GA] Generation 145 best fitness: 574.52
+[GA] Generation 146 best fitness: 574.52
+[GA] Generation 147 best fitness: 574.52
+[GA] Generation 148 best fitness: 574.52
+[GA] Stagnation detected (75 generations). Triggering Mass Extinction!
+[GA] Generation 149 best fitness: 574.52
+[GA] Generation 150 best fitness: 574.52
+[GA PHEROMONE] Active groups: 6 / 47, Total Pheromone: 120.00
+[GA] Generation 151 best fitness: 574.52
+[GA] Generation 152 best fitness: 574.52
+[GA] Generation 153 best fitness: 574.52
+[GA] Generation 154 best fitness: 574.52
+[GA] Generation 155 best fitness: 574.52
+[GA] Generation 156 best fitness: 574.52
+[GA] Generation 157 best fitness: 574.52
+[GA] Generation 158 best fitness: 574.52
+[GA] Generation 159 best fitness: 574.52
+[GA] Generation 160 best fitness: 574.52
+[GA PHEROMONE] Active groups: 6 / 47, Total Pheromone: 120.00
+[GA] Generation 161 best fitness: 574.52
+[GA] Generation 162 best fitness: 574.52
+[GA] Generation 163 best fitness: 574.52
+[GA] Stagnation detected (90 generations). Triggering Mass Extinction!
+[GA] Generation 164 best fitness: 574.52
+[GA] Generation 165 best fitness: 574.52
+[GA] Generation 166 best fitness: 574.52
+[GA] Generation 167 best fitness: 574.52
+[GA] Generation 168 best fitness: 574.52
+[GA] Generation 169 best fitness: 574.52
+[GA] Generation 170 best fitness: 574.52
+[GA PHEROMONE] Active groups: 6 / 47, Total Pheromone: 120.00
+[GA] Generation 171 best fitness: 574.52
+[GA] Generation 172 best fitness: 574.52
+[GA] Generation 173 best fitness: 574.52
+[GA] Generation 174 best fitness: 574.52
+[GA] Generation 175 best fitness: 574.52
+[GA] Generation 176 best fitness: 574.52
+[GA] Generation 177 best fitness: 574.52
+[GA] Generation 178 best fitness: 574.52
+[GA] Stagnation detected (105 generations). Triggering Mass Extinction!
+[GA] Generation 179 best fitness: 574.52
+[GA] Generation 180 best fitness: 574.52
+[GA PHEROMONE] Active groups: 6 / 47, Total Pheromone: 120.00
+[GA] Generation 181 best fitness: 574.52
+[GA] Generation 182 best fitness: 574.52
+[GA] Generation 183 best fitness: 574.52
+[GA] Generation 184 best fitness: 574.52
+[GA] Generation 185 best fitness: 574.52
+[GA] Generation 186 best fitness: 574.52
+[GA] Generation 187 best fitness: 574.52
+[GA] Generation 188 best fitness: 574.52
+[GA] Generation 189 best fitness: 574.52
+[GA] Generation 190 best fitness: 574.52
+[GA PHEROMONE] Active groups: 6 / 47, Total Pheromone: 120.00
+[GA] Generation 191 best fitness: 574.52
+[GA] Generation 192 best fitness: 574.52
+[GA] Generation 193 best fitness: 574.52
+[GA] Stagnation detected (120 generations). Triggering Mass Extinction!
+[GA] Hard stagnation detected (120 generations). Early termination at generation 193
+[GA] Seed 4 final best fitness: 574.52
+[GA] === Seed 5 / 5 (seed=71) ===
+[GA] Generation 0 best fitness: 253.56
+[GA PHEROMONE] Active groups: 0 / 47, Total Pheromone: 0.00
+[GA] Generation 1 best fitness: 399.82
+[GA] Generation 2 best fitness: 433.09
+[GA] Generation 3 best fitness: 433.09
+[GA] Generation 4 best fitness: 433.09
+[GA] Generation 5 best fitness: 450.81
+[GA] Generation 6 best fitness: 450.81
+[GA] Generation 7 best fitness: 476.86
+[GA] Generation 8 best fitness: 507.70
+[GA] Generation 9 best fitness: 507.70
+[GA] Generation 10 best fitness: 507.70
+[GA PHEROMONE] Active groups: 7 / 47, Total Pheromone: 80.66
+[GA] Generation 11 best fitness: 507.70
+[GA] Generation 12 best fitness: 508.29
+[GA] Generation 13 best fitness: 508.29
+[GA] Generation 14 best fitness: 508.29
+[GA] Generation 15 best fitness: 516.41
+[GA] Generation 16 best fitness: 516.41
+[GA] Generation 17 best fitness: 516.41
+[GA] Generation 18 best fitness: 516.41
+[GA] Generation 19 best fitness: 516.41
+[GA] Generation 20 best fitness: 522.82
+[GA PHEROMONE] Active groups: 14 / 47, Total Pheromone: 158.33
+[GA] Generation 21 best fitness: 522.82
+[GA] Generation 22 best fitness: 522.82
+[GA] Generation 23 best fitness: 522.82
+[GA] Generation 24 best fitness: 522.82
+[GA] Generation 25 best fitness: 522.82
+[GA] Generation 26 best fitness: 522.82
+[GA] Generation 27 best fitness: 522.82
+[GA] Generation 28 best fitness: 522.82
+[GA] Generation 29 best fitness: 522.82
+[GA] Generation 30 best fitness: 522.82
+[GA PHEROMONE] Active groups: 14 / 47, Total Pheromone: 164.97
+[GA] Generation 31 best fitness: 522.82
+[GA] Generation 32 best fitness: 537.55
+[GA] Generation 33 best fitness: 537.55
+[GA] Generation 34 best fitness: 537.55
+[GA] Generation 35 best fitness: 537.55
+[GA] Generation 36 best fitness: 537.55
+[GA] Generation 37 best fitness: 537.55
+[GA] Generation 38 best fitness: 537.55
+[GA] Generation 39 best fitness: 537.55
+[GA] Generation 40 best fitness: 537.55
+[GA PHEROMONE] Active groups: 15 / 47, Total Pheromone: 100.67
+[GA] Generation 41 best fitness: 537.55
+[GA] Generation 42 best fitness: 537.55
+[GA] Generation 43 best fitness: 537.55
+[GA] Generation 44 best fitness: 537.55
+[GA] Generation 45 best fitness: 537.55
+[GA] Generation 46 best fitness: 537.55
+[GA] Stagnation detected (15 generations). Triggering Mass Extinction!
+[GA] Raising mutation rate to 0.40
+[GA] Generation 47 best fitness: 537.55
+[GA] Best fitness improved to 564.31. Resetting mutation rate to 0.15
+[GA] Generation 48 best fitness: 564.31
+[GA] Generation 49 best fitness: 564.31
+[GA] Generation 50 best fitness: 564.31
+[GA PHEROMONE] Active groups: 15 / 47, Total Pheromone: 128.68
+[GA] Generation 51 best fitness: 564.31
+[GA] Generation 52 best fitness: 564.31
+[GA] Generation 53 best fitness: 564.31
+[GA] Generation 54 best fitness: 571.45
+[GA] Generation 55 best fitness: 571.45
+[GA] Generation 56 best fitness: 571.45
+[GA] Generation 57 best fitness: 571.45
+[GA] Generation 58 best fitness: 571.45
+[GA] Generation 59 best fitness: 571.45
+[GA] Generation 60 best fitness: 571.45
+[GA PHEROMONE] Active groups: 12 / 47, Total Pheromone: 144.43
+[GA] Generation 61 best fitness: 571.45
+[GA] Generation 62 best fitness: 571.45
+[GA] Generation 63 best fitness: 571.45
+[GA] Generation 64 best fitness: 571.45
+[GA] Generation 65 best fitness: 571.45
+[GA] Generation 66 best fitness: 571.45
+[GA] Generation 67 best fitness: 571.45
+[GA] Generation 68 best fitness: 571.45
+[GA] Stagnation detected (15 generations). Triggering Mass Extinction!
+[GA] Raising mutation rate to 0.40
+[GA] Generation 69 best fitness: 571.45
+[GA] Generation 70 best fitness: 571.45
+[GA PHEROMONE] Active groups: 11 / 47, Total Pheromone: 140.87
+[GA] Generation 71 best fitness: 571.45
+[GA] Generation 72 best fitness: 571.45
+[GA] Generation 73 best fitness: 571.45
+[GA] Generation 74 best fitness: 571.45
+[GA] Generation 75 best fitness: 571.45
+[GA] Generation 76 best fitness: 571.45
+[GA] Generation 77 best fitness: 571.45
+[GA] Generation 78 best fitness: 571.45
+[GA] Generation 79 best fitness: 571.45
+[GA] Generation 80 best fitness: 571.45
+[GA PHEROMONE] Active groups: 9 / 47, Total Pheromone: 140.16
+[GA] Generation 81 best fitness: 571.45
+[GA] Generation 82 best fitness: 571.45
+[GA] Generation 83 best fitness: 571.45
+[GA] Stagnation detected (30 generations). Triggering Mass Extinction!
+[GA] Generation 84 best fitness: 571.45
+[GA] Generation 85 best fitness: 571.45
+[GA] Generation 86 best fitness: 571.45
+[GA] Generation 87 best fitness: 571.45
+[GA] Generation 88 best fitness: 571.45
+[GA] Generation 89 best fitness: 571.45
+[GA] Generation 90 best fitness: 571.45
+[GA PHEROMONE] Active groups: 9 / 47, Total Pheromone: 140.03
+[GA] Generation 91 best fitness: 571.45
+[GA] Generation 92 best fitness: 571.45
+[GA] Generation 93 best fitness: 571.45
+[GA] Generation 94 best fitness: 571.45
+[GA] Generation 95 best fitness: 571.45
+[GA] Generation 96 best fitness: 571.45
+[GA] Generation 97 best fitness: 571.45
+[GA] Generation 98 best fitness: 571.45
+[GA] Stagnation detected (45 generations). Triggering Mass Extinction!
+[GA] Generation 99 best fitness: 571.45
+[GA] Generation 100 best fitness: 571.45
+[GA PHEROMONE] Active groups: 7 / 47, Total Pheromone: 140.00
+[GA] Generation 101 best fitness: 571.45
+[GA] Generation 102 best fitness: 571.45
+[GA] Generation 103 best fitness: 571.45
+[GA] Generation 104 best fitness: 571.45
+[GA] Generation 105 best fitness: 571.45
+[GA] Generation 106 best fitness: 571.45
+[GA] Generation 107 best fitness: 571.45
+[GA] Generation 108 best fitness: 571.45
+[GA] Generation 109 best fitness: 571.45
+[GA] Generation 110 best fitness: 571.45
+[GA PHEROMONE] Active groups: 7 / 47, Total Pheromone: 140.00
+[GA] Generation 111 best fitness: 571.45
+[GA] Generation 112 best fitness: 571.45
+[GA] Generation 113 best fitness: 571.45
+[GA] Stagnation detected (60 generations). Triggering Mass Extinction!
+[GA] Generation 114 best fitness: 571.45
+[GA] Generation 115 best fitness: 571.45
+[GA] Generation 116 best fitness: 571.45
+[GA] Generation 117 best fitness: 571.45
+[GA] Generation 118 best fitness: 571.45
+[GA] Generation 119 best fitness: 571.45
+[GA] Generation 120 best fitness: 571.45
+[GA PHEROMONE] Active groups: 7 / 47, Total Pheromone: 140.00
+[GA] Generation 121 best fitness: 571.45
+[GA] Generation 122 best fitness: 571.45
+[GA] Generation 123 best fitness: 571.45
+[GA] Generation 124 best fitness: 571.45
+[GA] Generation 125 best fitness: 571.45
+[GA] Generation 126 best fitness: 571.45
+[GA] Generation 127 best fitness: 571.45
+[GA] Generation 128 best fitness: 571.45
+[GA] Stagnation detected (75 generations). Triggering Mass Extinction!
+[GA] Generation 129 best fitness: 571.45
+[GA] Generation 130 best fitness: 571.45
+[GA PHEROMONE] Active groups: 7 / 47, Total Pheromone: 140.00
+[GA] Generation 131 best fitness: 571.45
+[GA] Generation 132 best fitness: 571.45
+[GA] Generation 133 best fitness: 571.45
+[GA] Generation 134 best fitness: 571.45
+[GA] Generation 135 best fitness: 571.45
+[GA] Generation 136 best fitness: 571.45
+[GA] Generation 137 best fitness: 571.45
+[GA] Generation 138 best fitness: 571.45
+[GA] Generation 139 best fitness: 571.45
+[GA] Generation 140 best fitness: 571.45
+[GA PHEROMONE] Active groups: 7 / 47, Total Pheromone: 140.00
+[GA] Generation 141 best fitness: 571.45
+[GA] Generation 142 best fitness: 571.45
+[GA] Generation 143 best fitness: 571.45
+[GA] Stagnation detected (90 generations). Triggering Mass Extinction!
+[GA] Generation 144 best fitness: 571.45
+[GA] Generation 145 best fitness: 571.45
+[GA] Best fitness improved to 573.31. Resetting mutation rate to 0.15
+[GA] Generation 146 best fitness: 573.31
+[GA] Generation 147 best fitness: 573.31
+[GA] Generation 148 best fitness: 573.31
+[GA] Generation 149 best fitness: 573.31
+[GA] Generation 150 best fitness: 573.31
+[GA PHEROMONE] Active groups: 9 / 47, Total Pheromone: 110.93
+[GA] Generation 151 best fitness: 573.31
+[GA] Generation 152 best fitness: 573.31
+[GA] Generation 153 best fitness: 573.31
+[GA] Generation 154 best fitness: 573.31
+[GA] Generation 155 best fitness: 573.31
+[GA] Generation 156 best fitness: 573.31
+[GA] Generation 157 best fitness: 574.52
+[GA] Generation 158 best fitness: 574.52
+[GA] Generation 159 best fitness: 574.52
+[GA] Generation 160 best fitness: 574.52
+[GA PHEROMONE] Active groups: 9 / 47, Total Pheromone: 124.51
+[GA] Generation 161 best fitness: 574.52
+[GA] Generation 162 best fitness: 574.52
+[GA] Generation 163 best fitness: 574.52
+[GA] Generation 164 best fitness: 574.52
+[GA] Generation 165 best fitness: 574.52
+[GA] Generation 166 best fitness: 574.52
+[GA] Generation 167 best fitness: 574.52
+[GA] Generation 168 best fitness: 574.52
+[GA] Generation 169 best fitness: 574.52
+[GA] Generation 170 best fitness: 574.52
+[GA PHEROMONE] Active groups: 9 / 47, Total Pheromone: 123.79
+[GA] Generation 171 best fitness: 574.52
+[GA] Stagnation detected (15 generations). Triggering Mass Extinction!
+[GA] Raising mutation rate to 0.40
+[GA] Generation 172 best fitness: 574.52
+[GA] Generation 173 best fitness: 574.52
+[GA] Generation 174 best fitness: 574.52
+[GA] Generation 175 best fitness: 574.52
+[GA] Generation 176 best fitness: 574.52
+[GA] Generation 177 best fitness: 574.52
+[GA] Generation 178 best fitness: 574.52
+[GA] Generation 179 best fitness: 574.52
+[GA] Generation 180 best fitness: 574.52
+[GA PHEROMONE] Active groups: 9 / 47, Total Pheromone: 120.75
+[GA] Generation 181 best fitness: 574.52
+[GA] Generation 182 best fitness: 574.52
+[GA] Generation 183 best fitness: 574.52
+[GA] Generation 184 best fitness: 574.52
+[GA] Generation 185 best fitness: 574.52
+[GA] Generation 186 best fitness: 574.52
+[GA] Stagnation detected (30 generations). Triggering Mass Extinction!
+[GA] Generation 187 best fitness: 574.52
+[GA] Generation 188 best fitness: 574.52
+[GA] Generation 189 best fitness: 574.52
+[GA] Generation 190 best fitness: 574.52
+[GA PHEROMONE] Active groups: 9 / 47, Total Pheromone: 120.15
+[GA] Generation 191 best fitness: 574.52
+[GA] Generation 192 best fitness: 574.52
+[GA] Generation 193 best fitness: 574.52
+[GA] Generation 194 best fitness: 574.52
+[GA] Generation 195 best fitness: 574.52
+[GA] Generation 196 best fitness: 574.52
+[GA] Generation 197 best fitness: 574.52
+[GA] Generation 198 best fitness: 574.52
+[GA] Generation 199 best fitness: 574.52
+[GA] Generation 200 best fitness: 574.52
+[GA PHEROMONE] Active groups: 8 / 47, Total Pheromone: 120.03
+[GA] Generation 201 best fitness: 574.52
+[GA] Stagnation detected (45 generations). Triggering Mass Extinction!
+[GA] Generation 202 best fitness: 574.52
+[GA] Generation 203 best fitness: 574.52
+[GA] Generation 204 best fitness: 574.52
+[GA] Generation 205 best fitness: 574.52
+[GA] Generation 206 best fitness: 574.52
+[GA] Generation 207 best fitness: 574.52
+[GA] Generation 208 best fitness: 574.52
+[GA] Generation 209 best fitness: 574.52
+[GA] Generation 210 best fitness: 574.52
+[GA PHEROMONE] Active groups: 6 / 47, Total Pheromone: 120.00
+[GA] Generation 211 best fitness: 574.52
+[GA] Generation 212 best fitness: 574.52
+[GA] Generation 213 best fitness: 574.52
+[GA] Generation 214 best fitness: 574.52
+[GA] Generation 215 best fitness: 574.52
+[GA] Generation 216 best fitness: 574.52
+[GA] Stagnation detected (60 generations). Triggering Mass Extinction!
+[GA] Generation 217 best fitness: 574.52
+[GA] Generation 218 best fitness: 574.52
+[GA] Generation 219 best fitness: 574.52
+[GA] Generation 220 best fitness: 574.52
+[GA PHEROMONE] Active groups: 6 / 47, Total Pheromone: 120.00
+[GA] Generation 221 best fitness: 574.52
+[GA] Generation 222 best fitness: 574.52
+[GA] Generation 223 best fitness: 574.52
+[GA] Generation 224 best fitness: 574.52
+[GA] Generation 225 best fitness: 574.52
+[GA] Generation 226 best fitness: 574.52
+[GA] Generation 227 best fitness: 574.52
+[GA] Generation 228 best fitness: 574.52
+[GA] Generation 229 best fitness: 574.52
+[GA] Generation 230 best fitness: 574.52
+[GA PHEROMONE] Active groups: 6 / 47, Total Pheromone: 120.00
+[GA] Generation 231 best fitness: 574.52
+[GA] Stagnation detected (75 generations). Triggering Mass Extinction!
+[GA] Generation 232 best fitness: 574.52
+[GA] Generation 233 best fitness: 574.52
+[GA] Generation 234 best fitness: 574.52
+[GA] Generation 235 best fitness: 574.52
+[GA] Generation 236 best fitness: 574.52
+[GA] Generation 237 best fitness: 574.52
+[GA] Generation 238 best fitness: 574.52
+[GA] Generation 239 best fitness: 574.52
+[GA] Generation 240 best fitness: 574.52
+[GA PHEROMONE] Active groups: 6 / 47, Total Pheromone: 120.00
+[GA] Generation 241 best fitness: 574.52
+[GA] Generation 242 best fitness: 574.52
+[GA] Generation 243 best fitness: 574.52
+[GA] Generation 244 best fitness: 574.52
+[GA] Generation 245 best fitness: 574.52
+[GA] Generation 246 best fitness: 574.52
+[GA] Stagnation detected (90 generations). Triggering Mass Extinction!
+[GA] Generation 247 best fitness: 574.52
+[GA] Generation 248 best fitness: 574.52
+[GA] Generation 249 best fitness: 574.52
+[GA] Generation 250 best fitness: 574.52
+[GA PHEROMONE] Active groups: 6 / 47, Total Pheromone: 120.00
+[GA] Generation 251 best fitness: 574.52
+[GA] Generation 252 best fitness: 574.52
+[GA] Generation 253 best fitness: 574.52
+[GA] Generation 254 best fitness: 574.52
+[GA] Generation 255 best fitness: 574.52
+[GA] Generation 256 best fitness: 574.52
+[GA] Generation 257 best fitness: 574.52
+[GA] Generation 258 best fitness: 574.52
+[GA] Generation 259 best fitness: 574.52
+[GA] Generation 260 best fitness: 574.52
+[GA PHEROMONE] Active groups: 6 / 47, Total Pheromone: 120.00
+[GA] Generation 261 best fitness: 574.52
+[GA] Stagnation detected (105 generations). Triggering Mass Extinction!
+[GA] Generation 262 best fitness: 574.52
+[GA] Generation 263 best fitness: 574.52
+[GA] Generation 264 best fitness: 574.52
+[GA] Generation 265 best fitness: 574.52
+[GA] Generation 266 best fitness: 574.52
+[GA] Generation 267 best fitness: 574.52
+[GA] Generation 268 best fitness: 574.52
+[GA] Generation 269 best fitness: 574.52
+[GA] Generation 270 best fitness: 574.52
+[GA PHEROMONE] Active groups: 6 / 47, Total Pheromone: 120.00
+[GA] Generation 271 best fitness: 574.52
+[GA] Generation 272 best fitness: 574.52
+[GA] Generation 273 best fitness: 574.52
+[GA] Generation 274 best fitness: 574.52
+[GA] Generation 275 best fitness: 574.52
+[GA] Generation 276 best fitness: 574.52
+[GA] Stagnation detected (120 generations). Triggering Mass Extinction!
+[GA] Hard stagnation detected (120 generations). Early termination at generation 276
+[GA] Seed 5 final best fitness: 574.52
+[GA] Best seed: 2 / 5 (fitness=703.28)
+
+--- COLLISION AUDIT [FINAL BEST] ---
+  Fitness overlap penalty: 0.0000
+  Recomputed indexed overlap sum: 0.0000 (delta=0.0000)
+  Pair counts: total=45 same_comp=45 broad_reject=22 narrow_checked=45 active=1
+  Pair (0,1): center_dist=48.644 broad_radius=112.572 min_nn=0.611 hits=3/875 hit_ratio=0.004 avg_depth=0.276 pair_pen=0.000 [OK] NARROW-PHASE CLEAR
+  Pair (0,4): center_dist=76.698 broad_radius=104.090 min_nn=14.415 hits=0/875 hit_ratio=0.000 avg_depth=0.000 pair_pen=0.000 [OK] NARROW-PHASE CLEAR
+  Pair (0,5): center_dist=110.925 broad_radius=99.334 [OK] BROAD-PHASE SEPARATED
+  Pair (0,6): center_dist=69.534 broad_radius=102.868 min_nn=4.677 hits=0/875 hit_ratio=0.000 avg_depth=0.000 pair_pen=0.000 [OK] NARROW-PHASE CLEAR
+  Pair (0,7): center_dist=95.391 broad_radius=94.808 min_nn=49.604 hits=0/875 hit_ratio=0.000 avg_depth=0.000 pair_pen=0.000 [OK] NARROW-PHASE CLEAR
+  Pair (0,8): center_dist=105.478 broad_radius=91.972 [OK] BROAD-PHASE SEPARATED
+  Pair (0,9): center_dist=59.874 broad_radius=86.666 min_nn=20.948 hits=0/875 hit_ratio=0.000 avg_depth=0.000 pair_pen=0.000 [OK] NARROW-PHASE CLEAR
+  Pair (0,10): center_dist=67.244 broad_radius=79.234 min_nn=29.966 hits=0/875 hit_ratio=0.000 avg_depth=0.000 pair_pen=0.000 [OK] NARROW-PHASE CLEAR
+  Pair (1,2): center_dist=51.945 broad_radius=78.699 min_nn=1.337 hits=0/740 hit_ratio=0.000 avg_depth=0.000 pair_pen=0.000 [OK] NARROW-PHASE CLEAR
+  Pair (1,3): center_dist=84.253 broad_radius=74.937 [OK] BROAD-PHASE SEPARATED
+  Pair (1,4): center_dist=29.480 broad_radius=81.481 min_nn=4.763 hits=0/740 hit_ratio=0.000 avg_depth=0.000 pair_pen=0.000 [OK] NARROW-PHASE CLEAR
+  Pair (1,5): center_dist=63.051 broad_radius=76.725 min_nn=20.565 hits=0/740 hit_ratio=0.000 avg_depth=0.000 pair_pen=0.000 [OK] NARROW-PHASE CLEAR
+  Pair (1,6): center_dist=51.482 broad_radius=80.258 min_nn=3.093 hits=0/740 hit_ratio=0.000 avg_depth=0.000 pair_pen=0.000 [OK] NARROW-PHASE CLEAR
+  Pair (1,7): center_dist=96.687 broad_radius=72.199 [OK] BROAD-PHASE SEPARATED
+  Pair (1,8): center_dist=88.564 broad_radius=69.362 [OK] BROAD-PHASE SEPARATED
+  Pair (1,10): center_dist=70.216 broad_radius=56.625 [OK] BROAD-PHASE SEPARATED
+  Pair (2,3): center_dist=84.978 broad_radius=63.673 [OK] BROAD-PHASE SEPARATED
+  Pair (2,5): center_dist=69.070 broad_radius=65.461 [OK] BROAD-PHASE SEPARATED
+  Pair (2,6): center_dist=22.310 broad_radius=68.995 min_nn=1.750 hits=0/336 hit_ratio=0.000 avg_depth=0.000 pair_pen=0.000 [OK] NARROW-PHASE CLEAR
+  Pair (2,8): center_dist=43.165 broad_radius=58.099 min_nn=1.156 hits=0/336 hit_ratio=0.000 avg_depth=0.000 pair_pen=0.000 [OK] NARROW-PHASE CLEAR
+  Pair (3,4): center_dist=110.595 broad_radius=66.455 [OK] BROAD-PHASE SEPARATED
+  Pair (3,5): center_dist=140.992 broad_radius=61.699 [OK] BROAD-PHASE SEPARATED
+  Pair (3,6): center_dist=63.092 broad_radius=65.233 min_nn=22.899 hits=0/353 hit_ratio=0.000 avg_depth=0.000 pair_pen=0.000 [OK] NARROW-PHASE CLEAR
+  Pair (3,7): center_dist=51.903 broad_radius=57.173 min_nn=21.900 hits=0/353 hit_ratio=0.000 avg_depth=0.000 pair_pen=0.000 [OK] NARROW-PHASE CLEAR
+  Pair (3,8): center_dist=79.794 broad_radius=54.337 [OK] BROAD-PHASE SEPARATED
+  Pair (3,9): center_dist=32.233 broad_radius=49.031 min_nn=1.113 hits=0/353 hit_ratio=0.000 avg_depth=0.000 pair_pen=0.000 [OK] NARROW-PHASE CLEAR
+  Pair (3,10): center_dist=36.968 broad_radius=41.599 min_nn=6.959 hits=0/353 hit_ratio=0.000 avg_depth=0.000 pair_pen=0.000 [OK] NARROW-PHASE CLEAR
+  Pair (4,6): center_dist=64.196 broad_radius=71.777 min_nn=44.806 hits=0/225 hit_ratio=0.000 avg_depth=0.000 pair_pen=0.000 [OK] NARROW-PHASE CLEAR
+  Pair (4,7): center_dist=114.054 broad_radius=63.717 [OK] BROAD-PHASE SEPARATED
+  Pair (4,8): center_dist=96.578 broad_radius=60.881 [OK] BROAD-PHASE SEPARATED
+  Pair (4,9): center_dist=87.763 broad_radius=55.575 [OK] BROAD-PHASE SEPARATED
+  Pair (4,10): center_dist=90.046 broad_radius=48.143 [OK] BROAD-PHASE SEPARATED
+  Pair (5,6): center_dist=86.554 broad_radius=67.020 [OK] BROAD-PHASE SEPARATED
+  Pair (5,7): center_dist=135.379 broad_radius=58.960 [OK] BROAD-PHASE SEPARATED
+  Pair (5,8): center_dist=110.052 broad_radius=56.124 [OK] BROAD-PHASE SEPARATED
+  Pair (5,9): center_dist=114.972 broad_radius=50.819 [OK] BROAD-PHASE SEPARATED
+  Pair (5,10): center_dist=115.632 broad_radius=43.387 [OK] BROAD-PHASE SEPARATED
+  Pair (6,8): center_dist=39.736 broad_radius=59.658 min_nn=2.356 hits=0/296 hit_ratio=0.000 avg_depth=0.000 pair_pen=0.000 [OK] NARROW-PHASE CLEAR
+  Pair (6,9): center_dist=31.767 broad_radius=54.352 min_nn=5.200 hits=0/296 hit_ratio=0.000 avg_depth=0.000 pair_pen=0.000 [OK] NARROW-PHASE CLEAR
+  Pair (6,10): center_dist=30.128 broad_radius=46.920 min_nn=9.867 hits=0/296 hit_ratio=0.000 avg_depth=0.000 pair_pen=0.000 [OK] NARROW-PHASE CLEAR
+  Pair (7,9): center_dist=37.302 broad_radius=46.293 min_nn=9.820 hits=0/240 hit_ratio=0.000 avg_depth=0.000 pair_pen=0.000 [OK] NARROW-PHASE CLEAR
+  Pair (7,10): center_dist=30.600 broad_radius=38.861 min_nn=1.472 hits=0/240 hit_ratio=0.000 avg_depth=0.000 pair_pen=0.000 [OK] NARROW-PHASE CLEAR
+  Pair (8,9): center_dist=52.089 broad_radius=43.456 [OK] BROAD-PHASE SEPARATED
+  Pair (8,10): center_dist=45.012 broad_radius=36.024 [OK] BROAD-PHASE SEPARATED
+  Pair (9,10): center_dist=7.716 broad_radius=30.719 min_nn=1.156 hits=0/72 hit_ratio=0.000 avg_depth=0.000 pair_pen=0.000 [OK] NARROW-PHASE CLEAR
+  No active cloud collisions detected.
+
+=== CONSENSUS SUPPORT DIAGNOSTICS [FINAL BEST] ===
+  Active Spanning Tree Component: 11 shards.
+  Shard 1 (Root Shard):
+    Alternative Pair with Shard 3 (ACTIVE IN TREE) [SKIPPED]
+    Alternative Pair with Shard 4 (ACTIVE IN TREE) [SKIPPED]
+    Alternative Pair with Shard 5 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=76 | RotErr = 0.0585 rad (3.3525 deg) | TransErr = 4.90 mm [PASSES] -> Reward: +20.00
+      Candidate choice=2 inlier=65 | RotErr = 1.6694 rad (95.6518 deg) | TransErr = 26.93 mm [FAILS]
+      Candidate choice=3 inlier=76 | RotErr = 2.1929 rad (125.6412 deg) | TransErr = 81.55 mm [FAILS]
+      Candidate choice=4 inlier=26 | RotErr = 2.3515 rad (134.7287 deg) | TransErr = 71.68 mm [FAILS]
+    Alternative Pair with Shard 8 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=10 | RotErr = 2.9157 rad (167.0571 deg) | TransErr = 122.25 mm [FAILS]
+      Candidate choice=2 inlier=36 | RotErr = 3.1075 rad (178.0459 deg) | TransErr = 73.32 mm [FAILS]
+      Candidate choice=3 inlier=32 | RotErr = 2.9606 rad (169.6293 deg) | TransErr = 59.34 mm [FAILS]
+      Candidate choice=4 inlier=0 | RotErr = 1.0816 rad (61.9714 deg) | TransErr = 63.11 mm [FAILS]
+      Candidate choice=5 inlier=32 | RotErr = 1.2830 rad (73.5091 deg) | TransErr = 96.07 mm [FAILS]
+      Candidate choice=6 inlier=53 | RotErr = 2.7774 rad (159.1319 deg) | TransErr = 73.13 mm [FAILS]
+      Candidate choice=7 inlier=44 | RotErr = 0.4163 rad (23.8532 deg) | TransErr = 38.31 mm [FAILS]
+      Candidate choice=8 inlier=40 | RotErr = 1.6297 rad (93.3753 deg) | TransErr = 7.56 mm [FAILS]
+    Alternative Pair with Shard 10 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=32 | RotErr = 1.3101 rad (75.0650 deg) | TransErr = 79.56 mm [FAILS]
+      Candidate choice=2 inlier=40 | RotErr = 3.0163 rad (172.8190 deg) | TransErr = 15.80 mm [FAILS]
+    Alternative Pair with Shard 11 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=0 | RotErr = 0.8752 rad (50.1436 deg) | TransErr = 94.26 mm [FAILS]
+      Candidate choice=2 inlier=0 | RotErr = 1.0758 rad (61.6370 deg) | TransErr = 120.36 mm [FAILS]
+      Candidate choice=3 inlier=8 | RotErr = 1.0801 rad (61.8864 deg) | TransErr = 16.45 mm [FAILS]
+      Candidate choice=4 inlier=0 | RotErr = 0.9345 rad (53.5431 deg) | TransErr = 92.95 mm [FAILS]
+      Candidate choice=5 inlier=0 | RotErr = 1.1931 rad (68.3620 deg) | TransErr = 116.50 mm [FAILS]
+      Candidate choice=6 inlier=0 | RotErr = 1.0119 rad (57.9764 deg) | TransErr = 7.74 mm [FAILS]
+    Alternative Pair with Shard 6 (NOT ACTIVE IN TREE):
+      [No match candidates found]
+    Alternative Pair with Shard 7 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=0 | RotErr = 0.7194 rad (41.2161 deg) | TransErr = 127.46 mm [FAILS]
+      Candidate choice=2 inlier=8 | RotErr = 2.6695 rad (152.9535 deg) | TransErr = 57.08 mm [FAILS]
+      Candidate choice=3 inlier=61 | RotErr = 1.7483 rad (100.1698 deg) | TransErr = 25.95 mm [FAILS]
+    Alternative Pair with Shard 9 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=24 | RotErr = 1.9904 rad (114.0416 deg) | TransErr = 125.71 mm [FAILS]
+      Candidate choice=2 inlier=40 | RotErr = 1.5452 rad (88.5331 deg) | TransErr = 109.06 mm [FAILS]
+      Candidate choice=3 inlier=0 | RotErr = 0.8448 rad (48.4062 deg) | TransErr = 147.67 mm [FAILS]
+      Candidate choice=4 inlier=14 | RotErr = 0.6220 rad (35.6377 deg) | TransErr = 107.71 mm [FAILS]
+      Candidate choice=5 inlier=24 | RotErr = 1.3318 rad (76.3058 deg) | TransErr = 124.98 mm [FAILS]
+      Candidate choice=6 inlier=0 | RotErr = 2.1082 rad (120.7922 deg) | TransErr = 74.16 mm [FAILS]
+      Candidate choice=7 inlier=47 | RotErr = 1.5491 rad (88.7568 deg) | TransErr = 70.82 mm [FAILS]
+      Candidate choice=8 inlier=36 | RotErr = 0.4577 rad (26.2250 deg) | TransErr = 97.71 mm [FAILS]
+      Candidate choice=9 inlier=40 | RotErr = 0.5292 rad (30.3237 deg) | TransErr = 67.27 mm [FAILS]
+      Candidate choice=10 inlier=0 | RotErr = 2.3941 rad (137.1729 deg) | TransErr = 60.82 mm [FAILS]
+    Alternative Pair with Shard 2 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=30 | RotErr = 0.2225 rad (12.7504 deg) | TransErr = 61.55 mm [FAILS]
+      Candidate choice=2 inlier=70 | RotErr = 2.3157 rad (132.6788 deg) | TransErr = 31.92 mm [FAILS]
+      Candidate choice=3 inlier=36 | RotErr = 2.3921 rad (137.0553 deg) | TransErr = 33.90 mm [FAILS]
+      Candidate choice=4 inlier=44 | RotErr = 2.2293 rad (127.7292 deg) | TransErr = 20.87 mm [FAILS]
+      Candidate choice=5 inlier=59 | RotErr = 1.5964 rad (91.4664 deg) | TransErr = 13.67 mm [FAILS]
+  Shard 3 (placed by parent 1):
+    Alternative Pair with Shard 1 (ACTIVE IN TREE) [SKIPPED]
+    Alternative Pair with Shard 4 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=50 | RotErr = 1.5694 rad (89.9199 deg) | TransErr = 113.21 mm [FAILS]
+      Candidate choice=2 inlier=34 | RotErr = 2.7918 rad (159.9564 deg) | TransErr = 29.01 mm [FAILS]
+      Candidate choice=3 inlier=56 | RotErr = 2.9289 rad (167.8131 deg) | TransErr = 25.95 mm [FAILS]
+      Candidate choice=4 inlier=34 | RotErr = 1.1221 rad (64.2895 deg) | TransErr = 72.92 mm [FAILS]
+    Alternative Pair with Shard 5 (ACTIVE IN TREE) [SKIPPED]
+    Alternative Pair with Shard 8 (ACTIVE IN TREE) [SKIPPED]
+    Alternative Pair with Shard 10 (ACTIVE IN TREE) [SKIPPED]
+    Alternative Pair with Shard 11 (ACTIVE IN TREE) [SKIPPED]
+    Alternative Pair with Shard 6 (NOT ACTIVE IN TREE):
+      [No match candidates found]
+    Alternative Pair with Shard 7 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=64 | RotErr = 3.0759 rad (176.2381 deg) | TransErr = 29.26 mm [FAILS]
+      Candidate choice=2 inlier=40 | RotErr = 1.2731 rad (72.9445 deg) | TransErr = 82.43 mm [FAILS]
+      Candidate choice=3 inlier=86 | RotErr = 1.3858 rad (79.4019 deg) | TransErr = 61.51 mm [FAILS]
+    Alternative Pair with Shard 9 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=22 | RotErr = 0.9630 rad (55.1762 deg) | TransErr = 66.20 mm [FAILS]
+      Candidate choice=2 inlier=18 | RotErr = 0.7983 rad (45.7420 deg) | TransErr = 81.09 mm [FAILS]
+      Candidate choice=3 inlier=10 | RotErr = 0.9151 rad (52.4322 deg) | TransErr = 74.29 mm [FAILS]
+      Candidate choice=4 inlier=38 | RotErr = 2.9982 rad (171.7838 deg) | TransErr = 78.32 mm [FAILS]
+      Candidate choice=5 inlier=18 | RotErr = 2.0156 rad (115.4844 deg) | TransErr = 92.21 mm [FAILS]
+      Candidate choice=6 inlier=30 | RotErr = 1.0284 rad (58.9220 deg) | TransErr = 69.80 mm [FAILS]
+      Candidate choice=7 inlier=30 | RotErr = 1.3619 rad (78.0313 deg) | TransErr = 112.23 mm [FAILS]
+      Candidate choice=8 inlier=14 | RotErr = 1.0730 rad (61.4792 deg) | TransErr = 100.33 mm [FAILS]
+      Candidate choice=9 inlier=45 | RotErr = 2.5532 rad (146.2898 deg) | TransErr = 61.68 mm [FAILS]
+      Candidate choice=10 inlier=22 | RotErr = 0.6782 rad (38.8567 deg) | TransErr = 58.36 mm [FAILS]
+      Candidate choice=11 inlier=0 | RotErr = 1.9309 rad (110.6337 deg) | TransErr = 104.11 mm [FAILS]
+      Candidate choice=12 inlier=51 | RotErr = 2.4575 rad (140.8043 deg) | TransErr = 83.22 mm [FAILS]
+      Candidate choice=13 inlier=22 | RotErr = 0.6815 rad (39.0458 deg) | TransErr = 74.63 mm [FAILS]
+    Alternative Pair with Shard 2 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=62 | RotErr = 3.0317 rad (173.7043 deg) | TransErr = 4.86 mm [FAILS]
+      Candidate choice=2 inlier=24 | RotErr = 2.6397 rad (151.2420 deg) | TransErr = 24.47 mm [FAILS]
+      Candidate choice=3 inlier=48 | RotErr = 1.2743 rad (73.0141 deg) | TransErr = 53.84 mm [FAILS]
+      Candidate choice=4 inlier=22 | RotErr = 1.2656 rad (72.5117 deg) | TransErr = 10.40 mm [FAILS]
+      Candidate choice=5 inlier=32 | RotErr = 0.4976 rad (28.5098 deg) | TransErr = 34.05 mm [FAILS]
+      Candidate choice=6 inlier=53 | RotErr = 0.6538 rad (37.4572 deg) | TransErr = 38.54 mm [FAILS]
+  Shard 4 (placed by parent 1):
+    Alternative Pair with Shard 1 (ACTIVE IN TREE) [SKIPPED]
+    Alternative Pair with Shard 3 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=50 | RotErr = 1.5694 rad (89.9199 deg) | TransErr = 113.21 mm [FAILS]
+      Candidate choice=2 inlier=34 | RotErr = 2.7918 rad (159.9564 deg) | TransErr = 29.01 mm [FAILS]
+      Candidate choice=3 inlier=56 | RotErr = 2.9289 rad (167.8131 deg) | TransErr = 25.95 mm [FAILS]
+      Candidate choice=4 inlier=34 | RotErr = 1.1221 rad (64.2895 deg) | TransErr = 72.92 mm [FAILS]
+    Alternative Pair with Shard 5 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=70 | RotErr = 2.9116 rad (166.8247 deg) | TransErr = 13.16 mm [FAILS]
+      Candidate choice=2 inlier=77 | RotErr = 2.8855 rad (165.3283 deg) | TransErr = 4.40 mm [FAILS]
+    Alternative Pair with Shard 8 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=0 | RotErr = 0.6823 rad (39.0909 deg) | TransErr = 90.81 mm [FAILS]
+      Candidate choice=2 inlier=47 | RotErr = 2.2115 rad (126.7077 deg) | TransErr = 85.62 mm [FAILS]
+      Candidate choice=3 inlier=14 | RotErr = 2.6897 rad (154.1059 deg) | TransErr = 22.82 mm [FAILS]
+      Candidate choice=4 inlier=36 | RotErr = 2.0262 rad (116.0922 deg) | TransErr = 13.90 mm [FAILS]
+      Candidate choice=5 inlier=36 | RotErr = 1.5210 rad (87.1492 deg) | TransErr = 40.34 mm [FAILS]
+    Alternative Pair with Shard 10 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=28 | RotErr = 0.7167 rad (41.0630 deg) | TransErr = 16.41 mm [FAILS]
+      Candidate choice=2 inlier=26 | RotErr = 0.3086 rad (17.6838 deg) | TransErr = 35.02 mm [FAILS]
+    Alternative Pair with Shard 11 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=16 | RotErr = 1.9272 rad (110.4192 deg) | TransErr = 48.10 mm [FAILS]
+      Candidate choice=2 inlier=14 | RotErr = 0.4404 rad (25.2307 deg) | TransErr = 71.56 mm [FAILS]
+      Candidate choice=3 inlier=36 | RotErr = 2.3557 rad (134.9745 deg) | TransErr = 96.34 mm [FAILS]
+    Alternative Pair with Shard 6 (NOT ACTIVE IN TREE):
+      [No match candidates found]
+    Alternative Pair with Shard 7 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=36 | RotErr = 2.8744 rad (164.6928 deg) | TransErr = 53.96 mm [FAILS]
+    Alternative Pair with Shard 9 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=42 | RotErr = 1.5088 rad (86.4492 deg) | TransErr = 61.65 mm [FAILS]
+      Candidate choice=2 inlier=20 | RotErr = 0.7147 rad (40.9466 deg) | TransErr = 151.81 mm [FAILS]
+      Candidate choice=3 inlier=32 | RotErr = 2.9494 rad (168.9905 deg) | TransErr = 82.13 mm [FAILS]
+      Candidate choice=4 inlier=38 | RotErr = 0.6740 rad (38.6172 deg) | TransErr = 102.80 mm [FAILS]
+      Candidate choice=5 inlier=0 | RotErr = 2.7471 rad (157.3988 deg) | TransErr = 76.18 mm [FAILS]
+      Candidate choice=6 inlier=36 | RotErr = 1.3451 rad (77.0690 deg) | TransErr = 81.25 mm [FAILS]
+      Candidate choice=7 inlier=22 | RotErr = 1.6584 rad (95.0177 deg) | TransErr = 107.53 mm [FAILS]
+      Candidate choice=8 inlier=28 | RotErr = 2.2516 rad (129.0074 deg) | TransErr = 124.68 mm [FAILS]
+    Alternative Pair with Shard 2 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=12 | RotErr = 2.1227 rad (121.6222 deg) | TransErr = 58.67 mm [FAILS]
+      Candidate choice=2 inlier=32 | RotErr = 2.1921 rad (125.5961 deg) | TransErr = 53.00 mm [FAILS]
+      Candidate choice=3 inlier=20 | RotErr = 1.3605 rad (77.9494 deg) | TransErr = 58.10 mm [FAILS]
+      Candidate choice=4 inlier=24 | RotErr = 0.1774 rad (10.1636 deg) | TransErr = 3.63 mm [PASSES] -> Reward: +20.00
+      Candidate choice=5 inlier=58 | RotErr = 3.0883 rad (176.9476 deg) | TransErr = 36.20 mm [FAILS]
+  Shard 5 (placed by parent 3):
+    Alternative Pair with Shard 1 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=76 | RotErr = 0.0585 rad (3.3525 deg) | TransErr = 4.90 mm [PASSES] -> Reward: +20.00
+      Candidate choice=2 inlier=65 | RotErr = 1.6694 rad (95.6518 deg) | TransErr = 26.93 mm [FAILS]
+      Candidate choice=3 inlier=76 | RotErr = 2.1929 rad (125.6412 deg) | TransErr = 81.55 mm [FAILS]
+      Candidate choice=4 inlier=26 | RotErr = 2.3515 rad (134.7287 deg) | TransErr = 71.68 mm [FAILS]
+    Alternative Pair with Shard 3 (ACTIVE IN TREE) [SKIPPED]
+    Alternative Pair with Shard 4 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=70 | RotErr = 2.9116 rad (166.8247 deg) | TransErr = 13.16 mm [FAILS]
+      Candidate choice=2 inlier=77 | RotErr = 2.8855 rad (165.3283 deg) | TransErr = 4.40 mm [FAILS]
+    Alternative Pair with Shard 8 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=30 | RotErr = 0.7081 rad (40.5735 deg) | TransErr = 67.88 mm [FAILS]
+      Candidate choice=2 inlier=36 | RotErr = 0.7021 rad (40.2259 deg) | TransErr = 55.58 mm [FAILS]
+      Candidate choice=3 inlier=0 | RotErr = 2.0706 rad (118.6382 deg) | TransErr = 104.26 mm [FAILS]
+    Alternative Pair with Shard 10 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=26 | RotErr = 2.2723 rad (130.1927 deg) | TransErr = 78.77 mm [FAILS]
+      Candidate choice=2 inlier=28 | RotErr = 0.2345 rad (13.4341 deg) | TransErr = 100.61 mm [FAILS]
+      Candidate choice=3 inlier=51 | RotErr = 2.1097 rad (120.8757 deg) | TransErr = 37.55 mm [FAILS]
+    Alternative Pair with Shard 11 (NOT ACTIVE IN TREE):
+      [No match candidates found]
+    Alternative Pair with Shard 6 (ACTIVE IN TREE) [SKIPPED]
+    Alternative Pair with Shard 7 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=6 | RotErr = 2.6367 rad (151.0718 deg) | TransErr = 121.31 mm [FAILS]
+      Candidate choice=2 inlier=16 | RotErr = 3.0790 rad (176.4117 deg) | TransErr = 124.03 mm [FAILS]
+      Candidate choice=3 inlier=0 | RotErr = 3.1247 rad (179.0313 deg) | TransErr = 117.99 mm [FAILS]
+      Candidate choice=4 inlier=58 | RotErr = 2.6924 rad (154.2611 deg) | TransErr = 72.40 mm [FAILS]
+      Candidate choice=5 inlier=0 | RotErr = 2.6351 rad (150.9823 deg) | TransErr = 117.08 mm [FAILS]
+      Candidate choice=6 inlier=2 | RotErr = 2.8415 rad (162.8065 deg) | TransErr = 115.91 mm [FAILS]
+    Alternative Pair with Shard 9 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=38 | RotErr = 2.5517 rad (146.2022 deg) | TransErr = 92.13 mm [FAILS]
+      Candidate choice=2 inlier=0 | RotErr = 2.7611 rad (158.2018 deg) | TransErr = 122.86 mm [FAILS]
+      Candidate choice=3 inlier=32 | RotErr = 2.5629 rad (146.8416 deg) | TransErr = 74.92 mm [FAILS]
+      Candidate choice=4 inlier=0 | RotErr = 2.4520 rad (140.4915 deg) | TransErr = 89.57 mm [FAILS]
+      Candidate choice=5 inlier=22 | RotErr = 2.5173 rad (144.2324 deg) | TransErr = 22.52 mm [FAILS]
+    Alternative Pair with Shard 2 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=30 | RotErr = 2.5794 rad (147.7872 deg) | TransErr = 60.34 mm [FAILS]
+  Shard 8 (placed by parent 3):
+    Alternative Pair with Shard 1 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=10 | RotErr = 2.9157 rad (167.0571 deg) | TransErr = 122.25 mm [FAILS]
+      Candidate choice=2 inlier=36 | RotErr = 3.1075 rad (178.0459 deg) | TransErr = 73.32 mm [FAILS]
+      Candidate choice=3 inlier=32 | RotErr = 2.9606 rad (169.6293 deg) | TransErr = 59.34 mm [FAILS]
+      Candidate choice=4 inlier=0 | RotErr = 1.0816 rad (61.9714 deg) | TransErr = 63.11 mm [FAILS]
+      Candidate choice=5 inlier=32 | RotErr = 1.2830 rad (73.5091 deg) | TransErr = 96.07 mm [FAILS]
+      Candidate choice=6 inlier=53 | RotErr = 2.7774 rad (159.1319 deg) | TransErr = 73.13 mm [FAILS]
+      Candidate choice=7 inlier=44 | RotErr = 0.4163 rad (23.8532 deg) | TransErr = 38.31 mm [FAILS]
+      Candidate choice=8 inlier=40 | RotErr = 1.6297 rad (93.3753 deg) | TransErr = 7.56 mm [FAILS]
+    Alternative Pair with Shard 3 (ACTIVE IN TREE) [SKIPPED]
+    Alternative Pair with Shard 4 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=0 | RotErr = 0.6823 rad (39.0909 deg) | TransErr = 90.81 mm [FAILS]
+      Candidate choice=2 inlier=47 | RotErr = 2.2115 rad (126.7077 deg) | TransErr = 85.62 mm [FAILS]
+      Candidate choice=3 inlier=14 | RotErr = 2.6897 rad (154.1059 deg) | TransErr = 22.82 mm [FAILS]
+      Candidate choice=4 inlier=36 | RotErr = 2.0262 rad (116.0922 deg) | TransErr = 13.90 mm [FAILS]
+      Candidate choice=5 inlier=36 | RotErr = 1.5210 rad (87.1492 deg) | TransErr = 40.34 mm [FAILS]
+    Alternative Pair with Shard 5 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=30 | RotErr = 0.7081 rad (40.5735 deg) | TransErr = 67.88 mm [FAILS]
+      Candidate choice=2 inlier=36 | RotErr = 0.7021 rad (40.2259 deg) | TransErr = 55.58 mm [FAILS]
+      Candidate choice=3 inlier=0 | RotErr = 2.0706 rad (118.6382 deg) | TransErr = 104.26 mm [FAILS]
+    Alternative Pair with Shard 10 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=40 | RotErr = 2.5698 rad (147.2398 deg) | TransErr = 93.76 mm [FAILS]
+      Candidate choice=2 inlier=20 | RotErr = 3.0227 rad (173.1875 deg) | TransErr = 13.46 mm [FAILS]
+      Candidate choice=3 inlier=44 | RotErr = 0.1416 rad (8.1153 deg) | TransErr = 3.37 mm [PASSES] -> Reward: +20.00
+    Alternative Pair with Shard 11 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=0 | RotErr = 1.7875 rad (102.4140 deg) | TransErr = 24.83 mm [FAILS]
+      Candidate choice=2 inlier=12 | RotErr = 1.0361 rad (59.3664 deg) | TransErr = 51.98 mm [FAILS]
+      Candidate choice=3 inlier=26 | RotErr = 1.5390 rad (88.1804 deg) | TransErr = 72.28 mm [FAILS]
+      Candidate choice=4 inlier=38 | RotErr = 2.9399 rad (168.4429 deg) | TransErr = 50.55 mm [FAILS]
+      Candidate choice=5 inlier=34 | RotErr = 0.7744 rad (44.3702 deg) | TransErr = 24.30 mm [FAILS]
+      Candidate choice=6 inlier=28 | RotErr = 0.9575 rad (54.8626 deg) | TransErr = 48.40 mm [FAILS]
+    Alternative Pair with Shard 6 (NOT ACTIVE IN TREE):
+      [No match candidates found]
+    Alternative Pair with Shard 7 (ACTIVE IN TREE) [SKIPPED]
+    Alternative Pair with Shard 9 (ACTIVE IN TREE) [SKIPPED]
+    Alternative Pair with Shard 2 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=30 | RotErr = 2.3582 rad (135.1155 deg) | TransErr = 67.55 mm [FAILS]
+      Candidate choice=2 inlier=32 | RotErr = 2.5660 rad (147.0212 deg) | TransErr = 93.67 mm [FAILS]
+      Candidate choice=3 inlier=22 | RotErr = 2.5815 rad (147.9085 deg) | TransErr = 15.99 mm [FAILS]
+      Candidate choice=4 inlier=36 | RotErr = 1.6274 rad (93.2420 deg) | TransErr = 36.43 mm [FAILS]
+      Candidate choice=5 inlier=28 | RotErr = 2.0585 rad (117.9431 deg) | TransErr = 36.45 mm [FAILS]
+  Shard 10 (placed by parent 3):
+    Alternative Pair with Shard 1 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=32 | RotErr = 1.3101 rad (75.0650 deg) | TransErr = 79.56 mm [FAILS]
+      Candidate choice=2 inlier=40 | RotErr = 3.0163 rad (172.8190 deg) | TransErr = 15.80 mm [FAILS]
+    Alternative Pair with Shard 3 (ACTIVE IN TREE) [SKIPPED]
+    Alternative Pair with Shard 4 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=28 | RotErr = 0.7167 rad (41.0630 deg) | TransErr = 16.41 mm [FAILS]
+      Candidate choice=2 inlier=26 | RotErr = 0.3086 rad (17.6838 deg) | TransErr = 35.02 mm [FAILS]
+    Alternative Pair with Shard 5 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=26 | RotErr = 2.2723 rad (130.1927 deg) | TransErr = 78.77 mm [FAILS]
+      Candidate choice=2 inlier=28 | RotErr = 0.2345 rad (13.4341 deg) | TransErr = 100.61 mm [FAILS]
+      Candidate choice=3 inlier=51 | RotErr = 2.1097 rad (120.8757 deg) | TransErr = 37.55 mm [FAILS]
+    Alternative Pair with Shard 8 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=40 | RotErr = 2.5698 rad (147.2398 deg) | TransErr = 93.76 mm [FAILS]
+      Candidate choice=2 inlier=20 | RotErr = 3.0227 rad (173.1875 deg) | TransErr = 13.46 mm [FAILS]
+      Candidate choice=3 inlier=44 | RotErr = 0.1416 rad (8.1153 deg) | TransErr = 3.37 mm [PASSES] -> Reward: +20.00
+    Alternative Pair with Shard 11 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=38 | RotErr = 1.5115 rad (86.6000 deg) | TransErr = 35.17 mm [FAILS]
+      Candidate choice=2 inlier=14 | RotErr = 0.8462 rad (48.4835 deg) | TransErr = 33.29 mm [FAILS]
+    Alternative Pair with Shard 6 (NOT ACTIVE IN TREE):
+      [No match candidates found]
+    Alternative Pair with Shard 7 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=52 | RotErr = 0.1501 rad (8.5978 deg) | TransErr = 7.44 mm [PASSES] -> Reward: +20.00
+    Alternative Pair with Shard 9 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=26 | RotErr = 2.3121 rad (132.4738 deg) | TransErr = 109.45 mm [FAILS]
+      Candidate choice=2 inlier=0 | RotErr = 1.0315 rad (59.1010 deg) | TransErr = 23.54 mm [FAILS]
+      Candidate choice=3 inlier=56 | RotErr = 0.3685 rad (21.1131 deg) | TransErr = 48.56 mm [FAILS]
+      Candidate choice=4 inlier=28 | RotErr = 2.3945 rad (137.1939 deg) | TransErr = 87.23 mm [FAILS]
+      Candidate choice=5 inlier=26 | RotErr = 1.7968 rad (102.9469 deg) | TransErr = 67.93 mm [FAILS]
+      Candidate choice=6 inlier=26 | RotErr = 0.9762 rad (55.9303 deg) | TransErr = 83.43 mm [FAILS]
+      Candidate choice=7 inlier=24 | RotErr = 2.5979 rad (148.8478 deg) | TransErr = 87.52 mm [FAILS]
+      Candidate choice=8 inlier=34 | RotErr = 0.4931 rad (28.2506 deg) | TransErr = 68.81 mm [FAILS]
+    Alternative Pair with Shard 2 (ACTIVE IN TREE) [SKIPPED]
+  Shard 11 (placed by parent 3):
+    Alternative Pair with Shard 1 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=0 | RotErr = 0.8752 rad (50.1436 deg) | TransErr = 94.26 mm [FAILS]
+      Candidate choice=2 inlier=0 | RotErr = 1.0758 rad (61.6370 deg) | TransErr = 120.36 mm [FAILS]
+      Candidate choice=3 inlier=8 | RotErr = 1.0801 rad (61.8864 deg) | TransErr = 16.45 mm [FAILS]
+      Candidate choice=4 inlier=0 | RotErr = 0.9345 rad (53.5431 deg) | TransErr = 92.95 mm [FAILS]
+      Candidate choice=5 inlier=0 | RotErr = 1.1931 rad (68.3620 deg) | TransErr = 116.50 mm [FAILS]
+      Candidate choice=6 inlier=0 | RotErr = 1.0119 rad (57.9764 deg) | TransErr = 7.74 mm [FAILS]
+    Alternative Pair with Shard 3 (ACTIVE IN TREE) [SKIPPED]
+    Alternative Pair with Shard 4 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=16 | RotErr = 1.9272 rad (110.4192 deg) | TransErr = 48.10 mm [FAILS]
+      Candidate choice=2 inlier=14 | RotErr = 0.4404 rad (25.2307 deg) | TransErr = 71.56 mm [FAILS]
+      Candidate choice=3 inlier=36 | RotErr = 2.3557 rad (134.9745 deg) | TransErr = 96.34 mm [FAILS]
+    Alternative Pair with Shard 5 (NOT ACTIVE IN TREE):
+      [No match candidates found]
+    Alternative Pair with Shard 8 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=0 | RotErr = 1.7875 rad (102.4140 deg) | TransErr = 24.83 mm [FAILS]
+      Candidate choice=2 inlier=12 | RotErr = 1.0361 rad (59.3664 deg) | TransErr = 51.98 mm [FAILS]
+      Candidate choice=3 inlier=26 | RotErr = 1.5390 rad (88.1804 deg) | TransErr = 72.28 mm [FAILS]
+      Candidate choice=4 inlier=38 | RotErr = 2.9399 rad (168.4429 deg) | TransErr = 50.55 mm [FAILS]
+      Candidate choice=5 inlier=34 | RotErr = 0.7744 rad (44.3702 deg) | TransErr = 24.30 mm [FAILS]
+      Candidate choice=6 inlier=28 | RotErr = 0.9575 rad (54.8626 deg) | TransErr = 48.40 mm [FAILS]
+    Alternative Pair with Shard 10 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=38 | RotErr = 1.5115 rad (86.6000 deg) | TransErr = 35.17 mm [FAILS]
+      Candidate choice=2 inlier=14 | RotErr = 0.8462 rad (48.4835 deg) | TransErr = 33.29 mm [FAILS]
+    Alternative Pair with Shard 6 (NOT ACTIVE IN TREE):
+      [No match candidates found]
+    Alternative Pair with Shard 7 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=12 | RotErr = 0.6180 rad (35.4106 deg) | TransErr = 13.93 mm [FAILS]
+      Candidate choice=2 inlier=2 | RotErr = 1.4905 rad (85.4022 deg) | TransErr = 42.85 mm [FAILS]
+      Candidate choice=3 inlier=16 | RotErr = 0.6355 rad (36.4099 deg) | TransErr = 11.12 mm [FAILS]
+      Candidate choice=4 inlier=36 | RotErr = 1.7031 rad (97.5819 deg) | TransErr = 49.53 mm [FAILS]
+    Alternative Pair with Shard 9 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=6 | RotErr = 1.7487 rad (100.1915 deg) | TransErr = 34.28 mm [FAILS]
+      Candidate choice=2 inlier=0 | RotErr = 1.4545 rad (83.3344 deg) | TransErr = 103.04 mm [FAILS]
+      Candidate choice=3 inlier=22 | RotErr = 2.4752 rad (141.8212 deg) | TransErr = 88.02 mm [FAILS]
+      Candidate choice=4 inlier=26 | RotErr = 2.1676 rad (124.1968 deg) | TransErr = 74.51 mm [FAILS]
+    Alternative Pair with Shard 2 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=30 | RotErr = 2.2402 rad (128.3543 deg) | TransErr = 28.15 mm [FAILS]
+      Candidate choice=2 inlier=30 | RotErr = 0.1513 rad (8.6715 deg) | TransErr = 3.59 mm [PASSES] -> Reward: +20.00
+      Candidate choice=3 inlier=8 | RotErr = 1.9175 rad (109.8648 deg) | TransErr = 25.17 mm [FAILS]
+      Candidate choice=4 inlier=0 | RotErr = 1.7380 rad (99.5778 deg) | TransErr = 57.41 mm [FAILS]
+  Shard 6 (placed by parent 5):
+    Alternative Pair with Shard 1 (NOT ACTIVE IN TREE):
+      [No match candidates found]
+    Alternative Pair with Shard 3 (NOT ACTIVE IN TREE):
+      [No match candidates found]
+    Alternative Pair with Shard 4 (NOT ACTIVE IN TREE):
+      [No match candidates found]
+    Alternative Pair with Shard 5 (ACTIVE IN TREE) [SKIPPED]
+    Alternative Pair with Shard 8 (NOT ACTIVE IN TREE):
+      [No match candidates found]
+    Alternative Pair with Shard 10 (NOT ACTIVE IN TREE):
+      [No match candidates found]
+    Alternative Pair with Shard 11 (NOT ACTIVE IN TREE):
+      [No match candidates found]
+    Alternative Pair with Shard 7 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=8 | RotErr = 0.0224 rad (1.2825 deg) | TransErr = 60.32 mm [FAILS]
+    Alternative Pair with Shard 9 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=10 | RotErr = 0.2481 rad (14.2127 deg) | TransErr = 98.21 mm [FAILS]
+      Candidate choice=2 inlier=0 | RotErr = 0.5269 rad (30.1877 deg) | TransErr = 107.42 mm [FAILS]
+      Candidate choice=3 inlier=0 | RotErr = 0.5471 rad (31.3461 deg) | TransErr = 106.13 mm [FAILS]
+      Candidate choice=4 inlier=14 | RotErr = 0.5089 rad (29.1563 deg) | TransErr = 78.06 mm [FAILS]
+      Candidate choice=5 inlier=0 | RotErr = 0.3265 rad (18.7078 deg) | TransErr = 82.46 mm [FAILS]
+      Candidate choice=6 inlier=0 | RotErr = 0.6563 rad (37.6004 deg) | TransErr = 135.97 mm [FAILS]
+    Alternative Pair with Shard 2 (NOT ACTIVE IN TREE):
+      [No match candidates found]
+  Shard 7 (placed by parent 8):
+    Alternative Pair with Shard 1 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=0 | RotErr = 0.7194 rad (41.2161 deg) | TransErr = 127.46 mm [FAILS]
+      Candidate choice=2 inlier=8 | RotErr = 2.6695 rad (152.9535 deg) | TransErr = 57.08 mm [FAILS]
+      Candidate choice=3 inlier=61 | RotErr = 1.7483 rad (100.1698 deg) | TransErr = 25.95 mm [FAILS]
+    Alternative Pair with Shard 3 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=64 | RotErr = 3.0759 rad (176.2381 deg) | TransErr = 29.26 mm [FAILS]
+      Candidate choice=2 inlier=40 | RotErr = 1.2731 rad (72.9445 deg) | TransErr = 82.43 mm [FAILS]
+      Candidate choice=3 inlier=86 | RotErr = 1.3858 rad (79.4019 deg) | TransErr = 61.51 mm [FAILS]
+    Alternative Pair with Shard 4 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=36 | RotErr = 2.8744 rad (164.6928 deg) | TransErr = 53.96 mm [FAILS]
+    Alternative Pair with Shard 5 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=6 | RotErr = 2.6367 rad (151.0718 deg) | TransErr = 121.31 mm [FAILS]
+      Candidate choice=2 inlier=16 | RotErr = 3.0790 rad (176.4117 deg) | TransErr = 124.03 mm [FAILS]
+      Candidate choice=3 inlier=0 | RotErr = 3.1247 rad (179.0313 deg) | TransErr = 117.99 mm [FAILS]
+      Candidate choice=4 inlier=58 | RotErr = 2.6924 rad (154.2611 deg) | TransErr = 72.40 mm [FAILS]
+      Candidate choice=5 inlier=0 | RotErr = 2.6351 rad (150.9823 deg) | TransErr = 117.08 mm [FAILS]
+      Candidate choice=6 inlier=2 | RotErr = 2.8415 rad (162.8065 deg) | TransErr = 115.91 mm [FAILS]
+    Alternative Pair with Shard 8 (ACTIVE IN TREE) [SKIPPED]
+    Alternative Pair with Shard 10 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=52 | RotErr = 0.1501 rad (8.5978 deg) | TransErr = 7.44 mm [PASSES] -> Reward: +20.00
+    Alternative Pair with Shard 11 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=12 | RotErr = 0.6180 rad (35.4106 deg) | TransErr = 13.93 mm [FAILS]
+      Candidate choice=2 inlier=2 | RotErr = 1.4905 rad (85.4022 deg) | TransErr = 42.85 mm [FAILS]
+      Candidate choice=3 inlier=16 | RotErr = 0.6355 rad (36.4099 deg) | TransErr = 11.12 mm [FAILS]
+      Candidate choice=4 inlier=36 | RotErr = 1.7031 rad (97.5819 deg) | TransErr = 49.53 mm [FAILS]
+    Alternative Pair with Shard 6 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=8 | RotErr = 0.0224 rad (1.2825 deg) | TransErr = 60.32 mm [FAILS]
+    Alternative Pair with Shard 9 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=24 | RotErr = 2.9478 rad (168.8988 deg) | TransErr = 59.80 mm [FAILS]
+      Candidate choice=2 inlier=0 | RotErr = 1.0163 rad (58.2293 deg) | TransErr = 67.87 mm [FAILS]
+      Candidate choice=3 inlier=28 | RotErr = 2.0419 rad (116.9926 deg) | TransErr = 92.51 mm [FAILS]
+    Alternative Pair with Shard 2 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=32 | RotErr = 1.1159 rad (63.9376 deg) | TransErr = 41.54 mm [FAILS]
+      Candidate choice=2 inlier=66 | RotErr = 1.0764 rad (61.6724 deg) | TransErr = 62.49 mm [FAILS]
+  Shard 9 (placed by parent 8):
+    Alternative Pair with Shard 1 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=24 | RotErr = 1.9904 rad (114.0416 deg) | TransErr = 125.71 mm [FAILS]
+      Candidate choice=2 inlier=40 | RotErr = 1.5452 rad (88.5331 deg) | TransErr = 109.06 mm [FAILS]
+      Candidate choice=3 inlier=0 | RotErr = 0.8448 rad (48.4062 deg) | TransErr = 147.67 mm [FAILS]
+      Candidate choice=4 inlier=14 | RotErr = 0.6220 rad (35.6377 deg) | TransErr = 107.71 mm [FAILS]
+      Candidate choice=5 inlier=24 | RotErr = 1.3318 rad (76.3058 deg) | TransErr = 124.98 mm [FAILS]
+      Candidate choice=6 inlier=0 | RotErr = 2.1082 rad (120.7922 deg) | TransErr = 74.16 mm [FAILS]
+      Candidate choice=7 inlier=47 | RotErr = 1.5491 rad (88.7568 deg) | TransErr = 70.82 mm [FAILS]
+      Candidate choice=8 inlier=36 | RotErr = 0.4577 rad (26.2250 deg) | TransErr = 97.71 mm [FAILS]
+      Candidate choice=9 inlier=40 | RotErr = 0.5292 rad (30.3237 deg) | TransErr = 67.27 mm [FAILS]
+      Candidate choice=10 inlier=0 | RotErr = 2.3941 rad (137.1729 deg) | TransErr = 60.82 mm [FAILS]
+    Alternative Pair with Shard 3 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=22 | RotErr = 0.9630 rad (55.1762 deg) | TransErr = 66.20 mm [FAILS]
+      Candidate choice=2 inlier=18 | RotErr = 0.7983 rad (45.7420 deg) | TransErr = 81.09 mm [FAILS]
+      Candidate choice=3 inlier=10 | RotErr = 0.9151 rad (52.4322 deg) | TransErr = 74.29 mm [FAILS]
+      Candidate choice=4 inlier=38 | RotErr = 2.9982 rad (171.7838 deg) | TransErr = 78.32 mm [FAILS]
+      Candidate choice=5 inlier=18 | RotErr = 2.0156 rad (115.4844 deg) | TransErr = 92.21 mm [FAILS]
+      Candidate choice=6 inlier=30 | RotErr = 1.0284 rad (58.9220 deg) | TransErr = 69.80 mm [FAILS]
+      Candidate choice=7 inlier=30 | RotErr = 1.3619 rad (78.0313 deg) | TransErr = 112.23 mm [FAILS]
+      Candidate choice=8 inlier=14 | RotErr = 1.0730 rad (61.4792 deg) | TransErr = 100.33 mm [FAILS]
+      Candidate choice=9 inlier=45 | RotErr = 2.5532 rad (146.2898 deg) | TransErr = 61.68 mm [FAILS]
+      Candidate choice=10 inlier=22 | RotErr = 0.6782 rad (38.8567 deg) | TransErr = 58.36 mm [FAILS]
+      Candidate choice=11 inlier=0 | RotErr = 1.9309 rad (110.6337 deg) | TransErr = 104.11 mm [FAILS]
+      Candidate choice=12 inlier=51 | RotErr = 2.4575 rad (140.8043 deg) | TransErr = 83.22 mm [FAILS]
+      Candidate choice=13 inlier=22 | RotErr = 0.6815 rad (39.0458 deg) | TransErr = 74.63 mm [FAILS]
+    Alternative Pair with Shard 4 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=42 | RotErr = 1.5088 rad (86.4492 deg) | TransErr = 61.65 mm [FAILS]
+      Candidate choice=2 inlier=20 | RotErr = 0.7147 rad (40.9466 deg) | TransErr = 151.81 mm [FAILS]
+      Candidate choice=3 inlier=32 | RotErr = 2.9494 rad (168.9905 deg) | TransErr = 82.13 mm [FAILS]
+      Candidate choice=4 inlier=38 | RotErr = 0.6740 rad (38.6172 deg) | TransErr = 102.80 mm [FAILS]
+      Candidate choice=5 inlier=0 | RotErr = 2.7471 rad (157.3988 deg) | TransErr = 76.18 mm [FAILS]
+      Candidate choice=6 inlier=36 | RotErr = 1.3451 rad (77.0690 deg) | TransErr = 81.25 mm [FAILS]
+      Candidate choice=7 inlier=22 | RotErr = 1.6584 rad (95.0177 deg) | TransErr = 107.53 mm [FAILS]
+      Candidate choice=8 inlier=28 | RotErr = 2.2516 rad (129.0074 deg) | TransErr = 124.68 mm [FAILS]
+    Alternative Pair with Shard 5 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=38 | RotErr = 2.5517 rad (146.2022 deg) | TransErr = 92.13 mm [FAILS]
+      Candidate choice=2 inlier=0 | RotErr = 2.7611 rad (158.2018 deg) | TransErr = 122.86 mm [FAILS]
+      Candidate choice=3 inlier=32 | RotErr = 2.5629 rad (146.8416 deg) | TransErr = 74.92 mm [FAILS]
+      Candidate choice=4 inlier=0 | RotErr = 2.4520 rad (140.4915 deg) | TransErr = 89.57 mm [FAILS]
+      Candidate choice=5 inlier=22 | RotErr = 2.5173 rad (144.2324 deg) | TransErr = 22.52 mm [FAILS]
+    Alternative Pair with Shard 8 (ACTIVE IN TREE) [SKIPPED]
+    Alternative Pair with Shard 10 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=26 | RotErr = 2.3121 rad (132.4738 deg) | TransErr = 109.45 mm [FAILS]
+      Candidate choice=2 inlier=0 | RotErr = 1.0315 rad (59.1010 deg) | TransErr = 23.54 mm [FAILS]
+      Candidate choice=3 inlier=56 | RotErr = 0.3685 rad (21.1131 deg) | TransErr = 48.56 mm [FAILS]
+      Candidate choice=4 inlier=28 | RotErr = 2.3945 rad (137.1939 deg) | TransErr = 87.23 mm [FAILS]
+      Candidate choice=5 inlier=26 | RotErr = 1.7968 rad (102.9469 deg) | TransErr = 67.93 mm [FAILS]
+      Candidate choice=6 inlier=26 | RotErr = 0.9762 rad (55.9303 deg) | TransErr = 83.43 mm [FAILS]
+      Candidate choice=7 inlier=24 | RotErr = 2.5979 rad (148.8478 deg) | TransErr = 87.52 mm [FAILS]
+      Candidate choice=8 inlier=34 | RotErr = 0.4931 rad (28.2506 deg) | TransErr = 68.81 mm [FAILS]
+    Alternative Pair with Shard 11 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=6 | RotErr = 1.7487 rad (100.1915 deg) | TransErr = 34.28 mm [FAILS]
+      Candidate choice=2 inlier=0 | RotErr = 1.4545 rad (83.3344 deg) | TransErr = 103.04 mm [FAILS]
+      Candidate choice=3 inlier=22 | RotErr = 2.4752 rad (141.8212 deg) | TransErr = 88.02 mm [FAILS]
+      Candidate choice=4 inlier=26 | RotErr = 2.1676 rad (124.1968 deg) | TransErr = 74.51 mm [FAILS]
+    Alternative Pair with Shard 6 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=10 | RotErr = 0.2481 rad (14.2127 deg) | TransErr = 98.21 mm [FAILS]
+      Candidate choice=2 inlier=0 | RotErr = 0.5269 rad (30.1877 deg) | TransErr = 107.42 mm [FAILS]
+      Candidate choice=3 inlier=0 | RotErr = 0.5471 rad (31.3461 deg) | TransErr = 106.13 mm [FAILS]
+      Candidate choice=4 inlier=14 | RotErr = 0.5089 rad (29.1563 deg) | TransErr = 78.06 mm [FAILS]
+      Candidate choice=5 inlier=0 | RotErr = 0.3265 rad (18.7078 deg) | TransErr = 82.46 mm [FAILS]
+      Candidate choice=6 inlier=0 | RotErr = 0.6563 rad (37.6004 deg) | TransErr = 135.97 mm [FAILS]
+    Alternative Pair with Shard 7 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=24 | RotErr = 2.9478 rad (168.8988 deg) | TransErr = 59.80 mm [FAILS]
+      Candidate choice=2 inlier=0 | RotErr = 1.0163 rad (58.2293 deg) | TransErr = 67.87 mm [FAILS]
+      Candidate choice=3 inlier=28 | RotErr = 2.0419 rad (116.9926 deg) | TransErr = 92.51 mm [FAILS]
+    Alternative Pair with Shard 2 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=22 | RotErr = 0.7570 rad (43.3749 deg) | TransErr = 127.76 mm [FAILS]
+      Candidate choice=2 inlier=45 | RotErr = 0.7377 rad (42.2684 deg) | TransErr = 77.49 mm [FAILS]
+      Candidate choice=3 inlier=47 | RotErr = 1.0529 rad (60.3285 deg) | TransErr = 97.38 mm [FAILS]
+      Candidate choice=4 inlier=22 | RotErr = 0.9490 rad (54.3714 deg) | TransErr = 122.94 mm [FAILS]
+      Candidate choice=5 inlier=40 | RotErr = 1.0509 rad (60.2102 deg) | TransErr = 56.76 mm [FAILS]
+      Candidate choice=6 inlier=38 | RotErr = 0.9137 rad (52.3522 deg) | TransErr = 75.48 mm [FAILS]
+  Shard 2 (placed by parent 10):
+    Alternative Pair with Shard 1 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=30 | RotErr = 0.2225 rad (12.7504 deg) | TransErr = 61.55 mm [FAILS]
+      Candidate choice=2 inlier=70 | RotErr = 2.3157 rad (132.6788 deg) | TransErr = 31.92 mm [FAILS]
+      Candidate choice=3 inlier=36 | RotErr = 2.3921 rad (137.0553 deg) | TransErr = 33.90 mm [FAILS]
+      Candidate choice=4 inlier=44 | RotErr = 2.2293 rad (127.7292 deg) | TransErr = 20.87 mm [FAILS]
+      Candidate choice=5 inlier=59 | RotErr = 1.5964 rad (91.4664 deg) | TransErr = 13.67 mm [FAILS]
+    Alternative Pair with Shard 3 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=62 | RotErr = 3.0317 rad (173.7043 deg) | TransErr = 4.86 mm [FAILS]
+      Candidate choice=2 inlier=24 | RotErr = 2.6397 rad (151.2420 deg) | TransErr = 24.47 mm [FAILS]
+      Candidate choice=3 inlier=48 | RotErr = 1.2743 rad (73.0141 deg) | TransErr = 53.84 mm [FAILS]
+      Candidate choice=4 inlier=22 | RotErr = 1.2656 rad (72.5117 deg) | TransErr = 10.40 mm [FAILS]
+      Candidate choice=5 inlier=32 | RotErr = 0.4976 rad (28.5098 deg) | TransErr = 34.05 mm [FAILS]
+      Candidate choice=6 inlier=53 | RotErr = 0.6538 rad (37.4572 deg) | TransErr = 38.54 mm [FAILS]
+    Alternative Pair with Shard 4 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=12 | RotErr = 2.1227 rad (121.6222 deg) | TransErr = 58.67 mm [FAILS]
+      Candidate choice=2 inlier=32 | RotErr = 2.1921 rad (125.5961 deg) | TransErr = 53.00 mm [FAILS]
+      Candidate choice=3 inlier=20 | RotErr = 1.3605 rad (77.9494 deg) | TransErr = 58.10 mm [FAILS]
+      Candidate choice=4 inlier=24 | RotErr = 0.1774 rad (10.1636 deg) | TransErr = 3.63 mm [PASSES] -> Reward: +20.00
+      Candidate choice=5 inlier=58 | RotErr = 3.0883 rad (176.9476 deg) | TransErr = 36.20 mm [FAILS]
+    Alternative Pair with Shard 5 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=30 | RotErr = 2.5794 rad (147.7872 deg) | TransErr = 60.34 mm [FAILS]
+    Alternative Pair with Shard 8 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=30 | RotErr = 2.3582 rad (135.1155 deg) | TransErr = 67.55 mm [FAILS]
+      Candidate choice=2 inlier=32 | RotErr = 2.5660 rad (147.0212 deg) | TransErr = 93.67 mm [FAILS]
+      Candidate choice=3 inlier=22 | RotErr = 2.5815 rad (147.9085 deg) | TransErr = 15.99 mm [FAILS]
+      Candidate choice=4 inlier=36 | RotErr = 1.6274 rad (93.2420 deg) | TransErr = 36.43 mm [FAILS]
+      Candidate choice=5 inlier=28 | RotErr = 2.0585 rad (117.9431 deg) | TransErr = 36.45 mm [FAILS]
+    Alternative Pair with Shard 10 (ACTIVE IN TREE) [SKIPPED]
+    Alternative Pair with Shard 11 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=30 | RotErr = 2.2402 rad (128.3543 deg) | TransErr = 28.15 mm [FAILS]
+      Candidate choice=2 inlier=30 | RotErr = 0.1513 rad (8.6715 deg) | TransErr = 3.59 mm [PASSES] -> Reward: +20.00
+      Candidate choice=3 inlier=8 | RotErr = 1.9175 rad (109.8648 deg) | TransErr = 25.17 mm [FAILS]
+      Candidate choice=4 inlier=0 | RotErr = 1.7380 rad (99.5778 deg) | TransErr = 57.41 mm [FAILS]
+    Alternative Pair with Shard 6 (NOT ACTIVE IN TREE):
+      [No match candidates found]
+    Alternative Pair with Shard 7 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=32 | RotErr = 1.1159 rad (63.9376 deg) | TransErr = 41.54 mm [FAILS]
+      Candidate choice=2 inlier=66 | RotErr = 1.0764 rad (61.6724 deg) | TransErr = 62.49 mm [FAILS]
+    Alternative Pair with Shard 9 (NOT ACTIVE IN TREE):
+      Candidate choice=1 inlier=22 | RotErr = 0.7570 rad (43.3749 deg) | TransErr = 127.76 mm [FAILS]
+      Candidate choice=2 inlier=45 | RotErr = 0.7377 rad (42.2684 deg) | TransErr = 77.49 mm [FAILS]
+      Candidate choice=3 inlier=47 | RotErr = 1.0529 rad (60.3285 deg) | TransErr = 97.38 mm [FAILS]
+      Candidate choice=4 inlier=22 | RotErr = 0.9490 rad (54.3714 deg) | TransErr = 122.94 mm [FAILS]
+      Candidate choice=5 inlier=40 | RotErr = 1.0509 rad (60.2102 deg) | TransErr = 56.76 mm [FAILS]
+      Candidate choice=6 inlier=38 | RotErr = 0.9137 rad (52.3522 deg) | TransErr = 75.48 mm [FAILS]
+  Total Logged Consensus Reward: 200.00
+=========================================================
+[GA Iter 1] Best fitness: 703.28 (improvement: 1000000703.28)
+GA converged after 2 iteration(s).
+[CountResult DEBUG] Thresholds: rad=0.35, trans=50.00
+[CountResult DEBUG] Edge 1-2 GT=1.00 Pred=0.00 rad_err=2.46 trans_err=563.86 => FAIL
+[CountResult DEBUG] Edge 1-3 GT=1.00 Pred=1.00 rad_err=0.03 trans_err=10.28 => PASS
+[CountResult DEBUG] Edge 1-4 GT=1.00 Pred=1.00 rad_err=1.17 trans_err=327.60 => FAIL
+[CountResult DEBUG] Edge 1-5 GT=1.00 Pred=0.00 rad_err=0.02 trans_err=5.02 => PASS
+[CountResult DEBUG] Edge 1-6 GT=1.00 Pred=0.00 rad_err=1.55 trans_err=535.43 => FAIL
+[CountResult DEBUG] Edge 2-4 GT=1.00 Pred=0.00 rad_err=1.29 trans_err=254.09 => FAIL
+[CountResult DEBUG] Edge 2-6 GT=1.00 Pred=0.00 rad_err=2.29 trans_err=296.17 => FAIL
+[CountResult DEBUG] Edge 2-11 GT=1.00 Pred=0.00 rad_err=1.08 trans_err=271.11 => FAIL
+[CountResult DEBUG] Edge 3-4 GT=1.00 Pred=0.00 rad_err=1.15 trans_err=339.44 => FAIL
+[CountResult DEBUG] Edge 3-5 GT=1.00 Pred=1.00 rad_err=0.04 trans_err=12.42 => PASS
+[CountResult DEBUG] Edge 3-7 GT=1.00 Pred=0.00 rad_err=1.39 trans_err=410.38 => FAIL
+[CountResult DEBUG] Edge 4-9 GT=1.00 Pred=0.00 rad_err=2.19 trans_err=567.65 => FAIL
+[CountResult DEBUG] Edge 4-10 GT=1.00 Pred=0.00 rad_err=1.97 trans_err=528.90 => FAIL
+[CountResult DEBUG] Edge 7-8 GT=1.00 Pred=1.00 rad_err=1.99 trans_err=689.76 => FAIL
+[CountResult DEBUG] Edge 8-10 GT=1.00 Pred=0.00 rad_err=2.51 trans_err=762.30 => FAIL
+[CountResult DEBUG] Edge 9-10 GT=1.00 Pred=0.00 rad_err=0.30 trans_err=121.55 => FAIL
+[CountResult DEBUG] Edge 9-11 GT=1.00 Pred=0.00 rad_err=1.91 trans_err=648.22 => FAIL
+[CountResult DEBUG] Sherd 1 gt_edges=5 matched_edges=2 => MATCHED
+[CountResult DEBUG] Sherd 2 gt_edges=4 matched_edges=0 => MISSED
+[CountResult DEBUG] Sherd 3 gt_edges=4 matched_edges=2 => MATCHED
+[CountResult DEBUG] Sherd 4 gt_edges=5 matched_edges=0 => MISSED
+[CountResult DEBUG] Sherd 5 gt_edges=2 matched_edges=2 => MATCHED
+[CountResult DEBUG] Sherd 6 gt_edges=2 matched_edges=0 => MISSED
+[CountResult DEBUG] Sherd 7 gt_edges=2 matched_edges=0 => MISSED
+[CountResult DEBUG] Sherd 8 gt_edges=2 matched_edges=0 => MISSED
+[CountResult DEBUG] Sherd 9 gt_edges=3 matched_edges=0 => MISSED
+[CountResult DEBUG] Sherd 10 gt_edges=3 matched_edges=0 => MISSED
+[CountResult DEBUG] Sherd 11 gt_edges=2 matched_edges=0 => MISSED
+Sherd accuracy : 3 / 11 (27.27%)
+Edge accuracy : 3 / 17 (17.65%)
+########## Pre-ICP GA Results ##########
+Sherd Accuracy : 3 / 11
+Edge Accuracy  : 3 / 17
+########################################
+#################### Post-GA Global ICP Refinement ####################
+W0803 08:18:21.924432    19 levenberg_marquardt_strategy.cc:114] Linear solver failure. Failed to compute a step: CXSparse Failure : Numeric factorization failed.
+W0803 08:18:21.936949    19 levenberg_marquardt_strategy.cc:114] Linear solver failure. Failed to compute a step: CXSparse Failure : Numeric factorization failed.
+W0803 08:18:21.939491    19 levenberg_marquardt_strategy.cc:114] Linear solver failure. Failed to compute a step: CXSparse Failure : Numeric factorization failed.
+W0803 08:18:21.946859    19 levenberg_marquardt_strategy.cc:114] Linear solver failure. Failed to compute a step: CXSparse Failure : Numeric factorization failed.
+W0803 08:18:21.954094    19 levenberg_marquardt_strategy.cc:114] Linear solver failure. Failed to compute a step: CXSparse Failure : Numeric factorization failed.
+W0803 08:18:21.956594    19 levenberg_marquardt_strategy.cc:114] Linear solver failure. Failed to compute a step: CXSparse Failure : Numeric factorization failed.
+W0803 08:18:21.964439    19 levenberg_marquardt_strategy.cc:114] Linear solver failure. Failed to compute a step: CXSparse Failure : Numeric factorization failed.
+W0803 08:18:21.971942    19 levenberg_marquardt_strategy.cc:114] Linear solver failure. Failed to compute a step: CXSparse Failure : Numeric factorization failed.
+W0803 08:18:21.979245    19 levenberg_marquardt_strategy.cc:114] Linear solver failure. Failed to compute a step: CXSparse Failure : Numeric factorization failed.
+W0803 08:18:21.991930    19 levenberg_marquardt_strategy.cc:114] Linear solver failure. Failed to compute a step: CXSparse Failure : Numeric factorization failed.
+W0803 08:18:21.994465    19 levenberg_marquardt_strategy.cc:114] Linear solver failure. Failed to compute a step: CXSparse Failure : Numeric factorization failed.
+W0803 08:18:22.007066    19 levenberg_marquardt_strategy.cc:114] Linear solver failure. Failed to compute a step: CXSparse Failure : Numeric factorization failed.
+W0803 08:18:22.009569    19 levenberg_marquardt_strategy.cc:114] Linear solver failure. Failed to compute a step: CXSparse Failure : Numeric factorization failed.
+W0803 08:18:22.016955    19 levenberg_marquardt_strategy.cc:114] Linear solver failure. Failed to compute a step: CXSparse Failure : Numeric factorization failed.
+W0803 08:18:22.019491    19 levenberg_marquardt_strategy.cc:114] Linear solver failure. Failed to compute a step: CXSparse Failure : Numeric factorization failed.
+W0803 08:18:22.032383    19 levenberg_marquardt_strategy.cc:114] Linear solver failure. Failed to compute a step: CXSparse Failure : Numeric factorization failed.
+W0803 08:18:22.034983    19 levenberg_marquardt_strategy.cc:114] Linear solver failure. Failed to compute a step: CXSparse Failure : Numeric factorization failed.
+W0803 08:18:22.051988    19 levenberg_marquardt_strategy.cc:114] Linear solver failure. Failed to compute a step: CXSparse Failure : Numeric factorization failed.
+W0803 08:18:22.064561    19 levenberg_marquardt_strategy.cc:114] Linear solver failure. Failed to compute a step: CXSparse Failure : Numeric factorization failed.
+W0803 08:18:22.067128    19 levenberg_marquardt_strategy.cc:114] Linear solver failure. Failed to compute a step: CXSparse Failure : Numeric factorization failed.
+W0803 08:18:22.074966    19 levenberg_marquardt_strategy.cc:114] Linear solver failure. Failed to compute a step: CXSparse Failure : Numeric factorization failed.
+W0803 08:18:22.077473    19 levenberg_marquardt_strategy.cc:114] Linear solver failure. Failed to compute a step: CXSparse Failure : Numeric factorization failed.
+#################### Fine reconstruction is converge ####################
+[CountResult DEBUG] Thresholds: rad=0.35, trans=50.00
+[CountResult DEBUG] Edge 1-2 GT=1.00 Pred=1.00 rad_err=2.40 trans_err=572.03 => FAIL
+[CountResult DEBUG] Edge 1-3 GT=1.00 Pred=1.00 rad_err=0.75 trans_err=204.71 => FAIL
+[CountResult DEBUG] Edge 1-4 GT=1.00 Pred=1.00 rad_err=2.34 trans_err=556.07 => FAIL
+[CountResult DEBUG] Edge 1-5 GT=1.00 Pred=1.00 rad_err=0.24 trans_err=56.13 => FAIL
+[CountResult DEBUG] Edge 1-6 GT=1.00 Pred=0.00 rad_err=3.03 trans_err=1013.60 => FAIL
+[CountResult DEBUG] Edge 2-4 GT=1.00 Pred=1.00 rad_err=0.40 trans_err=129.92 => FAIL
+[CountResult DEBUG] Edge 2-6 GT=1.00 Pred=0.00 rad_err=1.55 trans_err=739.18 => FAIL
+[CountResult DEBUG] Edge 2-11 GT=1.00 Pred=1.00 rad_err=0.53 trans_err=190.14 => FAIL
+[CountResult DEBUG] Edge 3-4 GT=1.00 Pred=1.00 rad_err=3.06 trans_err=542.71 => FAIL
+[CountResult DEBUG] Edge 3-5 GT=1.00 Pred=1.00 rad_err=0.52 trans_err=164.62 => FAIL
+[CountResult DEBUG] Edge 3-7 GT=1.00 Pred=1.00 rad_err=0.23 trans_err=44.79 => PASS
+[CountResult DEBUG] Edge 4-9 GT=1.00 Pred=1.00 rad_err=1.66 trans_err=462.97 => FAIL
+[CountResult DEBUG] Edge 4-10 GT=1.00 Pred=1.00 rad_err=1.65 trans_err=439.62 => FAIL
+[CountResult DEBUG] Edge 7-8 GT=1.00 Pred=1.00 rad_err=2.41 trans_err=657.27 => FAIL
+[CountResult DEBUG] Edge 8-10 GT=1.00 Pred=1.00 rad_err=2.57 trans_err=669.28 => FAIL
+[CountResult DEBUG] Edge 9-10 GT=1.00 Pred=1.00 rad_err=0.08 trans_err=36.37 => PASS
+[CountResult DEBUG] Edge 9-11 GT=1.00 Pred=1.00 rad_err=1.88 trans_err=606.99 => FAIL
+[CountResult DEBUG] Sherd 1 gt_edges=5 matched_edges=0 => MISSED
+[CountResult DEBUG] Sherd 2 gt_edges=4 matched_edges=0 => MISSED
+[CountResult DEBUG] Sherd 3 gt_edges=4 matched_edges=1 => MATCHED
+[CountResult DEBUG] Sherd 4 gt_edges=5 matched_edges=0 => MISSED
+[CountResult DEBUG] Sherd 5 gt_edges=2 matched_edges=0 => MISSED
+[CountResult DEBUG] Sherd 6 gt_edges=2 matched_edges=0 => MISSED
+[CountResult DEBUG] Sherd 7 gt_edges=2 matched_edges=1 => MATCHED
+[CountResult DEBUG] Sherd 8 gt_edges=2 matched_edges=0 => MISSED
+[CountResult DEBUG] Sherd 9 gt_edges=3 matched_edges=1 => MATCHED
+[CountResult DEBUG] Sherd 10 gt_edges=3 matched_edges=1 => MATCHED
+[CountResult DEBUG] Sherd 11 gt_edges=2 matched_edges=0 => MISSED
+Sherd accuracy : 4 / 11 (36.36%)
+Edge accuracy : 1 / 17 (8.82%)
+########## Post-ICP Global Results ##########
+Sherd Accuracy : 4 / 11
+Edge Accuracy  : 1 / 17
+########################################
+#################### Post-GA Incremental ICP Refinement ####################
+[CountResult DEBUG] Thresholds: rad=0.35, trans=50.00
+[CountResult DEBUG] Edge 1-2 GT=1.00 Pred=0.00 rad_err=0.05 trans_err=19.49 => PASS
+[CountResult DEBUG] Edge 1-3 GT=1.00 Pred=1.00 rad_err=0.02 trans_err=10.96 => PASS
+[CountResult DEBUG] Edge 1-4 GT=1.00 Pred=1.00 rad_err=0.96 trans_err=251.23 => FAIL
+[CountResult DEBUG] Edge 1-5 GT=1.00 Pred=0.00 rad_err=2.12 trans_err=533.26 => FAIL
+[CountResult DEBUG] Edge 1-6 GT=1.00 Pred=0.00 rad_err=2.27 trans_err=821.52 => FAIL
+[CountResult DEBUG] Edge 2-4 GT=1.00 Pred=0.00 rad_err=0.92 trans_err=199.04 => FAIL
+[CountResult DEBUG] Edge 2-6 GT=1.00 Pred=0.00 rad_err=2.23 trans_err=772.50 => FAIL
+[CountResult DEBUG] Edge 2-11 GT=1.00 Pred=0.00 rad_err=2.61 trans_err=465.72 => FAIL
+[CountResult DEBUG] Edge 3-4 GT=1.00 Pred=0.00 rad_err=0.98 trans_err=315.89 => FAIL
+[CountResult DEBUG] Edge 3-5 GT=1.00 Pred=1.00 rad_err=2.14 trans_err=558.65 => FAIL
+[CountResult DEBUG] Edge 3-7 GT=1.00 Pred=0.00 rad_err=0.41 trans_err=152.61 => FAIL
+[CountResult DEBUG] Edge 4-9 GT=1.00 Pred=0.00 rad_err=2.41 trans_err=641.38 => FAIL
+[CountResult DEBUG] Edge 4-10 GT=1.00 Pred=0.00 rad_err=2.53 trans_err=661.53 => FAIL
+[CountResult DEBUG] Edge 7-8 GT=1.00 Pred=1.00 rad_err=3.07 trans_err=817.55 => FAIL
+[CountResult DEBUG] Edge 8-10 GT=1.00 Pred=0.00 rad_err=1.28 trans_err=495.58 => FAIL
+[CountResult DEBUG] Edge 9-10 GT=1.00 Pred=0.00 rad_err=0.18 trans_err=73.31 => FAIL
+[CountResult DEBUG] Edge 9-11 GT=1.00 Pred=0.00 rad_err=2.16 trans_err=724.94 => FAIL
+[CountResult DEBUG] Sherd 1 gt_edges=5 matched_edges=2 => MATCHED
+[CountResult DEBUG] Sherd 2 gt_edges=4 matched_edges=1 => MATCHED
+[CountResult DEBUG] Sherd 3 gt_edges=4 matched_edges=1 => MATCHED
+[CountResult DEBUG] Sherd 4 gt_edges=5 matched_edges=0 => MISSED
+[CountResult DEBUG] Sherd 5 gt_edges=2 matched_edges=0 => MISSED
+[CountResult DEBUG] Sherd 6 gt_edges=2 matched_edges=0 => MISSED
+[CountResult DEBUG] Sherd 7 gt_edges=2 matched_edges=0 => MISSED
+[CountResult DEBUG] Sherd 8 gt_edges=2 matched_edges=0 => MISSED
+[CountResult DEBUG] Sherd 9 gt_edges=3 matched_edges=0 => MISSED
+[CountResult DEBUG] Sherd 10 gt_edges=3 matched_edges=0 => MISSED
+[CountResult DEBUG] Sherd 11 gt_edges=2 matched_edges=0 => MISSED
+Sherd accuracy : 3 / 11 (27.27%)
+Edge accuracy : 2 / 17 (11.76%)
+########## Post-ICP Incremental Results ##########
+Sherd Accuracy : 3 / 11
+Edge Accuracy  : 2 / 17
+########################################
+########## Final Refined Results ##########
+Selected Stage      : Post-ICP Global (selected in compare)
+Final Sherd Accuracy : 4 / 11
+Final Edge Accuracy  : 1 / 17
+Total Runtime        : 1272.98 sec
+GA Runtime           : 1266.07 sec
+###########################################
+Showing Refined assembly. Press 'G' to toggle Ground Truth comparison! Press 'Q' to quit.
