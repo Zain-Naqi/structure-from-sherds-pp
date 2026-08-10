@@ -9,6 +9,9 @@ build_local/
 .codex
 results/
 plans/
-result_paper/
 *.pdf
 IEEE-conference-template-062824.log
+POT_*/
+*.log
+result_paper/
+scratch_logs/

@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include <iostream>
 #include "glog/logging.h"
 #include <chrono>
@@ -59,7 +60,6 @@ void keyboardEventOccurred(const pcl::visualization::KeyboardEvent& event, void*
 
 int main(int argc, char** argv)
 {
-
 	//-------------------------------------------------------------------------------------------------------------------//
 	//#################### PCL viewer setting ####################//
 	double calculation_time(0);
@@ -73,7 +73,6 @@ int main(int argc, char** argv)
 
 	enum class PostGaIcpMode {
 		GlobalFine,
-		Incremental,
 		Compare
 	};
 
@@ -84,9 +83,6 @@ int main(int argc, char** argv)
 		if (arg == "--icp-global") {
 			post_icp_mode = PostGaIcpMode::GlobalFine;
 		}
-		else if (arg == "--icp-incremental") {
-			post_icp_mode = PostGaIcpMode::Incremental;
-		}
 		else if (arg == "--icp-compare") {
 			post_icp_mode = PostGaIcpMode::Compare;
 		}
@@ -95,15 +91,12 @@ int main(int argc, char** argv)
 			if (mode == "global") {
 				post_icp_mode = PostGaIcpMode::GlobalFine;
 			}
-			else if (mode == "incremental") {
-				post_icp_mode = PostGaIcpMode::Incremental;
-			}
 			else if (mode == "compare") {
 				post_icp_mode = PostGaIcpMode::Compare;
 			}
 			else {
 				cout << "[WARN] Unknown --icp-mode value: " << mode
-					 << " (expected global|incremental|compare). Using default global." << endl;
+					 << " (expected global|compare). Using default global." << endl;
 			}
 		}
 	}
@@ -112,8 +105,6 @@ int main(int argc, char** argv)
 		switch (mode) {
 		case PostGaIcpMode::GlobalFine:
 			return "global";
-		case PostGaIcpMode::Incremental:
-			return "incremental";
 		case PostGaIcpMode::Compare:
 			return "compare";
 		default:
@@ -122,7 +113,7 @@ int main(int argc, char** argv)
 	};
 
 	cout << "[ICP MODE] " << IcpModeName(post_icp_mode)
-		 << " (flags: --icp-mode=global|incremental|compare)" << endl;
+		 << " (flags: --icp-mode=global|compare)" << endl;
 
 	//------------------------------------------------------------------------------------------------------------------//
 
@@ -404,6 +395,7 @@ int main(int argc, char** argv)
 		// Run GA on current match list, selecting the full assembly size
 		int target_edges = active_shard_count - 1;
 		GeneticAssembler ga_iter(shard, LCS_out, SHARD_NUMBER, target_edges);
+		// ga_iter.RunBeamSearchGT(GT_graph, GT_trans, T_axis);
 		ga_iter.Run(GT_graph, GT_trans, T_axis);
 		T_ga = ga_iter.GetTransforms();
 
@@ -488,12 +480,6 @@ int main(int argc, char** argv)
 	MatrixXd graph_ga_global = graph_ga;
 	bool has_global_result = false;
 
-	int k_sherd_incremental = k_sherd, t_sherd_incremental = t_sherd;
-	int k_edge_incremental = k_edge, t_edge_incremental = t_edge;
-	vector<Trans> T_ga_eval_incremental = T_ga_eval;
-	vector<Trans> T_ga_vis_incremental = T_ga_vis;
-	MatrixXd graph_ga_incremental = graph_ga;
-	bool has_incremental_result = false;
 
 	//------------------------------------------------------------------------------------------------------------------//
 	if (post_icp_mode == PostGaIcpMode::GlobalFine || post_icp_mode == PostGaIcpMode::Compare) {
@@ -536,167 +522,6 @@ int main(int argc, char** argv)
 		PrintStage("Post-ICP Global Results", k_sherd_global, t_sherd_global, k_edge_global, t_edge_global);
 	}
 
-	if (post_icp_mode == PostGaIcpMode::Incremental || post_icp_mode == PostGaIcpMode::Compare) {
-		cout << "#################### Post-GA Incremental ICP Refinement ####################" << endl;
-
-		int root_idx = -1;
-		for (int i = 0; i < SHARD_NUMBER; ++i) {
-			if (shard_on_off[i]) {
-				root_idx = i;
-				break;
-			}
-		}
-
-		if (root_idx >= 0) {
-			RankingSubgraph graph_icp(LCS_original, SHARD_NUMBER);
-			graph_icp.node_[root_idx] = true;
-			graph_icp.root_node_ = root_idx + 1;
-			graph_icp.ResetMatchedIndex(shard_original);
-
-			vector<Geom> shard_icp = shard_original;
-
-			vector<int> placement_order;
-			vector<bool> bfs_placed(SHARD_NUMBER, false);
-			queue<int> bfs_queue;
-			bfs_placed[root_idx] = true;
-			placement_order.push_back(root_idx);
-			bfs_queue.push(root_idx);
-
-			while (!bfs_queue.empty()) {
-				int curr = bfs_queue.front();
-				bfs_queue.pop();
-
-				for (int j = 0; j < SHARD_NUMBER; ++j) {
-					if (bfs_placed[j] || !shard_on_off[j]) {
-						continue;
-					}
-					if (graph_ga(curr, j) > 0 || graph_ga(j, curr) > 0) {
-						bfs_placed[j] = true;
-						placement_order.push_back(j);
-						bfs_queue.push(j);
-					}
-				}
-			}
-
-			for (int pi = 1; pi < static_cast<int>(placement_order.size()); ++pi) {
-				int current = placement_order[pi];
-
-				shard_icp = shard_original;
-
-				for (int k = 0; k < SHARD_NUMBER; ++k) {
-					if (!graph_icp.node_[k]) continue;
-					Matrix3d R_k = Matrix3d::Identity();
-					Vector3d t_k = Vector3d::Zero();
-					graph_icp.T_[k].Output(R_k, t_k);
-					shard_icp[k].Move(R_k, t_k);
-				}
-
-				vector<RankingSubgraph> single_graph_vec;
-				single_graph_vec.push_back(graph_icp);
-				single_graph_vec[0].MakeHierarchyPriorityList(0, single_graph_vec);
-				graph_icp = single_graph_vec[0];
-
-				vector<Chunk> filtered_priority;
-				for (auto& chunk : graph_icp.priority_list_) {
-					bool has_root_edge = false;
-					for (int edge_index : chunk.i_edge) {
-						int sx = graph_icp.sub_graph_[edge_index].shard_x_;
-						int sy = graph_icp.sub_graph_[edge_index].shard_y_;
-						if (sx == (root_idx + 1) || sy == (root_idx + 1)) {
-							has_root_edge = true;
-							break;
-						}
-					}
-					if (has_root_edge) {
-						filtered_priority.push_back(chunk);
-					}
-				}
-
-				if (!filtered_priority.empty()) {
-					graph_icp.priority_list_ = filtered_priority;
-				}
-
-				if (graph_icp.priority_list_.empty()) {
-					graph_icp.node_[current] = true;
-					continue;
-				}
-
-				bool found = false;
-				for (int ci = 0; ci < static_cast<int>(graph_icp.priority_list_.size()); ++ci) {
-					if (graph_icp.priority_list_[ci].node == current + 1) {
-						graph_icp.priority_index_ = ci;
-						found = true;
-						break;
-					}
-				}
-
-				if (!found) {
-					graph_icp.node_[current] = true;
-					continue;
-				}
-
-				vector<TransHistory> history;
-				PrepareGraphBuilding(shard_icp, graph_icp, history, 0);
-
-				RankingSubgraph pregraph_step(SHARD_NUMBER);
-				for (int k = 0; k < SHARD_NUMBER; ++k) {
-					if (k == current) continue;
-					if (graph_icp.node_[k]) {
-						pregraph_step.node_[k] = true;
-					}
-				}
-
-				vector<RankingSubgraph> pregraph_vec = { pregraph_step };
-
-				vector<Matrix3d> R_step(SHARD_NUMBER, Matrix3d::Identity());
-				vector<Vector3d> t_step(SHARD_NUMBER, Vector3d::Zero());
-				int inlier_step = 0;
-				IcpIncGraphAxis(shard_icp,
-					R_step,
-					t_step,
-					graph_icp,
-					pregraph_vec,
-					inlier_step,
-					true,
-					true);
-
-				for (int k = 0; k < SHARD_NUMBER; ++k) {
-					if (!graph_icp.node_[k]) continue;
-					graph_icp.T_[k].Input(R_step[k], t_step[k]);
-				}
-			}
-
-			T_ga_eval_incremental = T_axis;
-			T_ga_vis_incremental = graph_icp.T_;
-			for (int k = 0; k < SHARD_NUMBER; ++k) {
-				if (!shard_on_off[k] || k == root_idx) continue;
-				Matrix3d R_k = Matrix3d::Identity();
-				Vector3d t_k = Vector3d::Zero();
-				graph_icp.T_[k].Output(R_k, t_k);
-				T_ga_eval_incremental[k].Input(R_k, t_k);
-			}
-
-			vector<bool> right_sherd_icp(SHARD_NUMBER, true);
-			for (int k = 0; k < SHARD_NUMBER; ++k) {
-				if (!shard_on_off[k]) right_sherd_icp[k] = false;
-			}
-
-			graph_ga_incremental = graph_ga;
-			tie(k_sherd_incremental, t_sherd_incremental, k_edge_incremental, t_edge_incremental) = CountResult(
-				GT_graph, GT_trans, graph_ga_incremental, T_ga_eval_incremental, right_sherd_icp);
-
-			has_incremental_result = true;
-			PrintStage("Post-ICP Incremental Results",
-				k_sherd_incremental,
-				t_sherd_incremental,
-				k_edge_incremental,
-				t_edge_incremental);
-		}
-		else {
-			cout << "[WARN] Incremental ICP skipped: no active shard found." << endl;
-		}
-	}
-
 	vector<Trans> T_final_vis = T_ga_vis;
 	string final_stage_label = "Pre-ICP GA";
 	int k_sherd_final = k_sherd, t_sherd_final = t_sherd;
@@ -717,14 +542,6 @@ int main(int argc, char** argv)
 		t_edge_final = t_edge_global;
 		T_final_vis = T_ga_vis_global;
 	}
-	else if (post_icp_mode == PostGaIcpMode::Incremental && has_incremental_result) {
-		final_stage_label = "Post-ICP Incremental";
-		k_sherd_final = k_sherd_incremental;
-		t_sherd_final = t_sherd_incremental;
-		k_edge_final = k_edge_incremental;
-		t_edge_final = t_edge_incremental;
-		T_final_vis = T_ga_vis_incremental;
-	}
 	else if (post_icp_mode == PostGaIcpMode::Compare) {
 		bool selected_non_pre = false;
 
@@ -739,23 +556,12 @@ int main(int argc, char** argv)
 			selected_non_pre = true;
 		}
 
-		if (has_incremental_result &&
-			IsResultBetter(k_sherd_incremental, k_edge_incremental, k_sherd_final, k_edge_final)) {
-			final_stage_label = "Post-ICP Incremental (selected in compare)";
-			k_sherd_final = k_sherd_incremental;
-			t_sherd_final = t_sherd_incremental;
-			k_edge_final = k_edge_incremental;
-			t_edge_final = t_edge_incremental;
-			T_final_vis = T_ga_vis_incremental;
-			selected_non_pre = true;
-		}
-
 		if (!selected_non_pre) {
 			final_stage_label = "Pre-ICP GA (selected in compare)";
 		}
 	}
 
-	T_final_vis = T_ga_vis; // FORCE PRE-ICP GA POSES FOR DEBUGGING
+
 
 	// Final result summary for refined assembly
 	sherd_acc = { k_sherd_final, t_sherd_final };

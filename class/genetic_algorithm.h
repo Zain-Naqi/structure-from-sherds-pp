@@ -195,6 +195,197 @@ public:
         }
     }
 
+    void RunBeamSearchGT(const MatrixXd& GT_graph, const vector<Trans>& GT_trans, const vector<Trans>& T_axis)
+    {
+        cout << "#################### STARTING BEAM SEARCH OVER GT TREES ####################" << endl;
+
+        struct GTEdgeInfo {
+            int u;
+            int v;
+            int group_idx;
+            int choice;
+            double weight;
+        };
+
+        vector<GTEdgeInfo> gt_pool;
+
+        for (size_t group_idx = 0; group_idx < pair_groups_.size(); ++group_idx) {
+            const vector<size_t>& group = pair_groups_[group_idx];
+            if (group.empty()) continue;
+
+            const LCSIndex& rep = matches_[group[0]];
+            int gx = rep.shard_x_ - 1;
+            int gy = rep.shard_y_ - 1;
+            int mi = min(gx, gy);
+            int ma = max(gx, gy);
+
+            if (GT_graph(mi, ma) == 0) continue;
+
+            int best_choice = -1;
+            double min_rad_err = 1e9;
+            double min_trans_err = 1e9;
+
+            for (size_t i = 0; i < group.size(); ++i) {
+                const LCSIndex& lcs = matches_[group[i]];
+                int x = lcs.shard_x_ - 1;
+                int y = lcs.shard_y_ - 1;
+
+                Matrix4d T_ax, T_ay_inv, T_gx_inv, T_gy;
+                T_axis[x].Output(T_ax);
+                T_axis[y].InvOut(T_ay_inv);
+                GT_trans[x].InvOut(T_gx_inv);
+                GT_trans[y].Output(T_gy);
+
+                Matrix4d T_gt_wrapped = T_ax * T_gx_inv * T_gy * T_ay_inv;
+                Matrix4d T_candidate = Matrix4d::Identity();
+                lcs.trans_.Output(T_candidate);
+
+                auto calc_err = [](const Matrix4d& T1, const Matrix4d& T2, double& r_err, double& t_err) {
+                    Matrix4d T_diff = T1 * T2.inverse();
+                    Matrix3d R_diff; Vector3d t_diff, w;
+                    for (int r = 0; r < 3; r++) {
+                        R_diff.row(r) << T_diff(r, 0), T_diff(r, 1), T_diff(r, 2);
+                        t_diff[r] = T_diff(r, 3);
+                    }
+                    Matrix3d log_R = R_diff.log();
+                    w << -log_R(1, 2), log_R(0, 2), -log_R(0, 1);
+                    r_err = w.norm();
+                    t_err = t_diff.norm();
+                };
+
+                double r_fwd, t_fwd, r_inv, t_inv;
+                calc_err(T_gt_wrapped, T_candidate, r_fwd, t_fwd);
+                calc_err(T_gt_wrapped, T_candidate.inverse(), r_inv, t_inv);
+
+                double r_best = min(r_fwd, r_inv);
+                double t_best = (r_fwd <= r_inv) ? t_fwd : t_inv;
+
+                if (r_best < min_rad_err) {
+                    min_rad_err = r_best;
+                    min_trans_err = t_best;
+                    best_choice = static_cast<int>(i + 1);
+                }
+            }
+
+            if (best_choice != -1 && min_rad_err < 0.35 && min_trans_err < 50.0) {
+                const LCSIndex& best_lcs = matches_[group[best_choice - 1]];
+                gt_pool.push_back({mi, ma, (int)group_idx, best_choice, ComputeEdgeDensity(best_lcs)});
+            }
+        }
+
+        cout << "Extracted " << gt_pool.size() << " valid GT edges." << endl;
+
+        struct BeamState {
+            Chromosome chrom;
+            vector<int> edges_used;
+        };
+
+        int beam_width = 100;
+        vector<BeamState> beam;
+
+        BeamState init_state;
+        init_state.chrom.genes.resize(pair_groups_.size(), 0);
+        init_state.chrom.root_shard = 0;
+        init_state.chrom.fitness = EvaluateFitness(init_state.chrom);
+        beam.push_back(init_state);
+
+        int n_sherds = num_shards_;
+        int active_shards = 0;
+        for (int i = 0; i < n_sherds; ++i) {
+            if (IsShardValidAndOn(i)) active_shards++;
+        }
+        int target_edges = active_shards - 1;
+
+        for (int step = 0; step < target_edges; ++step) {
+            vector<BeamState> next_beam;
+            set<vector<int>> seen;
+
+            for (const auto& state : beam) {
+                struct DSU {
+                    vector<int> parent;
+                    DSU(int n) {
+                        parent.resize(n);
+                        for(int i=0; i<n; ++i) parent[i] = i;
+                    }
+                    int find(int i) { return (parent[i] == i) ? i : parent[i] = find(parent[i]); }
+                    bool unite(int i, int j) {
+                        int ri = find(i), rj = find(j);
+                        if (ri != rj) { parent[ri] = rj; return true; }
+                        return false;
+                    }
+                };
+                DSU dsu(n_sherds);
+                for (int e_idx : state.edges_used) {
+                    dsu.unite(gt_pool[e_idx].u, gt_pool[e_idx].v);
+                }
+
+                for (size_t i = 0; i < gt_pool.size(); ++i) {
+                    if (dsu.find(gt_pool[i].u) != dsu.find(gt_pool[i].v)) {
+                        BeamState next_state = state;
+                        next_state.edges_used.push_back((int)i);
+                        sort(next_state.edges_used.begin(), next_state.edges_used.end());
+
+                        if (seen.count(next_state.edges_used) == 0) {
+                            seen.insert(next_state.edges_used);
+
+                            next_state.chrom.genes[gt_pool[i].group_idx] = gt_pool[i].choice;
+                            next_state.chrom.fitness = EvaluateFitness(next_state.chrom);
+
+                            next_beam.push_back(next_state);
+                        }
+                    }
+                }
+            }
+
+            sort(next_beam.begin(), next_beam.end(), [](const BeamState& a, const BeamState& b) {
+                return a.chrom.fitness > b.chrom.fitness;
+            });
+
+            if (next_beam.size() > beam_width) {
+                next_beam.resize(beam_width);
+            }
+
+            beam = next_beam;
+            cout << "Beam step " << step + 1 << " / " << target_edges << ": max fitness = ";
+            if (!beam.empty()) cout << beam[0].chrom.fitness;
+            else cout << "EMPTY";
+            cout << ", beam size = " << beam.size() << endl;
+        }
+
+        cout << "#################### BEAM SEARCH COMPLETED ####################" << endl;
+
+        if (!beam.empty()) {
+            cout << "Top 10 GT Spanning Trees:" << endl;
+            int limit = min((int)beam.size(), 10);
+            for (int i = 0; i < limit; ++i) {
+                cout << "Tree " << i + 1 << " Fitness: " << beam[i].chrom.fitness << endl;
+            }
+
+            population_.clear();
+            population_.push_back(beam[0].chrom);
+
+            FitnessBreakdown breakdown;
+            EvaluateFitness(beam[0].chrom, &breakdown);
+
+            cout << "\n==============================================" << endl;
+            cout << "       BEST BEAM SEARCH FITNESS AUDIT         " << endl;
+            cout << "==============================================" << endl;
+            cout << "  Total Fitness Score:         " << breakdown.total_fitness << endl;
+            cout << "  Inlier Reward (+):           " << breakdown.inlier_reward << endl;
+            cout << "  Connectivity Reward (+):     " << breakdown.connectivity_reward << endl;
+            cout << "  Consensus Reward (+):        " << breakdown.consensus_reward << endl;
+            cout << "  Cycle Penalty (-):           " << breakdown.cycle_penalty << endl;
+            cout << "  Overlap Penalty (-):         " << breakdown.overlap_penalty << endl;
+            cout << "  Edge Residual Penalty (-):   " << breakdown.edge_residual_penalty << endl;
+            cout << "  Edge Rot Residual Penalty (-): " << breakdown.edge_rot_residual_penalty << endl;
+            cout << "  Component Penalty (-):       " << breakdown.connectivity_component_penalty << endl;
+            cout << "  Active Pairs (Edges):        " << breakdown.active_pair_count << endl;
+            cout << "==============================================" << endl;
+
+            BuildOutputsFromSelection(beam[0].chrom.genes, beam[0].chrom.root_shard);
+        }
+    }
+
     //-----------------------------------------------------------------------------------------------------------------//
 
     void Run(const MatrixXd& GT_graph, const vector<Trans>& GT_trans, const vector<Trans>& T_axis)
@@ -227,7 +418,7 @@ public:
         int best_seed_generations = 0;
 
         for (int seed_idx = 0; seed_idx < kNumSeeds; ++seed_idx) {
-            std::mt19937::result_type seed = static_cast<std::mt19937::result_type>(43 + seed_idx * 7);
+            std::mt19937::result_type seed = static_cast<std::mt19937::result_type>(42 + seed_idx * 7);
             rng_.seed(seed);
             cout << "[GA] === Seed " << seed_idx + 1 << " / " << kNumSeeds << " (seed=" << seed << ") ===" << endl;
 
@@ -279,18 +470,24 @@ public:
                     return a.fitness > b.fitness;
                 });
                 // --- Pheromone Update (Consensus Feedback) ---
-                for (double& p : group_pheromone_) {
-                    p *= kPheromoneDecay;
+                for (auto& group_phero : allele_pheromone_) {
+                    for (double& p : group_phero) {
+                        p *= kPheromoneDecay;
+                    }
                 }
                 if (!population_.empty()) {
                     FitnessBreakdown best_breakdown;
                     EvaluateFitness(population_.front(), &best_breakdown);
                     sherd_consensus_counts_ = best_breakdown.sherd_consensus_counts;
                     if (!best_breakdown.consensus_group_hits.empty()) {
-                        for (size_t g = 0; g < group_pheromone_.size(); ++g) {
+                        for (size_t g = 0; g < allele_pheromone_.size(); ++g) {
                             if (best_breakdown.consensus_group_hits[g] > 0) {
-                                group_pheromone_[g] += kPheromoneBoost * static_cast<double>(best_breakdown.consensus_group_hits[g]);
-                                group_pheromone_[g] = std::min(group_pheromone_[g], kPheromoneMax);
+                                int active_choice = population_.front().genes[g];
+                                if (active_choice > 0 && active_choice <= allele_pheromone_[g].size()) {
+                                    int local_idx = active_choice - 1;
+                                    allele_pheromone_[g][local_idx] += kPheromoneBoost * static_cast<double>(best_breakdown.consensus_group_hits[g]);
+                                    allele_pheromone_[g][local_idx] = std::min(allele_pheromone_[g][local_idx], kPheromoneMax);
+                                }
                             }
                         }
                     }
@@ -342,10 +539,14 @@ public:
                     LogBestChromosomeBreakdown(generation, population_.front());
                     int p_active = 0;
                     double p_total = 0.0;
-                    for (double p : group_pheromone_) {
-                        if (p > 0.01) { p_active++; p_total += p; }
+                    for (const auto& group_phero : allele_pheromone_) {
+                        bool group_active = false;
+                        for (double p : group_phero) {
+                            if (p > 0.01) { group_active = true; p_total += p; }
+                        }
+                        if (group_active) p_active++;
                     }
-                    cout << "[GA PHEROMONE] Active groups: " << p_active << " / " << group_pheromone_.size()
+                    cout << "[GA PHEROMONE] Active groups: " << p_active << " / " << allele_pheromone_.size()
                          << ", Total Pheromone: " << fixed << setprecision(2) << p_total << endl;
                 }
 
@@ -552,7 +753,10 @@ private:
     {
         population_.clear();
         population_.reserve(kPopulationSize);
-        group_pheromone_.assign(pair_groups_.size(), 0.0);
+        allele_pheromone_.resize(pair_groups_.size());
+        for (size_t g = 0; g < pair_groups_.size(); ++g) {
+            allele_pheromone_[g].assign(pair_groups_[g].size(), 0.0);
+        }
 
         for (int i = 0; i < kPopulationSize; ++i) {
             Chromosome chromosome;
@@ -609,12 +813,14 @@ private:
     // Maximum Spanning Forest (MST) Repair Operator (Lamarckian): Prune active edges
     // that form cycles, prioritizing keeping the highest-density matches (based on inliers and scores).
     // This makes the genotype honest about what the phenotype (assembly) actually uses.
-    inline double ComputeEdgeDensity(const LCSIndex& lcs, int group_idx = -1, bool include_pheromone = true) const {
+    inline double ComputeEdgeDensity(const LCSIndex& lcs, int group_idx = -1, int choice_idx = -1, bool include_pheromone = true) const {
         double score_weight = 1.0 / (1.0 + lcs.score_);
         double base_density = kInlierScale * static_cast<double>(lcs.inliner_) * score_weight;
         double pheromone = 0.0;
-        if (include_pheromone && group_idx >= 0 && group_idx < static_cast<int>(group_pheromone_.size())) {
-            pheromone = group_pheromone_[group_idx];
+        if (include_pheromone && group_idx >= 0 && choice_idx >= 0 && group_idx < static_cast<int>(allele_pheromone_.size())) {
+            if (choice_idx < static_cast<int>(allele_pheromone_[group_idx].size())) {
+                pheromone = allele_pheromone_[group_idx][choice_idx];
+            }
         }
         return base_density + pheromone;
     }
@@ -652,8 +858,8 @@ private:
             int y = lcs.shard_y_ - 1;
             if (!IsShardValidAndOn(x) || !IsShardValidAndOn(y)) continue;
 
-            double base_density = ComputeEdgeDensity(lcs, static_cast<int>(group_idx), false);
-            double pheromone = group_pheromone_[group_idx];
+            double base_density = ComputeEdgeDensity(lcs, static_cast<int>(group_idx), local_idx, false);
+            double pheromone = allele_pheromone_[group_idx][local_idx];
 
             double noise_multiplier = 1.0 + dist(local_rng);
 
@@ -769,7 +975,7 @@ private:
             // Invert score so both terms pull in the same direction
             double selected_density = 0.0;
             if (use_inlier_score) {
-                selected_density = ComputeEdgeDensity(lcs, static_cast<int>(group_idx), false);
+                selected_density = ComputeEdgeDensity(lcs, static_cast<int>(group_idx), local_idx, false);
                 fitness += selected_density;
                 if (breakdown != nullptr) {
                     breakdown->inlier_reward += selected_density;
@@ -1027,8 +1233,8 @@ private:
                         double hit_ratio = ComputeCloudOverlapRatioIndexed(
                             idx1, idx2, comp.T_comp[idx1], comp.T_comp[idx2]);
 
-                        sherd_accumulated_overlap[idx1] += hit_ratio;
-                        sherd_accumulated_overlap[idx2] += hit_ratio;
+                        sherd_accumulated_overlap[idx1] = max(sherd_accumulated_overlap[idx1], hit_ratio);
+                        sherd_accumulated_overlap[idx2] = max(sherd_accumulated_overlap[idx2], hit_ratio);
                     }
                 }
             }
@@ -1061,7 +1267,8 @@ private:
                         if (g_idx < 0) continue;
 
                         const vector<size_t>& group = pair_groups_[g_idx];
-                        for (size_t c_idx : group) {
+                        for (size_t c = 0; c < group.size(); ++c) {
+                            size_t c_idx = group[c];
                             const LCSIndex& lcs = matches_[c_idx];
                             int x = lcs.shard_x_ - 1;
                             int y = lcs.shard_y_ - 1;
@@ -1086,8 +1293,8 @@ private:
 
                             double trace = T_diff(0, 0) + T_diff(1, 1) + T_diff(2, 2);
                             if (trace > 2.0 * kCosConsensusRotThreshold + 1.0) {
-                                 double cand_density = ComputeEdgeDensity(lcs, g_idx, false);
-                                 consensus_reward += (kConsensusWeight * 0.06 * cand_density); // Scaled reward
+                                 double cand_density = ComputeEdgeDensity(lcs, g_idx, static_cast<int>(c), false);
+                                 consensus_reward += kConsensusWeight; // Scaled reward
                                  if (breakdown != nullptr) {
                                      if (!breakdown->sherd_consensus_counts.empty()) {
                                          breakdown->sherd_consensus_counts[idx]++;
@@ -1361,7 +1568,7 @@ private:
                     for (size_t c = 0; c < group.size(); ++c) {
                         size_t match_idx = group[c];
                         const LCSIndex& lcs = matches_[match_idx];
-                        double density = ComputeEdgeDensity(lcs, static_cast<int>(g));
+                        double density = ComputeEdgeDensity(lcs, static_cast<int>(g), static_cast<int>(c));
                         double score = density;
                         if (score > max_score) {
                             max_score = score;
@@ -1563,7 +1770,7 @@ private:
                                 if (choice <= 0) continue;
 
                                 const LCSIndex& lcs_g = matches_[pair_groups_[g][choice - 1]];
-                                double score = ComputeEdgeDensity(lcs_g, g);
+                                double score = ComputeEdgeDensity(lcs_g, g, choice - 1);
                                 if (score < min_score) {
                                     min_score = score;
                                     edge_to_remove = g;
@@ -1676,7 +1883,7 @@ private:
                             for (size_t c = 0; c < group.size(); ++c) {
                                 size_t match_idx = group[c];
                                 const LCSIndex& lcs = matches_[match_idx];
-                                double density = ComputeEdgeDensity(lcs, static_cast<int>(g));
+                                double density = ComputeEdgeDensity(lcs, static_cast<int>(g), static_cast<int>(c));
                                 double score = density;
                                 if (score > max_score) {
                                     max_score = score;
@@ -1759,7 +1966,7 @@ private:
 
                 size_t match_idx = group[c];
                 const LCSIndex& lcs = matches_[match_idx];
-                double density = ComputeEdgeDensity(lcs, g_idx);
+                double density = ComputeEdgeDensity(lcs, g_idx, static_cast<int>(c));
                 double score = density;
                 alt_candidates.push_back({choice_val, score});
             }
@@ -1862,7 +2069,7 @@ private:
                     for (size_t c = 0; c < group.size(); ++c) {
                         size_t match_idx = group[c];
                         const LCSIndex& lcs = matches_[match_idx];
-                        double density = ComputeEdgeDensity(lcs, static_cast<int>(g));
+                        double density = ComputeEdgeDensity(lcs, static_cast<int>(g), static_cast<int>(c));
                         double score = density;
                         if (score > max_score) {
                             max_score = score;
@@ -2183,7 +2390,10 @@ private:
         max_neighbors_cap_ = min(max_neighbors_cap_, max(0, num_shards_ - 1));
 
         group_best_density_.assign(pair_groups_.size(), 0.0);
-        group_pheromone_.assign(pair_groups_.size(), 0.0);
+        allele_pheromone_.resize(pair_groups_.size());
+        for (size_t g = 0; g < pair_groups_.size(); ++g) {
+            allele_pheromone_[g].assign(pair_groups_[g].size(), 0.0);
+        }
         group_rep_x_.assign(pair_groups_.size(), -1);
         group_rep_y_.assign(pair_groups_.size(), -1);
         valid_group_count_ = 0;
@@ -2213,7 +2423,7 @@ private:
             double best_density = 0.0;
             for (size_t local_idx = 0; local_idx < group.size(); ++local_idx) {
                 const LCSIndex& lcs = matches_[group[local_idx]];
-                double density = ComputeEdgeDensity(lcs, static_cast<int>(group_idx));
+                double density = ComputeEdgeDensity(lcs, static_cast<int>(group_idx), static_cast<int>(local_idx));
                 if (density > best_density) {
                     best_density = density;
                 }
@@ -2609,7 +2819,7 @@ private:
 
         const double ratio_ab = static_cast<double>(ab.hits) / static_cast<double>(max(1, ab.query_size));
         const double ratio_ba = static_cast<double>(ba.hits) / static_cast<double>(max(1, ba.query_size));
-        diag.hit_ratio = max(ratio_ab, ratio_ba);
+        diag.hit_ratio = min(ratio_ab, ratio_ba);
         diag.avg_depth = (ab.depth_sum + ba.depth_sum) / static_cast<double>(total_hits);
 
         if (diag.hit_ratio < kOverlapMinHitRatio) {
@@ -2758,7 +2968,7 @@ private:
 
         const double ratio_ab = static_cast<double>(ab.hits) / static_cast<double>(max(1, ab.query_size));
         const double ratio_ba = static_cast<double>(ba.hits) / static_cast<double>(max(1, ba.query_size));
-        diag.hit_ratio = max(ratio_ab, ratio_ba);
+        diag.hit_ratio = min(ratio_ab, ratio_ba);
         diag.avg_depth = (ab.depth_sum + ba.depth_sum) / static_cast<double>(total_hits);
 
         if (diag.hit_ratio < kOverlapMinHitRatio) {
@@ -2937,8 +3147,8 @@ private:
                 if (is_adjacent) continue;
 
                 if (!d.cloud_a_empty && !d.cloud_b_empty && !d.broad_phase_rejected) {
-                    sherd_accumulated_overlap[d.idx_a] += d.hit_ratio;
-                    sherd_accumulated_overlap[d.idx_b] += d.hit_ratio;
+                    sherd_accumulated_overlap[d.idx_a] = max(sherd_accumulated_overlap[d.idx_a], d.hit_ratio);
+                    sherd_accumulated_overlap[d.idx_b] = max(sherd_accumulated_overlap[d.idx_b], d.hit_ratio);
                 }
             }
         }
@@ -3455,7 +3665,7 @@ private:
 
         for (size_t i = 0; i < group.size(); ++i) {
             const LCSIndex& lcs = matches_[group[i]];
-            double density = ComputeEdgeDensity(lcs, static_cast<int>(group_idx));
+            double density = ComputeEdgeDensity(lcs, static_cast<int>(group_idx), static_cast<int>(i));
             double w = std::max(density, 0.0); // Clamp negatives to 0
             weights.push_back(w);
             total_weight += w;
@@ -3637,47 +3847,7 @@ private:
         };
 
         cout << "\n--- SELECTED GT SPANNING TREE EDGES ---" << endl;
-        // for pot f
-        // set_gt_gene(3, 1, 2);
-        // set_gt_gene(6, 1, 1);
-        // set_gt_gene(3, 2, 4);
-        // set_gt_gene(5, 2, 1);
-        // set_gt_gene(4, 5, 1);
 
-        // for pot a
-        // set_gt_gene(2, 1, 5);
-        // set_gt_gene(3, 1, 1);
-        // set_gt_gene(6, 4, 2);
-        // set_gt_gene(8, 1, 2);
-        // set_gt_gene(4, 1, 3);
-        // set_gt_gene(5, 3, 2);
-        // set_gt_gene(7, 6, 2);
-        // set_gt_gene(9, 6, 1);
-
-        // for pot b
-        // set_gt_gene(2, 1, 5);
-        // set_gt_gene(3, 1, 1);
-        // set_gt_gene(5, 1, 1);
-        // set_gt_gene(6, 4, 2);
-        // set_gt_gene(9, 1, 2);
-        // set_gt_gene(8, 2, 1);
-        // set_gt_gene(4, 1, 3);
-        // set_gt_gene(9, 7, 1);
-
-        // for pot c
-        // set_gt_gene(3, 1, 2);
-        // set_gt_gene(3, 2, 11);
-        // set_gt_gene(4, 2, 6);
-
-        // for pot g
-        // set_gt_gene(1, 3, 2);
-        // set_gt_gene(4, 7, 1);
-        // set_gt_gene(1, 4, 1);
-        // set_gt_gene(2, 5, 1);
-        // set_gt_gene(3, 6, 2);
-        // set_gt_gene(5, 7, 2);
-
-        // for pot e
         struct ValidGTEdge {
             int a;
             int b;
@@ -3685,27 +3855,124 @@ private:
             int inliers = 0;
         };
 
+        // pot a
+        // vector<ValidGTEdge> gt_candidates = {
+        //     {2, 1, 1},
+        //     {3, 1, 3},
+        //     {5, 1, 1},
+        //     {6, 1, 1},
+        //     {7, 1, 3},
+        //     {4, 2, 2},
+        //     {8, 2, 2}
+        // };
+
+        // for pot b
+        // vector<ValidGTEdge> gt_candidates = {
+        //     {2, 1, 5},
+        //     {3, 1, 1},
+        //     {5, 1, 1},
+        //     {6, 4, 2},
+        //     {9, 1, 2},
+        //     {8, 2, 1},
+        //     {4, 1, 3},
+        //     {9, 7, 1}
+        // };
+        //
+        // for pot c
+        // vector<ValidGTEdge> gt_candidates = {
+        //     {3, 1, 2},
+        //     {3, 2, 11},
+        //     {4, 2, 6}
+        // };
+        //
+        // for pot f
+        // vector<ValidGTEdge> gt_candidates = {
+        //     {1, 3, 2},
+        //     {3, 6, 2},
+        //     {2, 3, 4},
+        //     {2, 5, 1},
+        //     {4, 5, 1}
+        // };
+        //
+        // // for pot g
+        // vector<ValidGTEdge> gt_candidates = {
+        //     {3, 1, 2},
+        //     {4, 1, 1},
+        //     {7, 4, 1},
+        //     {5, 2, 1},
+        //     {3, 6, 2},
+        //     {5, 7, 2}
+        // };
+
+        // pot e
+        // 2-10
+        // 3-14
+        // 6-12
+        // 9-28
+        // 11-24
+        // 13-22
+        // 15-21
+        // 20-23
+        // 21-31
+        // 24-27
         vector<ValidGTEdge> gt_candidates = {
-            {1, 4, 3}, {1, 6, 1}, {1, 19, 5},
-            {2, 4, 1}, {2, 14, 6}, {2, 21, 1},
-            {3, 17, 5}, {3, 26, 1},
-            {4, 20, 3},
-            {5, 8, 4}, {5, 25, 3},
+            {1, 2, 4},
+            {1, 6, 1},
+            {1, 19, 5},
+            {2, 4, 1},
+            {2, 21, 1},
+            {3, 17, 5},
+            {3, 26, 1},
+            {4, 9, 1},
+            {4, 18, 3},
+            {5, 8, 4},
+            {5, 16, 1},
+            {5, 25, 4},
             {6, 8, 5},
-            {7, 15, 1}, {7, 22, 6},
-            {8, 10, 2},
-            {9, 11, 1},
-            {10, 16, 3}, {10, 29, 1},
+            {6, 14, 1},
+            {7, 22, 6},
+            {10, 29, 1},
             {11, 19, 2},
-            {12, 22, 6}, {12, 29, 1},
-            {13, 25, 1}, {13, 27, 1},
+            {12, 13, 3},
             {14, 30, 1},
-            {17, 18, 1},
-            {18, 21, 2}, {18, 23, 1},
+            {18, 23, 1},
+            {8, 10, 2},
+            {12, 15, 4},
+            {13, 28, 1},
             {23, 24, 1},
+            {5, 22, 3},
             {25, 31, 1},
-            {28, 31, 1}
+            {27, 28, 1},
+            {4, 20, 3},
+            {3, 25, 1},
+            {12, 22, 6},
         };
+        //
+        // pot j
+        // vector<ValidGTEdge> gt_candidates = {
+        //     {1, 3, 8},
+        //     {1, 4, 11},
+        //     {3, 7, 3},
+        //     {5, 7, 2},
+        //     {5, 10, 1},
+        //     {5, 12, 2},
+        //     {2, 4, 3},
+        //     {2, 8, 2},
+        //     {2, 6, 4},
+        //     {6, 11, 1}
+        // };
+        //
+        // pot h
+        // vector<ValidGTEdge> gt_candidates = {
+        //     {1, 3, 9},
+        //     {1, 2, 2},
+        //     {1, 5, 1},
+        //     {3, 7, 3},
+        //     {7, 8, 4},
+        //     {2, 4, 3},
+        //     {4, 9, 8},
+        //     {9, 10, 3}
+        // };
 
         // Fill in actual inlier counts at runtime
         for (auto& edge : gt_candidates) {
@@ -3896,7 +4163,7 @@ private:
 
         const double ratio_ab = static_cast<double>(ab.hits) / static_cast<double>(max(1, ab.query_size));
         const double ratio_ba = static_cast<double>(ba.hits) / static_cast<double>(max(1, ba.query_size));
-        return max(ratio_ab, ratio_ba);
+        return min(ratio_ab, ratio_ba);
     }
 
     // static std::mt19937::result_type CreateSeed()
@@ -3914,7 +4181,7 @@ private:
     static constexpr int kPopulationSize = 1000;
     static constexpr int kMaxGenerations = 100;
     static constexpr int kElitismCount = 10;
-    static constexpr int kNumSeeds = 5;
+    static constexpr int kNumSeeds = 1;
     static constexpr double kBaseMutationRate = 0.15;       // Base mutation rate (allows convergence)
     static constexpr double kHyperMutationRate = 0.40;      // Hyper-mutation rate (escapes local traps)
     static constexpr int kStagnationThreshold = 15;         // Generations without improvement to trigger hyper-mutation
@@ -3928,10 +4195,10 @@ private:
     static constexpr double kConnectivityComponentPenalty = 500.0;
 
     // Overlap constants
-    static constexpr double kOverlapPenalty = 4000.0;
-    static constexpr double kOverlapMinHitRatio = 0.01;
-    static constexpr double kCollisionPointEpsilon = 1.0;   // mm
-    static constexpr double kCollisionEdgeExclusion = 10.0;  // mm
+    static constexpr double kOverlapPenalty = 300.0;
+    static constexpr double kOverlapMinHitRatio = 0.02;
+    static constexpr double kCollisionPointEpsilon = 2.5;   // mm
+    static constexpr double kCollisionEdgeExclusion = 4.0;  // mm
     static constexpr double kCollisionVoxelSize = 3.0;      // mm
 
     // Consensus Support parameters
@@ -3940,7 +4207,7 @@ private:
     static constexpr double kConsensusWeight = 20.0;         // Flat reward per supporting match
 // static constexpr double kProxyWeight = 4.0;              // Heuristic weight multiplier for proxy predictions
     static constexpr double kConsensusRotThreshold = 0.22;   // ~12.6 degrees rotation error limit
-    static constexpr double kConsensusTransThreshold = 8.0; // 8.0 mm translation error limit
+    static constexpr double kConsensusTransThreshold = 22.0; // 8.0 mm translation error limit
 
     // Pheromone feedback parameters
     static constexpr double kPheromoneBoost = 2.0;      // Pheromone added per consensus hit
@@ -4067,7 +4334,7 @@ private:
     int valid_shard_count_ = 0;
     int valid_group_count_ = 0;
     vector<int> sherd_consensus_counts_; // Per-sherd consensus match count from best individual
-    vector<double> group_pheromone_;     // Per pair-group pheromone score (consensus feedback)
+    vector<vector<double>> allele_pheromone_;     // Per pair-group pheromone score (consensus feedback)
 // vector<int> local_consensus_score_; // Precomputed triangle consensus count for each candidate match
     double current_mutation_rate_ = kBaseMutationRate;
 
@@ -4076,7 +4343,7 @@ private:
     int max_edges_ = -1;
 
     // std::mt19937::result_type rng_seed_ = CreateSeed();
-    std::mt19937::result_type rng_seed_ = 43;
+    std::mt19937::result_type rng_seed_ = 42;
     mutable std::mt19937 rng_{rng_seed_};
 };
 
