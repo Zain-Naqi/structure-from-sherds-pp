@@ -26,59 +26,59 @@ Karachi, Pakistan \\
 \maketitle
 
 \begin{abstract}
-The computational reassembly of broken archaeological pottery is a combinatorial challenge due to the vast search space and the prevalence of false positive matches. We present SfS-GA, a genetic algorithm system for 3D pottery reassembly, targeting the reconstruction of individual axially symmetric pots from their sherds. Building on the Structure-from-Sherds++ (SfS++) pipeline, we replace its incremental beam search with a population-based evolutionary search. SfS-GA uses an integer chromosome representation over precomputed pairwise match candidates, specialized crossover and mutation operators, and a multi-component fitness function incorporating geometric consistency, connectivity, and voxel-based collision detection. Evaluated on the SfS++ benchmark dataset, SfS-GA achieves perfect 100\% reconstruction accuracy on datasets with manageable combinatorial spaces (Pots A, B, C, F, and G) in a matter of minutes. However, on massively fractured and highly ambiguous datasets, runtime increases non-linearly, with the search challenged by local geometric optima and bounded by the recall of upstream pairwise matching. We provide critical insights into why the GA struggles on these complex datasets, exposing the bottlenecks of current feature-extraction pipelines. Ultimately, our findings highlight the strong potential of evolutionary algorithms to serve as a robust, globally-aware optimization framework for the automated restoration of cultural heritage artifacts.
+Computational reassembly of broken archaeological pottery is a combinatorial challenge because of the vast search space and the prevalence of false-positive matches. We present SfS-GA, a genetic algorithm system for 3D pottery reassembly that reconstructs individual axially symmetric pots from their sherds. Building on the Structure-from-Sherds++ (SfS++) pipeline, we replace its incremental beam search with a population-based evolutionary search. SfS-GA uses an integer chromosome representation over precomputed pairwise match candidates, specialised crossover and mutation operators, and a multi-component fitness function incorporating geometrical coherence, connectivity, and voxel-based collision detection. Evaluated on the SfS++ benchmark dataset, SfS-GA achieves perfect 100\% reconstruction accuracy on datasets with manageable combinatorial spaces (Pots A, B, C, F, and G) in a matter of minutes. However, on massively fractured and highly ambiguous datasets, runtime increases non-linearly, with the search challenged by local geometric optima and bounded by the recall of upstream pairwise matching. We present key insights into why the GA struggles on these pots, exposing bottlenecks in current feature-extraction pipelines. Ultimately, our findings show the strong potential of evolutionary algorithms as an effective, globally aware optimisation framework for the automated restoration of cultural heritage artefacts.
 \end{abstract}
 
 \begin{IEEEkeywords}
-genetic algorithm, pottery reassembly, evolutionary computation, 3D reconstruction, archaeological fragment assembly, fitness function design, combinatorial optimization
+genetic algorithm, pottery reassembly, evolutionary computation, 3D reconstruction, archaeological fragment assembly, fitness function design, combinatorial optimisation
 \end{IEEEkeywords}
 
 \section{Introduction}
-The reassembly of broken pottery recovered from archaeological sites remains a longstanding challenge in archaeology. Studying these artifacts is essential for understanding the societies that once inhabited these sites. However, even skilled archaeologists and restoration experts with knowledge of historical context and geometric structure face a tedious and time-consuming process, often requiring days to reconstruct a single pot \cite{b1}.
+Reassembling broken pottery recovered from archaeological sites is a longstanding challenge. Studying these artefacts is important to understand the societies that once inhabited these sites. However, even skilled archaeologists and restoration experts with knowledge of archaeological context and geometrical structure face a tedious, time-consuming process that often takes days to reconstruct a single pot \cite{b1}.
 
-This raises the need for computer-driven methods that can solve this problem more efficiently. By nature, this is a combinatorial problem: even a single pot broken into 10 pieces can have 3,628,800 possible arrangements, not accounting for the rotational and translational degrees of freedom of each fragment. Over the past few years, significant research has been dedicated to this task, one branch of which focuses on axially symmetric pottery \cite{b2}.
+This raises the need for computer-driven methods that can solve this problem more efficiently. By nature, this is a combinatorial problem: even a single pot broken into 10 pieces can have 3,628,800 possible arrangements, not accounting for the rotational and translational degrees of freedom of every shard. Over the past few years, researchers have devoted considerable effort to this task, including a branch focused on axially symmetric pottery \cite{b2}.
 
-Existing approaches to this problem range from geometric feature matching to deep learning and parallel search methods, each with limitations in scalability, data requirements, or computational cost \cite{b1}. Among the most successful recent methods is SfS++ \cite{b2}, which extracts axis-based geometric features and breakline descriptors from each sherd, performs pairwise matching using the Longest Common Subsequence (LCS) algorithm, and then assembles the pot incrementally using a multi-graph beam search technique called BAISER (Base-Agnostic Incremental ShErd Registration). This framework achieves state-of-the-art results on real pottery datasets, including the task of simultaneously reconstructing multiple pots from mixed fragment collections.
+Present methods range from geometric feature matching to deep learning and parallel search methods, each with limitations concerning scalability, data requirements, or computational cost \cite{b1}. Among the most successful recent methods is SfS++ \cite{b2}, which extracts axis-based geometric features and breakline descriptors from each sherd, performs pairwise matching using the Longest Common Subsequence (LCS) algorithm, and then assembles the pot incrementally using a multi-graph beam search technique called BAISER (Base-Agnostic Incremental ShErd Registration). This system obtains state-of-the-art results on real pottery datasets, including simultaneously reconstructing multiple pots from mixed fragment collections.
 
-Despite the breadth of these approaches, the application of evolutionary algorithms, which have shown tremendous success in massive 2D puzzle solvers, remains highly underexplored for 3D pottery. While isolated efforts have introduced genetic algorithms to 3D artifact restoration \cite{b17}, they rely on matching 2D image projections against known reference images, an approach that cannot scale to the blind geometric reassembly of unknown pottery. Consequently, applying population-based global optimization directly to 3D geometric fracture constraints is a largely open domain.
+Despite the breadth of these approaches, the application of evolutionary algorithms, which have shown tremendous success in massive 2D puzzle solvers, remains highly underexplored for 3D pottery. While isolated efforts have introduced genetic algorithms to 3D artefact restoration \cite{b17}, they rely on matching 2D image projections against known reference images, an approach that cannot scale to the blind geometric reassembly of unknown pottery. Consequently, applying population-based global optimisation directly to 3D geometric fracture constraints remains largely open.
 
-In this paper, we focus on reconstructing individual axially symmetric pots where all sherds belong to the same pottery.\footnote{Source code and evaluation pipeline are available at: \hreflink{https://github.com/TahaZahid05/sfs-ga}{\url{https://github.com/TahaZahid05/sfs-ga}}} We build on the SfS++ pipeline, preserving its feature extraction and pairwise matching stages, and replace the BAISER beam search with our proposed evolutionary system, SfS-GA. Our primary objective is to evaluate whether population-based evolutionary search can navigate the combinatorial ambiguity of 3D reassembly more effectively than greedy search methods. By benchmarking SfS-GA directly against SfS++, we analyze its comparative reconstruction accuracy and computational cost to determine the viability of evolutionary algorithms in this domain.
+In this paper, we focus on reconstructing individual axially symmetric pots where all sherds belong to the same pottery.\footnote{Source code and evaluation pipeline are available at: \hreflink{https://github.com/TahaZahid05/sfs-ga}{\url{https://github.com/TahaZahid05/sfs-ga}}} We build on the SfS++ pipeline, keeping its feature extraction as well as pairwise matching stages, and replace the BAISER beam search with our proposed evolutionary system, SfS-GA. Our primary objective is to evaluate whether population-based evolutionary search can navigate the combinatorial ambiguity of 3D reassembly more effectively than greedy search methods. By benchmarking SfS-GA directly against SfS++, we compare reconstruction accuracy and computational cost to assess the viability of evolutionary algorithms in this domain.
 
-The rest of this paper is organized as follows: Section II surveys related work in geometric matching, deep learning, parallel search, and genetic algorithms for fragment reassembly. Section III details our proposed GA methodology, including chromosome encoding, repair mechanisms, and fitness function components. Section IV describes the experimental setup and evaluation metrics. Section V presents our reconstruction results alongside a detailed discussion of convergence dynamics and limitations. Finally, Section VI concludes the paper.
+The rest of this paper is organised as follows: Section II surveys related work concerning geometric matching, deep learning, parallel search, and genetic algorithms for fragment reassembly. Section III details our proposed GA methodology, including chromosome encoding, repair mechanisms, and fitness function components. Section IV describes the experimental setup and evaluation metrics. Section V presents our reconstruction results and discusses convergence dynamics along with limitations. Finally, Section VI concludes the paper.
 
 \section{Literature Review}
 \subsection{Geometric Feature Matching Approaches}
-Early computational pipelines for 3D reassembly relied heavily on geometric feature matching, extracting distinct curvature and roughness descriptors from fracture surfaces to guide pairwise alignment \cite{b4}, \cite{b5}. While these classical methods proved highly effective for assembling generic broken solids with rich, irregular break topologies, they struggle significantly in the archaeological domain. Ceramic pottery typically shatters into fragments with extremely thin and feature-sparse fracture surfaces. When geometric methods rely purely on matching these ambiguous boundaries \cite{b6}, \cite{b7}, they frequently generate a massive number of indistinguishable false-positive matches, causing sequential assemblies to fail or propagate errors. Consequently, researchers have noted that scalable, globally optimal multi-fragment assembly for symmetric objects remains a critical open challenge \cite{b8}.
+Initial computational pipelines for 3D reassembly relied heavily on geometric feature matching, extracting distinct curvature and roughness descriptors from fractured surfaces to guide pairwise alignment \cite{b4}, \cite{b5}. While these classical methods proved highly effective for assembling generic broken solids with rich, irregular break topologies, they struggle significantly in the archaeological domain. Ceramic pottery typically shatters into fragments with extremely thin and feature-sparse fractured surfaces. When geometrical methods rely solely on matching these ambiguous boundaries \cite{b6}, \cite{b7}, they often generate many indistinguishable false-positive matches, causing sequential assemblies to fail or propagate errors. Consequently, researchers have noted that scalable, globally optimal multi-fragment assembly for symmetric objects is still a critical open challenge \cite{b8}.
 
 \subsection{Data-Driven and Deep Learning Approaches}
-Recent advancements have leveraged deep learning to automate feature extraction and global alignment. Models such as PotNet \cite{b9} use 1D convolutional networks to predict piece placement, while end-to-end architectures like Jigsaw \cite{b13}, FRASIER \cite{b14}, and PuzzleFusion++ \cite{b15} jointly learn segmentation, feature matching, and alignment using attention mechanisms, transformers, and diffusion models. While these approaches achieve impressive reconstruction accuracy on synthetic datasets like \textit{Breaking Bad} \cite{b18}, they exhibit severe limitations when applied to real-world archaeological pottery. Real ceramic sherds lack the distinctive, bulky fracture topologies found in synthetic objects, rendering deep features unreliable and making data-driven models highly susceptible to false-positive matches and poor generalization.
+Recent advancements have leveraged deep learning to automate feature extraction and global alignment. Models such as PotNet \cite{b9} use 1D convolutional networks to predict piece placement, while end-to-end architectures like Jigsaw \cite{b13}, FRASIER \cite{b14}, and PuzzleFusion++ \cite{b15} jointly learn segmentation, feature matching, and alignment using attention mechanisms, transformers, and diffusion models. While these approaches achieve impressive reconstruction accuracy on synthetic datasets like \textit{Breaking Bad} \cite{b18}, they show severe limitations when evaluated on real-world archaeological pottery. Real ceramic sherds lack the distinctive, bulky fracture topologies found in synthetic objects, rendering deep features unreliable and making data-driven models highly susceptible to false-positive matches and poor generalisation.
 
 \subsection{Parallel Search Approaches}
-To address the challenges of feature-sparse pottery, recent methods have turned to global geometric priors, specifically the axis of symmetry, coupled with parallel search strategies. Hong et al. introduced Structure-from-Sherds (SfS) \cite{b16}, which relies on identifying a base fragment to guide incremental reconstruction. This was improved upon by SfS++ \cite{b2}, which utilizes a base-agnostic multi-graph beam search (BAISER) to explore multiple assembly paths simultaneously. While SfS++ represents the current state-of-the-art for real axially symmetric pottery, its beam search strategy faces scalability challenges as fragment counts increase. For highly fragmented pots, distinguishing between true and false configurations becomes extremely difficult in the early stages of assembly. To overcome this ambiguity, SfS++ must utilize very broad search branches, creating a severe trade-off between accuracy and exponential computational runtime. Consequently, it struggles to maintain flawless performance on larger pots.
+To address the challenges of feature-sparse pottery, recent methods have turned to global geometric priors, specifically the axis of symmetry, coupled with parallel search strategies. Hong et al. introduced Structure-from-Sherds (SfS) \cite{b16}, which relies on identifying a base fragment to guide incremental reconstruction. SfS++ \cite{b2} improved on this by using a base-agnostic multi-graph beam search (BAISER) to explore multiple assembly paths simultaneously. While SfS++ represents the current state-of-the-art for real axially symmetric pottery, its beam search strategy faces scaling challenges as fragment counts increase. For highly fragmented pots, distinguishing between true and false configurations becomes extremely difficult in the early stages of assembly. To overcome this, SfS++ must utilise very broad search branches, creating a severe trade-off between accuracy and exponential computational runtime. Consequently, it struggles to maintain flawless performance on larger pots.
 
 \subsection{Genetic Algorithms for Reconstruction}
-Genetic algorithms (GAs) have been highly successful in 2D reconstruction tasks, demonstrating their ability to navigate massive combinatorial spaces without committing to early greedy decisions. Sholomon et al. \cite{b10}, \cite{b11} introduced GA-based solvers for extremely large jigsaw puzzles, effectively handling unknown dimensions and piece orientations by using specialized crossover procedures that merge correct sub-assemblies. Expanding to archaeological contexts, Sizikova and Funkhouser \cite{b12} applied GAs to the global assembly of fragmented 2D wall paintings suffering from severe erosion, utilizing fitness functions that reward dense match connections. These works highlight the scalability and robustness of GAs on ambiguous 2D problems.
+Genetic algorithms (GAs) have been highly successful in 2D reconstruction tasks, showing they can navigate massive combinatorial spaces without committing to early greedy decisions. Sholomon et al. \cite{b10}, \cite{b11} introduced GA-based solvers for extremely large jigsaw puzzles, effectively handling unknown dimensions and piece orientations by using specialised crossover procedures that merge correct sub-assemblies. Expanding to archaeological contexts, Sizikova and Funkhouser \cite{b12} applied GAs to the global assembly of fragmented 2D wall paintings suffering from severe erosion, utilising fitness functions that reward dense match connections. These works highlight the scalability and strength of GAs on ambiguous 2D problems.
 
-To our knowledge, the direct application of genetic algorithms to 3D pottery reassembly remains a largely unexplored direction. While some efforts have introduced evolutionary concepts to 3D artifact restoration, their underlying logic differs entirely from geometric reassembly. For example, Kashihara \cite{b17} proposed a GA that optimizes 3D fragment positions by projecting them into 2D and comparing their silhouettes and ORB image features against known "correct" reference images. Because this approach fundamentally requires prior knowledge of the target shape's 2D projections to evaluate fitness, it cannot scale to the blind reassembly of unknown 3D pottery. Therefore, developing a population-based evolutionary search that operates directly on 3D geometric fracture constraints is an open challenge that we address in this paper.
+To our knowledge, the direct application of genetic algorithms to 3D pottery reassembly remains largely unexplored. While some efforts have introduced evolutionary concepts to 3D artefact restoration, their underlying logic differs entirely from geometric reassembly. For example, Kashihara \cite{b17} proposed a GA that optimises 3D fragment positions by projecting them into 2D and comparing their silhouettes and ORB image features against known “correct” reference images. Because this approach fundamentally requires prior knowledge of the target shape’s 2D projections to evaluate fitness, it cannot scale to the blind reassembly of unknown 3D pottery. Therefore, developing a population-based evolutionary search that operates directly on 3D geometric fracture constraints remains an open challenge, which we tackle in this paper.
 
 \section{Methodology}
 \subsection{Problem Formulation}
 The problem consists of two subproblems: (i) geometric feature extraction and matching of sherds, and (ii) the reassembly process itself \cite{b1}.
 
-Let $\mathcal{S} = \{s_1, s_2, \ldots, s_n\}$ denote the set of $n$ pottery sherds, each represented as a 3D point cloud with associated surface normals. The goal is to find a set of rigid transforms $\{T_1, T_2, \ldots, T_n\}$ and a connection graph $G$ over $\mathcal{S}$ such that the assembled configuration maximally reconstructs the original vessel. Each edge $(i, j)$ in $G$ represents a physical contact between sherds $s_i$ and $s_j$, with an associated relative transform $T_{ij}$.
+Let $\mathcal{S} = \{s_1, s_2, \ldots, s_n\}$ denote the set of $n$ pottery sherds, each represented as a 3D point cloud with associated surface normals. The goal is to find a set of rigid transforms $\{T_1, T_2, \ldots, T_n\}$ and a connection graph $G$ over $\mathcal{S}$ such that the assembled configuration maximally reconstructs the true vessel. Each edge $(i, j)$ in $G$ represents a physical contact between sherds $s_i$ and $s_j$, with an associated relative transform $T_{ij}$.
 
-Following SfS++ \cite{b2}, we restrict our focus to axially symmetric pottery, where rotational symmetry about the vertical axis substantially constrains the search space.
+Following SfS++ \cite{b2}, we restrict our focus to axially symmetric pottery, where the rotational symmetry about the vertical axis substantially constrains the search space.
 
 \subsection{Pipeline Overview}
-Our system utilizes the geometric preprocessing stages of SfS++ and applies a Genetic Algorithm (GA) for the global assembly. The full pipeline is:
+Our system utilises the geometric preprocessing stages of SfS++ and applies a Genetic Algorithm (GA) for the global assembly. The full pipeline is:
 \begin{enumerate}
-    \item \textbf{Feature extraction:} Axis estimation, breakline extraction, and rim segmentation per sherd.
-    \item \textbf{Pairwise matching:} LCS-based matching produces a candidate pool $\mathcal{M}$ of pairwise match hypotheses.
-    \item \textbf{Pairwise pruning:} Geometric consistency filtering reduces $|\mathcal{M}|$ to a tractable candidate set.
-    \item \textbf{Pair group construction:} Candidates in $\mathcal{M}$ are grouped by shard pair, forming $\mathcal{G} = \{G_1, G_2, \ldots, G_m\}$ where each $G_k$ contains all match hypotheses between a specific pair of sherds.
-    \item \textbf{GA search:} A population-based search over chromosomes encoding which pair groups to accept and which match hypothesis to select in the accepted pair groups.
+\item \textbf{Feature extraction:} Axis estimation, breakline extraction, and rim segmentation per sherd.
+\item \textbf{Pairwise matching:} LCS-based matching produces a candidate pool $\mathcal{M}$ of pairwise match hypotheses.
+\item \textbf{Pairwise pruning:} Geometrical consistency filtering reduces $|\mathcal{M}|$ to a tractable candidate set.
+\item \textbf{Pair group construction:} Candidates in $\mathcal{M}$ are grouped by shard pair, forming $\mathcal{G} = \{G_1, G_2, \ldots, G_m\}$ where each $G_k$ contains all match hypotheses between a specific pair of shards.
+\item \textbf{GA search:} A population-based search over chromosomes encoding which pair groups to accept and which match hypothesis to select in the accepted pair groups.
 \end{enumerate}
-In our approach, the geometric feature extraction and pairwise candidate generation are entirely handled by the SfS++ system.
+In our approach, the SfS++ system handles geometric feature extraction and pairwise candidate generation.
 
 \subsection{Chromosome Representation}
 A chromosome $\mathbf{c}$ is an integer vector of length $m = |\mathcal{G}|$, one gene per pair group. Gene $c_k \in \{0, 1, \ldots, |G_k|\}$ encodes the match selection decision for pair group $G_k$:
@@ -91,7 +91,7 @@ j & \text{accept the } j\text{-th match hypothesis in } G_k
 \end{equation}
 
 \subsection{Population Initialization}
-Each chromosome is initialized into a highly dense state. For every available pair group $G_k$ that contains candidate matches, the algorithm actively assigns an initial candidate $j \ge 1$, effectively turning on every possible edge in the connection graph.
+Each chromosome is initialised into a highly dense state. For every available pair group $G_k$ that contains candidate matches, the algorithm actively assigns an initial candidate $j \ge 1$, effectively turning on every possible edge in the connection graph.
 
 To select these initial candidates, they are assigned a density score:
 \begin{equation}
@@ -99,16 +99,16 @@ To select these initial candidates, they are assigned a density score:
 \end{equation}
 where $\text{inlier}(j)$ represents the number of breakline correspondences falling within a distance threshold during registration, and $\text{score}(j)$ is the LCS dissimilarity metric.
 
-We employ a weight-based roulette wheel selection mechanism to sample the candidates. The probability of selecting candidate $j$ in group $G_k$ is strictly proportional to its effective density score, which is augmented by a dynamic pheromone level $\tau_k$ maintained across generations:
+We employ a weight-based roulette wheel selection procedure to sample the candidates. The probability of selecting candidate $j$ in group $G_k$ is strictly proportional to its density score, which is augmented by a dynamic pheromone level $\tau_k$ maintained over generations:
 \begin{equation}
-P(\text{select } j) = \frac{\text{density}(j) + \tau_k}{\sum_{j' \in G_k} (\text{density}(j') + \tau_k)}
+P(\text{select } j) = \frac{\text{density}(j) + \tau_k}{\sum_{j’ \in G_k} (\text{density}(j’) + \tau_k)}
 \end{equation}
-Pair groups that successfully form structurally validated consensus loops during evaluation receive a pheromone boost, while unused or conflicting groups decay. This policy ensures the initial dense graph and subsequent mutations prioritize geometrically reliable and globally consistent match hypotheses.
+Pair groups that successfully form structurally validated consensus loops during evaluation receive a pheromone boost, while unused or conflicting groups decay. This policy ensures the initial dense graph and subsequent mutations prioritise geometrically reliable, globally consistent match hypotheses.
 
 \subsection{Chromosome Repair}
-The initialization produces densely connected graphs filled with physical cycles. However, to reconstruct a single pot composed of $N$ sherds, a valid assembly only requires $N-1$ active edges forming a tree.
+The initialisation produces densely connected graphs filled with physical cycles. However, to reconstruct a single pot composed of $N$ sherds, a valid assembly only requires $N-1$ active edges forming a tree.
 
-We resolve this by applying a chromosome repair function prior to fitness evaluation. The repair algorithm evaluates the massive pool of active edges generated by the chromosome, sorts them by their geometric density scores, and applies Kruskal's algorithm via a Disjoint Set Union (DSU). This process prunes the active edges down to exactly the best $N-1$ pairs, forcing all remaining genes to $0$. As a result, the repaired chromosome always represents a valid maximum spanning tree.
+We tackle this by applying a chromosome repair function before fitness evaluation. The repair algorithm assesses the chromosome's active edges, sorts them by geometric density, and runs Kruskal’s algorithm using a Disjoint Set Union (DSU). This process prunes the active edges down to exactly the best $N-1$ pairs, forcing all remaining genes to $0$. As a result, the repaired chromosome always represents a valid maximum spanning tree.
 
 \subsection{Fitness Function}
 The fitness function $F(\mathbf{c})$ evaluates the geometric quality of the assembly encoded by the repaired chromosome $\mathbf{c}$. The function aggregates four primary components to compute the total fitness:
@@ -117,7 +117,7 @@ F(\mathbf{c}) = F_{\text{inlier}} + F_{\text{consensus}} - F_{\text{overlap}} - 
 \end{equation}
 
 \subsubsection{Inlier Reward ($F_{\text{inlier}}$)}
-For each active match $c_k > 0$, the algorithm computes an inlier reward equal to the density metric of the selected candidate. This serves as the foundational geometric pull of the fitness function:
+For each active match $c_k > 0$, the algorithm computes an inlier reward equal to the density metric of the selected candidate. This acts as the foundational geometric pull of the fitness function:
 \begin{equation}
 F_{\text{inlier}} = \sum_{k \mid c_k > 0} \text{density}(c_k)
 \end{equation}
@@ -129,10 +129,10 @@ To verify this agreement, we compute the relative difference $\Delta T = T_{\tex
 \begin{equation}
 F_{\text{consensus}} = \lambda_{\text{cons}} \sum_{(i,j) \notin \text{active}} \mathbb{I}(\text{consensus\_match}(i, j))
 \end{equation}
-This rewards assemblies that are mutually supported by multiple unused candidate matches, effectively validating the configuration through implicit loop closures.
+This rewards assemblies that are mutually supported by multiple unused candidate matches, effectively supporting the configuration through implicit loop closures.
 
 \subsubsection{Overlap Penalty ($F_{\text{overlap}}$)}
-To penalize physically implausible interpenetration, we project each shard into the assembled global space. We construct voxel-downsampled collision clouds (using a $3.0$ mm grid resolution) for each shard, excluding points within a narrow margin of the breakline edges to avoid penalizing valid contacts. For any pair of non-adjacent sherds $(i, j)$ in the assembly, we use kd-tree nearest-neighbor queries to compute a hit ratio:
+To penalise physically implausible interpenetration, we project every shard into the assembled global space. We construct voxel-downsampled collision clouds (using a $3.0$ mm grid resolution) for every shard, excluding points within a narrow margin of the breakline edges to avoid penalising valid contacts. For any pair of non-adjacent sherds $(i, j)$ in the assembly, we use kd-tree nearest-neighbour queries to compute a hit ratio:
 \begin{equation}
 h_{ij} = \frac{|\{p \in \mathcal{P}_i \mid \text{dist}(p, \mathcal{P}_j) < \epsilon_{\text{coll}}\}|}{|\mathcal{P}_i|}
 \end{equation}
@@ -147,9 +147,8 @@ F_{\text{overlap}} = \lambda_{\text{overlap}} \sum_{i \mid \max_j h_{ij} \ge h_{
 \label{fig_dataset}
 \end{figure*}
 
-
 \subsubsection{Component Penalty ($F_{\text{comp}}$)}
-Because the objective is the reconstruction of a single vessel, the desired assembly is a single connected component. We apply a heavy penalty $\lambda_{\text{comp}} = 500.0$ for every disconnected sub-component $C$ above the target of 1:
+Because the objective is to reconstruct a single vessel, the desired assembly is a single connected component. We apply a heavy penalty $\lambda_{\text{comp}} = 500.0$ for every disconnected sub-component $C$ above the target of 1:
 \begin{equation}
 F_{\text{comp}} = \lambda_{\text{comp}} \cdot \max(0, |C| - 1)
 \end{equation}
@@ -157,42 +156,41 @@ This strongly drives the genetic algorithm toward a completely connected vessel.
 
 \subsection{Genetic Operators}
 \subsubsection{Selection}
-Tournament selection is used with a tournament size of 2 to provide low selection pressure, promoting sustained genetic diversity across generations.
+We use tournament selection with a tournament size of 2 to provide low selection pressure and maintain sustained genetic diversity throughout generations.
 
 \subsubsection{Crossover}
-We employ a Breadth-First Search (BFS)-Partition Crossover operator. To generate a child chromosome, the operator performs a BFS traversal over the active connection graph of the first parent, starting from a random shard. It inherits active match connections along the BFS tree until exactly half of the target edges are filled. The remaining edges required to form a complete spanning tree are then inherited directly from the second parent's active connections. This ensures that the child inherits contiguous, topologically connected sub-assemblies from the parents.
+We employ a Breadth-First Search (BFS)-Partition Crossover operator. To generate a child chromosome, the operator performs a BFS traversal over the first parent's active connection graph, starting from a random shard. It inherits active match connections along the BFS tree until it fills exactly half of the target edges. The remaining edges required to form a complete spanning tree are then inherited directly from the second parent’s active connections. This ensures the child obtains contiguous, topologically connected sub-assemblies from the parents.
 
 \subsubsection{Mutation}
-The algorithm utilizes several domain-aware mutation strategies executed probabilistically during reproduction. The base mutation rate $p_m$ is set dynamically; it defaults to $0.15$ but switches to a hyper-mutation rate of $0.40$ if the population's best fitness stagnates over successive generations, actively breaking the search out of local minima.
+The algorithm utilises several domain-aware mutation strategies executed probabilistically during reproduction. The base mutation rate $p_m$ is set dynamically; it defaults to $0.15$ but switches to a hyper-mutation rate of $0.40$ if the population’s best fitness stagnates over successive generations, actively breaking the search out of a local optimum.
 
 \begin{itemize}
-    \item \textbf{Neighborhood Mutate:} When triggered under the base mutation rate, this operator executes one of three local strategies with equal probability:
-    \begin{enumerate}
-        \item \emph{Candidate Switch:} Selects an active pair group and swaps its current match hypothesis for another candidate within the same group, selecting the new hypothesis via rank-based sampling on density.
-        \item \emph{Pair Switch:} Deactivates a randomly selected active edge, which temporarily breaks the spanning tree into two disconnected components. It then identifies all inactive candidate edges that bridge the two components and activates one (via rank-based sampling) to guarantee the assembly remains fully connected.
-        \item \emph{Triangle-Builder:} Exploits the inherent geometric structure of pottery by actively searching for triplet pairs that mutually agree with each other. It takes an active pair of sherds and searches for a third sherd where the available pairwise match hypotheses form a geometrically consistent loop (i.e., their relative transforms compose correctly). When such an agreeing triplet is found, the operator ensures that two of these three matching pairs are activated in the assembly, solidifying a structurally validated triad core without violating the spanning tree constraint.
-    \end{enumerate}
+\item \textbf{Neighborhood Mutate:} When triggered under the base mutation rate, this operator executes one of three local strategies with equal probability:
+\begin{enumerate}
+\item \emph{Candidate Switch:} Selects an active pair group and swaps its current match hypothesis for another candidate within the same group, selecting the new hypothesis via rank-based sampling on density.
+\item \emph{Pair Switch:} Deactivates a randomly selected active edge, which temporarily breaks the spanning tree into two disconnected components. It then identifies all inactive candidate edges that connect the two components and activates one (via rank-based sampling) to guarantee the assembly remains fully connected.
+\item \emph{Triangle-Builder:} Exploits the native geometric structure of pottery by actively searching for triplet pairs that mutually agree with each other. It takes an active pair of sherds and searches for a third sherd where the available pairwise match hypotheses form a geometrically consistent loop (i.e., their relative transforms compose correctly). When such an agreeing triplet is found, the operator makes certain that two of these three matching pairs are activated in the assembly, building a structurally validated triad core without violating the spanning tree constraint.
+\end{enumerate}
 
-    \item \textbf{Macro Mutate (Hyper-mutation):} If the algorithm enters the $p_m = 0.40$ hyper-mutation state, a massive, sherd-centric structural mutation occurs. A random target sherd is selected, and all of its active connections are completely severed. The algorithm then iterates through the fragmented components and systematically reconnects them using the highest-density available bridges, effectively forcing a structural reboot around the target sherd.
+\item \textbf{Macro Mutate (Hyper-mutation):} If the algorithm enters the $p_m = 0.40$ hyper-mutation state, a massive, sherd-centric structural mutation occurs. The algorithm selects a random target sherd and severs all its active connections. The algorithm then iterates through the fragmented components and systematically reconnects them using the highest-density available bridges, effectively forcing a structural reboot around the target sherd.
 
-    \item \textbf{Mass Extinction:} To escape deep local minima, if the population's best fitness stagnates for 15 generations, a reset is triggered. The entire population is wiped out and replaced with completely new, randomly initialized spanning trees, except for the elite chromosomes which are preserved to anchor the new search phase. If best fitness remains stagnated for 120 generations, the GA is terminated and best fitness is taken as our final solution.
+\item \textbf{Mass Extinction:} To escape local minima, if the population's best fitness stagnates for 15 generations, a reset is triggered. The entire population is wiped out and replaced with completely new, randomly initialised spanning trees, except for the elite chromosomes which are preserved to anchor the new search phase. If best fitness stagnates for 120 generations, the GA terminates, and we take the best fitness as the final solution.
+
 \end{itemize}
 
 \subsubsection{Elitism}
-The top $e = 10$ chromosomes are preserved directly into the next generation without modification, ensuring the best solution found is never lost.
+The top $e = 10$ chromosomes are carried over directly to the next generation without modification, making sure the best solution found is never lost.
 
 \section{Experimental Setup}
 \subsection{Dataset}
-We evaluate on the SfS++ benchmark dataset \cite{b2}, which contains 3D scanned pottery sherds from ten different archaeological pots (labeled A through J, shown in Fig.~\ref{fig_dataset}). Each sherd is represented as a point cloud with surface normals, breakline points, and rim segmentation. The ground truth graph $G^*$ and transforms $\{T_i^*\}$ are used to compute accuracy metrics.
+We evaluate on the SfS++ benchmark dataset \cite{b2}, which contains 3D scanned pottery sherds from ten different archaeological pots (labelled A through J, shown in Fig.~\ref{fig_dataset}). Each sherd is represented as a point cloud having surface normals, breakline points, and rim segmentation. We use the ground truth graph $G^*$ and transforms $\{T_i^*\}$ to compute accuracy metrics.
 
 \subsection{Evaluation Metrics}
 We report the standard SfS++ accuracy metrics:
 \begin{itemize}
-    \item \textbf{Sherd Accuracy (SA):} The percentage of correctly placed sherds over the total number of sherds. A sherd is considered correctly placed if at least one of its edges is placed correctly within a rotation threshold and translation threshold of the ground truth transform.
-    \item \textbf{Edge Accuracy (EA):} The percentage of correctly identified pairwise connections over the total number of ground truth connections across the entire assembly.
+\item \textbf{Sherd Accuracy (SA):} The percentage of correctly placed sherds over the total number of sherds. A sherd is considered correctly placed if at least one of its edges is placed correctly within a rotation threshold and translation threshold of the ground truth transform.
+\item \textbf{Edge Accuracy (EA):} The percentage of correctly identified pairwise connections over the total number of ground truth connections across the entire assembly.
 \end{itemize}
-
-
 
 \subsection{Hyperparameters}
 Table \ref{tab1} lists all GA hyperparameters used in our experiments.
@@ -208,7 +206,7 @@ Population size & 1000 & Supports large search spaces \\
 Early Termination & 120 gen & Exits upon sustained stagnation \\
 Elitism count & 10 & Preserves top 1\% solutions \\
 Base Mutation ($p_m$) & 0.15 & Steady local exploration \\
-Hyper-Mutation ($p_m$) & 0.40 & Escapes deep local minima \\
+Hyper-Mutation ($p_m$) & 0.40 & Escapes local minima \\
 Tournament size & 2 & Low selection pressure \\
 \hline
 $\lambda_{\text{comp}}$ & 500.0 & Strong component penalty \\
@@ -224,7 +222,7 @@ $h_{\min}$ & 2\% & Minimal overlap tolerance \\
 \end{table}
 
 \subsection{Execution Environment}
-All experiments were run using the default parameters defined in the codebase, which uses deterministic random number generation (seeded with 42) to ensure exact reproducibility.
+All experiments used the default parameters defined in the codebase, which uses deterministic random number generation (seeded with 42) to ensure exact reproducibility.
 
 \begin{table*}[htbp]
 \caption{Reconstruction Accuracy Across Multiple Potteries}
@@ -256,89 +254,89 @@ Pot J (11)  & 0.0  & 0.0  & 0.0   & 0.0  & 0.0   & 0.0  & 18.2  & 4.8   & \textb
 
 \section{Results}
 \subsection{Reconstruction Accuracy}
-Table \ref{tab2} compares our GA against baseline methods on the SfS++ benchmark. Our approach achieves 100\% Sherd Accuracy (SA) and Edge Accuracy (EA) on Pots A, B, C, F, and G, matching the state-of-the-art. On the remaining vessels (Pots D, E, H, I, and J), our GA produces competitive partial assemblies but lags behind SfS++. We analyze the reasons in Section V.
+Table \ref{tab2} compares our GA against standard methods on the SfS++ benchmark. Our solution achieves 100\% Sherd Accuracy (SA) and Edge Accuracy (EA) on Pots A, B, C, F, and G, matching up to the state of the art. On the remaining vessels (Pots D, E, H, I, and J), our GA produces competitive partial assemblies but lags behind SfS++. We analyse the reasons in Section V.
 
 \section{Discussion}
-\subsection{Rapid Convergence on Manageable Datasets}
-For datasets characterized by a smaller number of fragments (e.g., Pots A, B, C, F, and G), the combinatorial search space remains relatively manageable. On Pot A, for example, the algorithm efficiently navigates this compact search space and converges to the perfect ground-truth reconstruction almost instantly, as shown in the left panel of Figure \ref{fig_convergence}. The best fitness score improves from an initial $554.6$ at generation 0 to its global maximum of $592.6$ by generation 3. Such rapid convergence demonstrates that when the search space is sufficiently bounded by lower sherd counts, the evolutionary search easily discovers the optimal configuration in a minimal number of generations.
+\subsection{Fast Convergence on Manageable Datasets}
+For datasets characterised by a smaller number of fragments (e.g., Pots A, B, C, F, and G), the combinatorial search space remains manageable. On Pot A, for example, the algorithm rapidly explores this compact search space. It converges to the perfect ground-truth reconstruction almost instantly, as shown in the left panel of Figure \ref{fig_convergence}. The best fitness score improves from an initial $554.6$ at generation 0 to its global maximum of $592.6$ by generation 3. This fast convergence shows that when lower sherd counts sufficiently bound the search space, the evolutionary search quickly finds the best configuration in few generations.
 
 \begin{figure}[htbp]
 \centering
 \begin{minipage}{0.48\columnwidth}
-  \centering
-  \includegraphics[width=\linewidth]{pot_a_reconstructed00.png}
-  {\footnotesize (a) Pot A (Ours)}
+\centering
+\includegraphics[width=\linewidth]{pot_a_reconstructed00.png}
+{\footnotesize (a) Pot A (Ours)}
 \end{minipage}\hfill
 \begin{minipage}{0.48\columnwidth}
-  \centering
-  \includegraphics[width=\linewidth]{pot_a.png}
-  {\footnotesize (b) Pot A (GT)}
+\centering
+\includegraphics[width=\linewidth]{pot_a.png}
+{\footnotesize (b) Pot A (GT)}
 \end{minipage}
 
 \vspace{0.08cm}
 \begin{minipage}{0.48\columnwidth}
-  \centering
-  \includegraphics[width=\linewidth]{pot_f_reconstructed00.png}
-  {\footnotesize (c) Pot F (Ours)}
+\centering
+\includegraphics[width=\linewidth]{pot_f_reconstructed00.png}
+{\footnotesize (c) Pot F (Ours)}
 \end{minipage}\hfill
 \begin{minipage}{0.48\columnwidth}
-  \centering
-  \includegraphics[width=\linewidth]{pot_f.png}
-  {\footnotesize (d) Pot F (GT)}
+\centering
+\includegraphics[width=\linewidth]{pot_f.png}
+{\footnotesize (d) Pot F (GT)}
 \end{minipage}
-\caption{GA reconstructions (left) vs. ground truth (right) for Pots A and F (100\% SA and EA).}
+\caption{GA reconstructions (left) vs.\ ground truth (right) for Pots A and F (100\% SA and EA).}
 \label{fig_reconstructions_gt}
 \end{figure}
 
-As shown in Figure~\ref{fig_reconstructions_gt}, the final assemblies produced by our GA for Pots A and F align with the archaeological ground truth, confirming that the 100\% metric corresponds to a physically and visually consistent restoration.
+As shown in Figure~\ref{fig_reconstructions_gt}, the final assemblies produced by our GA for Pots A and F match the archaeological ground truth, confirming that the 100\% metric corresponds to a physically and visually consistent restoration.
 
 \subsection{Navigating Combinatorial Ambiguity in Complex Datasets}
 \begin{figure}[htbp]
 \centerline{\includegraphics[width=0.85\columnwidth]{convergence.png}}
-\caption{Fitness convergence over generations. Left: Rapid convergence on Pot A. Right: Prolonged plateauing on Pot E, with periodic crashes in average fitness due to mass extinction events.}
+\caption{Fitness convergence over generations. Left: Fast convergence on Pot A. Right: Prolonged plateauing on Pot E, with periodic crashes in average fitness due to mass extinction events.}
 \label{fig_convergence}
 \end{figure}
 
-When datasets are highly ambiguous or massively fractured, the GA exhibits a distinctly different convergence profile (Figure \ref{fig_convergence}). Using Pot E as a case study, the algorithm struggles to escape local optima, characterized by prolonged plateaus in the best fitness graph. While the best fitness gradually improves from $717.6$ at generation 0 to $1525.3$ by generation 172, it stalls at this plateau for the remainder of the run. Notably, the average fitness exhibits severe periodic crashes corresponding to the GA's mass extinction mechanism, which replaces a large portion of the population with newly randomized individuals every 15 generations of stagnation. 
+When datasets are highly ambiguous or massively fractured, the GA exhibits a distinctly different convergence profile (Figure \ref{fig_convergence}). Using Pot E as a case study, the algorithm struggles to avoid local optima, characterised by prolonged plateaus in the best fitness graph. While the best fitness gradually improves from $717.6$ at generation 0 to $1525.3$ by generation 172, it stalls at this plateau for the remainder of the run. Notably, the average fitness exhibits severe periodic crashes corresponding to the GA’s mass extinction mechanism, which replaces a large portion of the population with newly randomised individuals every 15 generations of stagnation.
 
 \begin{figure}[htbp]
 \centering
 \begin{minipage}{0.44\columnwidth}
-  \centering
-  \includegraphics[width=\linewidth]{snapshot_gen_0.png}
-  {\footnotesize Gen 0}
+\centering
+\includegraphics[width=\linewidth]{snapshot_gen_0.png}
+{\footnotesize Gen 0}
 \end{minipage}\hfill
 \begin{minipage}{0.44\columnwidth}
-  \centering
-  \includegraphics[width=\linewidth]{snapshot_gen_50.png}
-  {\footnotesize Gen 50}
+\centering
+\includegraphics[width=\linewidth]{snapshot_gen_50.png}
+{\footnotesize Gen 50}
 \end{minipage}
 
 \vspace{0.05cm}
 \begin{minipage}{0.44\columnwidth}
-  \centering
-  \includegraphics[width=\linewidth]{snapshot_gen_100.png}
-  {\footnotesize Gen 100}
+\centering
+\includegraphics[width=\linewidth]{snapshot_gen_100.png}
+{\footnotesize Gen 100}
 \end{minipage}\hfill
 \begin{minipage}{0.44\columnwidth}
-  \centering
-  \includegraphics[width=\linewidth]{snapshot_gen_175.png}
-  {\footnotesize Gen 175}
+\centering
+\includegraphics[width=\linewidth]{snapshot_gen_175.png}
+{\footnotesize Gen 175}
 \end{minipage}
 \caption{Pot E assembly at key generations. The GA builds visually coherent sub-components but converges to a false-positive global shape.}
 \label{fig_snapshots_e}
 \end{figure}
 
-During these plateaus, the GA constructs visually coherent but structurally flawed false-positive assemblies, as visualized in Figure \ref{fig_snapshots_e}. In fact, the final false-positive solution found by the GA scored a total fitness of $1525.31$, which is higher than the ground-truth assembly score of $1405.15$. This shows that the fitness landscape itself is deceptive: the GA converged to a configuration that maximized local inlier matches and avoided overlap penalties, yet diverged from the true global shape.
+During these plateaus, the GA constructs visually coherent but structurally flawed false-positive assemblies, as visualised in Figure \ref{fig_snapshots_e}. In fact, the final false-positive solution found by the GA scored a total fitness of $1525.31$, which is higher than the ground-truth assembly score of $1405.15$. This shows that the fitness landscape itself is deceptive: the GA converged to a configuration that maximised local inlier matches and avoided overlap penalties, yet strayed from the true global shape.
 
 \subsection{Upstream Limitations and Missing Ground Truth Pairs}
-Except for Pot E, where candidate pairs were present but the GA converged to a local optimum (Section V-B), failure to achieve 100\% accuracy on the remaining vessels (D, H, I, and J) stems from upstream matching. The initial pairwise matching and pruning failed to recover all ground-truth edges into the candidate pool. Without these pairs, complete reconstruction is mathematically impossible, forcing the GA to assemble the best scoring configuration available from incomplete input. This highlights a key bottleneck: global assembly is strictly bounded by upstream pairwise recall.
+Except for Pot E, where candidate pairs were present but the GA converged to a local optimum (Section V-B), failure to achieve 100\% accuracy on the remaining vessels (D, H, I, and J) stems from upstream matching. The initial pairwise matching and pruning failed to recover all ground-truth edges into the candidate pool. Without these pairs, complete reconstruction is mathematically impossible, forcing the GA to assemble the best-scoring configuration available from incomplete input. This highlights a key bottleneck: global assembly is strictly bounded by upstream pairwise recall.
 
 \subsection{Limitations and Future Work}
-The main limitation is the non-linear increase in runtime with larger fragment counts. While simpler vessels like Pot F and Pot G optimize in roughly two minutes (133s and 124s), Pot E (31 sherds) required 5.2 hours and Pot D (28 sherds) over 9 hours. Future work will focus on parallelizing fitness evaluations to scale to larger collections. A second limitation is the dependence on upstream pairwise matching; future extensions should explore joint optimization where the GA can actively query or refine candidate matches during assembly.
+The main limitation is the non-linear increase in runtime as fragment counts grow. While simpler vessels like Pot F and Pot G optimise in roughly two minutes (133s and 124s), Pot E (31 sherds) required 5.2 hours and Pot D (28 sherds) over 9 hours. Future work will focus on parallelising fitness evaluations to scale to larger collections. A second limitation is the dependence on upstream pairwise matching; future extensions should explore joint optimisation where the GA can actively query or refine candidate matches during assembly.
 
 \section{Conclusion}
-We presented SfS-GA, a genetic algorithm system for the 3D reassembly of axially symmetric pottery. Our population-based search achieves 100\% reconstruction accuracy on five benchmark vessels (Pots A, B, C, F, and G), converging rapidly on compact search spaces. On complex vessels, combinatorial growth leads to runtime scaling challenges and deceptive local optima, with accuracy bounded by upstream pairwise recall. These findings establish evolutionary optimization as a viable framework for 3D archaeological reassembly while outlining clear requirements for scalable full-vessel restoration.
+We presented SfS-GA, a genetic algorithm system for the 3D reassembly of axially symmetric pottery. Our population-based search achieves 100\% reconstruction accuracy on five benchmark vessels (Pots A, B, C, F, and G) and converges rapidly on compact search spaces. On complex vessels, combinatorial growth leads to runtime scaling challenges and deceptive local optima, with accuracy bounded by upstream pairwise recall. The results prove evolutionary optimisation as a viable framework for 3D archaeological reassembly while showing clear requirements for scalable full-vessel restoration.
 
 \bibliographystyle{IEEEtran}
 \bibliography{references}
