@@ -1,6 +1,4 @@
 #pragma once
-
-// Check # 01: Having both pragma once and this is redundant so the below two lines can be removed apparently
 #ifndef _GENETIC_ALGORITHM_H_
 #define _GENETIC_ALGORITHM_H_
 
@@ -27,12 +25,11 @@
 #include <ctime>
 #include <limits>
 
-// Check # 02: #include "data_structure.h" should also work
 #include "../class/data_structure.h"
 #include "../class/KDTree.h"
 #include "../class/reconstruction.h"
 
-// extern: there is a shard_on_off array somewhere in the codebase, I want to use it here, but I'm not defining it
+// Global sherd active mask defined in data_structure
 extern bool shard_on_off[];
 
 class GeneticAssembler {
@@ -919,7 +916,6 @@ private:
 
     //-----------------------------------------------------------------------------------------------------------------//
 
-    // Check # 13: The fitness function might need a thorough analysis again. Moreover, why are we not using functions in other files (feature_matchings, ranking_system, etc.) at all? We have only used LCS so far?
     double EvaluateFitness(const Chromosome& chromosome, FitnessBreakdown* breakdown = nullptr) const
     {
         if (breakdown != nullptr) {
@@ -967,12 +963,7 @@ private:
                 continue;
             }
 
-            // Check # 09: This fitness function might be incorrect. A higher inliner is better while a lower score is better which means that both contradict each other.
-            // fitness += static_cast<double>(lcs.inliner_) * lcs.score_;
-
-            // Implementing the above Check # 09:
-            // Higher inliers = better, lower score = better
-            // Invert score so both terms pull in the same direction
+            // Inlier / Edge density reward: higher inliers and lower LCS error increase fitness
             double selected_density = 0.0;
             if (use_inlier_score) {
                 selected_density = ComputeEdgeDensity(lcs, static_cast<int>(group_idx), local_idx, false);
@@ -1007,7 +998,7 @@ private:
             }
         }
 
-        // Check # 11: It can be tried to change the threshold or weight (currently -2.0) or re-verify the logic of this cycle consistency code
+        // Cycle consistency penalty (applicable if exploring non-tree multi-graphs)
         if (use_cycle_penalty) {
             double cycle_penalty = 0.0;
             const double cycle_threshold = 30.0;
@@ -1397,7 +1388,6 @@ private:
         }
 
         // Isolated valid sherds with no selected edges should still count as components.
-        // Check # 12: This loop might not be required because the above loop also handles those shards not connected with any other shards.
         for (int node = 0; node < num_shards_; ++node) {
             if (!IsShardValidAndOn(node) || visited[node]) {
                 continue;
@@ -1424,7 +1414,6 @@ private:
         std::uniform_int_distribution<int> dist(0, size - 1);
         int best_index = dist(rng_);
 
-        // Check # 13: The tournament size (2 here) can be experimented with...
         for (int i = 1; i < 2; ++i) {
             int candidate_index = dist(rng_);
             if (population_[candidate_index].fitness > population_[best_index].fitness) {
