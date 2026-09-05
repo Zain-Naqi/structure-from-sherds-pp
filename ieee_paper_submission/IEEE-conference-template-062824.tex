@@ -8,7 +8,8 @@
 \usepackage{graphicx}
 \usepackage{textcomp}
 \usepackage{xcolor}
-\usepackage{url}
+\usepackage[hyphens]{url}
+\newcommand{\hreflink}[2]{\leavevmode\pdfstartlink attr{/Border[0 0 0]} user{/Subtype/Link/A<</S/URI/URI(#1)>>}\relax{#2}\pdfendlink}
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 \begin{document}
@@ -41,7 +42,7 @@ Existing approaches to this problem range from geometric feature matching to dee
 
 Despite the breadth of these approaches, the application of evolutionary algorithms, which have shown tremendous success in massive 2D puzzle solvers, remains highly underexplored for 3D pottery. While isolated efforts have introduced genetic algorithms to 3D artifact restoration \cite{b17}, they rely on matching 2D image projections against known reference images, an approach that cannot scale to the blind geometric reassembly of unknown pottery. Consequently, applying population-based global optimization directly to 3D geometric fracture constraints is a largely open domain.
 
-In this paper, we focus on reconstructing individual axially symmetric pots where all sherds belong to the same pottery.\footnote{Source code and evaluation pipeline are available at: \url{https://github.com/placeholder/sfs-ga}} We build on the SfS++ pipeline, preserving its feature extraction and pairwise matching stages, and replace the BAISER beam search with our proposed evolutionary system, SfS-GA. Our primary objective is to evaluate whether population-based evolutionary search can navigate the combinatorial ambiguity of 3D reassembly more effectively than greedy search methods. By benchmarking SfS-GA directly against SfS++, we analyze its comparative reconstruction accuracy and computational cost to determine the viability of evolutionary algorithms in this domain.
+In this paper, we focus on reconstructing individual axially symmetric pots where all sherds belong to the same pottery.\footnote{Source code and evaluation pipeline are available at: \hreflink{https://github.com/TahaZahid05/sfs-ga}{\url{https://github.com/TahaZahid05/sfs-ga}}} We build on the SfS++ pipeline, preserving its feature extraction and pairwise matching stages, and replace the BAISER beam search with our proposed evolutionary system, SfS-GA. Our primary objective is to evaluate whether population-based evolutionary search can navigate the combinatorial ambiguity of 3D reassembly more effectively than greedy search methods. By benchmarking SfS-GA directly against SfS++, we analyze its comparative reconstruction accuracy and computational cost to determine the viability of evolutionary algorithms in this domain.
 
 The rest of this paper is organized as follows: Section II surveys related work in geometric matching, deep learning, parallel search, and genetic algorithms for fragment reassembly. Section III details our proposed GA methodology, including chromosome encoding, repair mechanisms, and fitness function components. Section IV describes the experimental setup and evaluation metrics. Section V presents our reconstruction results alongside a detailed discussion of convergence dynamics and limitations. Finally, Section VI concludes the paper.
 
